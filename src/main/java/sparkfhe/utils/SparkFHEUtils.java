@@ -42,6 +42,6 @@ public class SparkFHEUtils {
     }
 
     public static String decryptCtxt(String ctxt) {
-        return SparkFHE.decrypt(ctxt);
+        return SparkFHE.getInstance().decrypt(ctxt);
     }
 }
