@@ -16,3 +16,6 @@ Add this maven artifact as a dependency
 ```groovy
 compile group: 'sparkfhe', name: 'sparkfhe-utils', version: '1.0-SNAPSHOT'
 ```
+
+# Use remote maven repo
+More information, https://github.com/SpiRITlab/SparkMavenRepo
