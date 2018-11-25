@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
   
-mvn package
-mvn install
+mvn -DuniqueVersion=false package
+mvn -DuniqueVersion=false install
