@@ -1,4 +1,4 @@
-package sparkfhe.utils;
+package spiritlab.sparkfhe.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
