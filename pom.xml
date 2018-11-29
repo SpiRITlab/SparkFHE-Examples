@@ -5,49 +5,175 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>spiritlab.sparkfhe</groupId>
-  <artifactId>sparkfhe-utils</artifactId>
+  <artifactId>sparkfhe-example</artifactId>
   <version>1.0-SNAPSHOT</version>
-  <name>sparkfhe-utils</name>
+  <name>sparkfhe-example</name>
   <url>https://github.com/SpiRITlab/SparkFHEJava</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
+    <junit.jupiter.version>5.3.2</junit.jupiter.version>
+    <!--<sparkfhe.maven.repo>file://${project.basedir}/../SparkFHEMavenRepo</sparkfhe.maven.repo>-->
+    <sparkfhe.lib.path>lib</sparkfhe.lib.path>
+    <scala.binary.version>2.12</scala.binary.version>
+    <spark.version>3.0.0-SNAPSHOT</spark.version>
+    <scala.version>2.12.7</scala.version>
+    <fasterxml.jackson.version>2.9.6</fasterxml.jackson.version>
   </properties>
-  <distributionManagement>
-    <repository>
-      <id>release</id>
-      <url>file://${project.basedir}/../SparkMavenRepo</url>
-      <uniqueVersion>false</uniqueVersion>
-    </repository>
-    <snapshotRepository>
-      <id>snapshot</id>
-      <url>file://${project.basedir}/../SparkMavenRepo</url>
-      <uniqueVersion>true</uniqueVersion>
-    </snapshotRepository>
-  </distributionManagement>
+
+  <!--<distributionManagement>-->
+    <!--<repository>-->
+      <!--<id>release</id>-->
+      <!--<url>${sparkfhe.maven.repo}</url>-->
+      <!--<uniqueVersion>false</uniqueVersion>-->
+    <!--</repository>-->
+    <!--<snapshotRepository>-->
+      <!--<id>snapshot</id>-->
+      <!--<url>${sparkfhe.maven.repo}</url>-->
+      <!--<uniqueVersion>true</uniqueVersion>-->
+    <!--</snapshotRepository>-->
+  <!--</distributionManagement>-->
+
+  <!--<repositories>-->
+    <!--<repository>-->
+      <!--<id>sparkfhe-remote</id>-->
+      <!--<url>https://github.com/SpiRITlab/SparkFHEMavenRepo/blob/master</url>-->
+    <!--</repository>-->
+  <!--</repositories>-->
+
   <dependencies>
+    <!-- We will skip all junit5 tests by $> mvn package -Dmaven.test.skip=true -->
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.11</version>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>${junit.jupiter.version}</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>${junit.jupiter.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- =============== Spark dependency block =============== -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>${fasterxml.jackson.version}</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>2.8.11.1</version>
+      <version>${fasterxml.jackson.version}</version>
     </dependency>
     <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+      <version>${fasterxml.jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.module</groupId>
+      <artifactId>jackson-module-jaxb-annotations</artifactId>
+      <version>${fasterxml.jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.json4s</groupId>
+      <artifactId>json4s-jackson_${scala.binary.version}</artifactId>
+      <version>3.5.3</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-compiler</artifactId>
+      <version>${scala.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-reflect</artifactId>
+      <version>${scala.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-library</artifactId>
+      <version>${scala.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-actors</artifactId>
+      <version>2.11.12</version>
+    </dependency>
+    <dependency>
+      <groupId>org.scala-lang.modules</groupId>
+      <artifactId>scala-parser-combinators_${scala.binary.version}</artifactId>
+      <version>1.1.0</version>
+    </dependency>
+    <!-- =============== END of Spark dependency block =============== -->
+
+    <dependency>
+    <groupId>org.apache.spark</groupId>
+    <artifactId>spark-core_${scala.binary.version}</artifactId>
+    <version>${spark.version}</version>
+    <scope>compile</scope>
+    </dependency>
+    <dependency>
+    <groupId>org.apache.spark</groupId>
+    <artifactId>spark-sql_${scala.binary.version}</artifactId>
+    <version>${spark.version}</version>
+    <scope>compile</scope>
+    </dependency>
+    <dependency>
+    <groupId>org.apache.spark</groupId>
+    <artifactId>spark-catalyst_${scala.binary.version}</artifactId>
+    <version>${spark.version}</version>
+    <scope>compile</scope>
+    </dependency>
+    <dependency>
+    <groupId>org.apache.spark</groupId>
+    <artifactId>spark-launcher_${scala.binary.version}</artifactId>
+    <version>${spark.version}</version>
+    <scope>compile</scope>
+    </dependency>
+    <dependency>
+    <groupId>org.apache.spark</groupId>
+    <artifactId>spark-mllib_${scala.binary.version}</artifactId>
+    <version>${spark.version}</version>
+    <scope>compile</scope>
+    </dependency>
+    <dependency>
+    <groupId>org.apache.spark</groupId>
+    <artifactId>spark-mllib-local_${scala.binary.version}</artifactId>
+    <version>${spark.version}</version>
+    <scope>compile</scope>
+    </dependency>
+
+    <!-- default spark-hive package from maven central -->
+    <dependency>
+      <groupId>org.apache.spark</groupId>
+      <artifactId>spark-hive_2.12</artifactId>
+      <version>2.4.0</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
       <groupId>spiritlab.sparkfhe</groupId>
-      <artifactId>sparkfhe-swig</artifactId>
+      <artifactId>sparkfhe-api</artifactId>
       <version>1.0-SNAPSHOT</version>
+      <scope>compile</scope>
     </dependency>
   </dependencies>
 
   <build>
-    <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->
+    <outputDirectory>target/classes</outputDirectory>
+    <testOutputDirectory>target/test-classes</testOutputDirectory>
+    <!--<pluginManagement>&lt;!&ndash; lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) &ndash;&gt;-->
       <plugins>
         <plugin>
           <artifactId>maven-clean-plugin</artifactId>
@@ -59,16 +185,50 @@
           <version>3.0.2</version>
         </plugin>
         <plugin>
+          <groupId>com.googlecode.maven-download-plugin</groupId>
+          <artifactId>download-maven-plugin</artifactId>
+          <version>1.4.1</version>
+          <executions>
+            <execution>
+              <!-- the wget goal actually binds itself to this phase by default -->
+              <phase>process-resources</phase>
+              <goals>
+                <goal>wget</goal>
+              </goals>
+              <configuration>
+                <url>https://raw.githubusercontent.com/SpiRITlab/SparkMavenRepo/master/SparkFHElib/libSparkFHE.dylib</url>
+                <outputDirectory>${sparkfhe.lib.path}</outputDirectory>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
           <version>3.7.0</version>
+          <!--<configuration>-->
+            <!--<includes>-->
+              <!--<include>**/spiritlab/sparkfhe/*/*.java</include>-->
+            <!--</includes>-->
+          <!--</configuration>-->
         </plugin>
         <plugin>
           <artifactId>maven-surefire-plugin</artifactId>
           <version>2.20.1</version>
+          <configuration>
+            <systemPropertyVariables>
+              <java.library.path>${sparkfhe.lib.path}</java.library.path>
+            </systemPropertyVariables>
+            <argLine>-Djava.library.path=${sparkfhe.lib.path}</argLine>
+          </configuration>
         </plugin>
         <plugin>
           <artifactId>maven-jar-plugin</artifactId>
           <version>3.0.2</version>
+          <!--<configuration>-->
+            <!--<includes>-->
+              <!--<include>**/spiritlab/sparkfhe/*/*.class</include>-->
+            <!--</includes>-->
+          <!--</configuration>-->
         </plugin>
         <plugin>
           <artifactId>maven-install-plugin</artifactId>
@@ -79,6 +239,7 @@
           <version>2.8.2</version>
         </plugin>
         <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-source-plugin</artifactId>
           <executions>
             <execution>
@@ -89,7 +250,19 @@
             </execution>
           </executions>
         </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>attach-javadocs</id>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
       </plugins>
-    </pluginManagement>
+    <!--</pluginManagement>-->
   </build>
 </project>

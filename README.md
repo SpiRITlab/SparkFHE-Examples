@@ -1,5 +1,11 @@
 # SparkFHEJava
 
+Download the C++ SparkFHE shared library
+```
+mvn process-resources
+```
+
+
 Install to local maven repository with
 ```bash
 mvn install
