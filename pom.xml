@@ -43,6 +43,19 @@
       </properties>
     </profile>
     <profile>
+      <id>unix-amd64</id>
+      <activation>
+        <os>
+          <family>unix</family>
+          <name>linux</name>
+          <arch>amd64</arch>
+        </os>
+      </activation>
+      <properties>
+        <sparkfhe.lib.url>https://raw.githubusercontent.com/SpiRITlab/SparkMavenRepo/${sparkfhe.lib.rev}/SparkFHElib/libSparkFHE.so</sparkfhe.lib.url>
+      </properties>
+    </profile>
+    <profile>
       <id>mac-x86</id>
       <activation>
         <os>
@@ -295,9 +308,9 @@
               <configuration>
                 <rules>
                   <requireActiveProfile>
-                    <profiles>unix-x86,mac-x86</profiles>
+                    <profiles>unix-x86,unix-amd64,mac-x86</profiles>
                     <all>false</all>
-                    <message>Unsupported operating system. Currently only unix-x86 and mac-x86 are supported</message>
+                    <message>Unsupported operating system. Currently only unix-x86, unix-amd64, and mac-x86 are supported</message>
                   </requireActiveProfile>
                 </rules>
                 <fail>true</fail>
