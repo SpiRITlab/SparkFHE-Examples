@@ -1,4 +1,4 @@
-package spiritlab.sparkfhe.basic;
+package spiritlab.sparkfhe.example.basic;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -41,16 +41,16 @@ public class DotProductTest {
     @BeforeAll
     @DisplayName("Init before all tests")
     static void initAll() {
-        System.out.println(System.getProperty("java.library.path"));
+        System.out.println("libSparkFHE path: " + System.getProperty("java.library.path"));
         try {
             System.loadLibrary("SparkFHE");
         } catch (UnsatisfiedLinkError e) {
             System.err.println("Native code library failed to load. \n" + e);
             System.exit(1);
         }
-        System.out.println("Load native code library. \n");
+        System.out.println("Loaded native code library. \n");
 
-        sparkConf = new SparkConf().setAppName("SparkFHETest").setMaster("local");
+        sparkConf = new SparkConf().setAppName("DotProductTest").setMaster("local");
         spark = SparkSession.builder().config(sparkConf).getOrCreate();
         jsc = new JavaSparkContext(spark.sparkContext());
 

@@ -32,12 +32,14 @@ import spiritlab.sparkfhe.api.SparkFHE;
 public class ElementwiseProductExample {
 
     static {
+        System.out.println("libSparkFHE path: " + System.getProperty("java.library.path"));
         try {
             System.loadLibrary("SparkFHE");
         } catch (UnsatisfiedLinkError e) {
             System.err.println("Native code library failed to load. \n" + e);
             System.exit(1);
         }
+        System.out.println("Loaded native code library. \n");
     }
 
     private static String sparkfhe_path="../SparkFHE";
@@ -178,9 +180,8 @@ public class ElementwiseProductExample {
     }
 
     public static void main(String argv[]) {
-        /* Spark code for inner product */
-        int slices = 4;
-        SparkConf sparkConf = new SparkConf().setAppName("SparkFHETest").setMaster("local");
+        int slices = (argv.length == 1) ? Integer.parseInt(argv[0]) : 2;
+        SparkConf sparkConf = new SparkConf().setAppName("ElementwiseProductExample");
         SparkSession spark = SparkSession.builder().config(sparkConf).getOrCreate();
         JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());
 

@@ -25,12 +25,14 @@ import spiritlab.sparkfhe.api.FHE;
 
 public class FHEWordCountExample {
     static {
+        System.out.println("libSparkFHE path: " + System.getProperty("java.library.path"));
         try {
             System.loadLibrary("SparkFHE");
         } catch (UnsatisfiedLinkError e) {
             System.err.println("Native code library failed to load. \n" + e);
             System.exit(1);
         }
+        System.out.println("Loaded native code library. \n");
     }
 
     public static String bytesToHex(byte[] bytes) {
