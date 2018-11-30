@@ -9,7 +9,7 @@ import org.apache.spark.sql.Encoder;
 import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.SparkSession;
 import org.junit.jupiter.api.*;
-import spiritlab.sparkfhe.api.Config;
+import spiritlab.sparkfhe.api.FHELibrary;
 import spiritlab.sparkfhe.api.SparkFHE;
 import spiritlab.sparkfhe.api.CtxtString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -47,7 +47,7 @@ public class BasicOPsTest {
         spark = SparkSession.builder().config(sparkConf).getOrCreate();
         jsc = new JavaSparkContext(spark.sparkContext());
 
-        SparkFHE.init(Config.HELIB, sparkfhe_path + "/bin/keys/public_key.txt", sparkfhe_path + "/bin/keys/secret_key.txt");
+        SparkFHE.init(FHELibrary.HELIB, sparkfhe_path + "/bin/keys/public_key.txt", sparkfhe_path + "/bin/keys/secret_key.txt");
     }
 
     @BeforeEach

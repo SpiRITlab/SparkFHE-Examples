@@ -6,7 +6,7 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.*;
 import spiritlab.sparkfhe.api.SparkFHE;
-import spiritlab.sparkfhe.api.Config;
+import spiritlab.sparkfhe.api.FHELibrary;
 import spiritlab.sparkfhe.api.CtxtString;
 
 public class BasicOPsExample {
@@ -75,7 +75,7 @@ public class BasicOPsExample {
         SparkSession spark = SparkSession.builder().config(sparkConf).getOrCreate();
         JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());
 
-        SparkFHE.init(Config.HELIB,  sparkfhe_path + "/bin/keys/public_key.txt", sparkfhe_path + "/bin/keys/secret_key.txt");
+        SparkFHE.init(FHELibrary.HELIB,  sparkfhe_path + "/bin/keys/public_key.txt", sparkfhe_path + "/bin/keys/secret_key.txt");
 
         test_basic_op();
         test_FHE_basic_op(spark, slices);

@@ -14,7 +14,7 @@ import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructType;
 import scala.Tuple2;
 import spiritlab.sparkfhe.api.SparkFHE;
-import spiritlab.sparkfhe.api.Config;
+import spiritlab.sparkfhe.api.FHELibrary;
 import spiritlab.sparkfhe.api.StringVector;
 import spiritlab.sparkfhe.api.CtxtString;
 
@@ -214,7 +214,7 @@ public class DotProductExample {
         SparkSession spark = SparkSession.builder().config(sparkConf).getOrCreate();
         JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());
 
-        SparkFHE.init(Config.HELIB, sparkfhe_path + "/bin/keys/public_key.txt", sparkfhe_path + "/bin/keys/secret_key.txt");
+        SparkFHE.init(FHELibrary.HELIB, sparkfhe_path + "/bin/keys/public_key.txt", sparkfhe_path + "/bin/keys/secret_key.txt");
 
         test_basic_dot_product(jsc, slices);
         test_FHE_dot_product_via_lambda(spark, slices);

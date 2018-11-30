@@ -23,7 +23,9 @@ import org.apache.spark.api.java.JavaRDD;
 import scala.runtime.AbstractFunction2;
 import scala.runtime.BoxedUnit;
 import static spiritlab.sparkfhe.api.Ciphertext.*;
-import spiritlab.sparkfhe.api.Config;
+
+import spiritlab.sparkfhe.api.FHE;
+import spiritlab.sparkfhe.api.FHELibrary;
 import spiritlab.sparkfhe.api.SparkFHE;
 // $example off$
 
@@ -182,7 +184,7 @@ public class ElementwiseProductExample {
         SparkSession spark = SparkSession.builder().config(sparkConf).getOrCreate();
         JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());
 
-        SparkFHE.init(Config.HELIB, sparkfhe_path + "/bin/keys/public_key.txt", sparkfhe_path + "/bin/keys/secret_key.txt");
+        SparkFHE.init(FHELibrary.HELIB, sparkfhe_path + "/bin/keys/public_key.txt", sparkfhe_path + "/bin/keys/secret_key.txt");
 
         RunCtxtExample(spark);
 
