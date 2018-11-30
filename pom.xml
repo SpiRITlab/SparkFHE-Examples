@@ -16,12 +16,41 @@
     <maven.compiler.target>1.8</maven.compiler.target>
     <junit.jupiter.version>5.3.2</junit.jupiter.version>
     <sparkfhe.maven.repo>file://${project.basedir}/../../SparkFHEMavenRepo</sparkfhe.maven.repo>
+
+    <sparkfhe.lib.rev>master</sparkfhe.lib.rev>
     <sparkfhe.lib.path>lib</sparkfhe.lib.path>
+
     <scala.binary.version>2.12</scala.binary.version>
     <spark.version>3.0.0-SNAPSHOT</spark.version>
     <scala.version>2.12.7</scala.version>
     <fasterxml.jackson.version>2.9.6</fasterxml.jackson.version>
   </properties>
+  <profiles>
+    <profile>
+      <id>linux-x86</id>
+      <activation>
+        <os>
+          <family>linux</family>
+          <arch>x86</arch>
+        </os>
+      </activation>
+      <properties>
+        <sparkfhe.lib.url>https://raw.githubusercontent.com/SpiRITlab/SparkMavenRepo/${sparkfhe.lib.rev}/SparkFHElib/libSparkFHE.so</sparkfhe.lib.url>
+      </properties>
+    </profile>
+    <profile>
+      <id>mac-x86</id>
+      <activation>
+        <os>
+          <family>mac</family>
+          <arch>x86</arch>
+        </os>
+      </activation>
+      <properties>
+        <sparkfhe.lib.url>https://raw.githubusercontent.com/SpiRITlab/SparkMavenRepo/${sparkfhe.lib.rev}/SparkFHElib/libSparkFHE.dylib</sparkfhe.lib.url>
+      </properties>
+    </profile>
+  </profiles>
 
   <!--<distributionManagement>-->
     <!--<repository>-->
@@ -201,7 +230,7 @@
                 <goal>wget</goal>
               </goals>
               <configuration>
-                <url>https://raw.githubusercontent.com/SpiRITlab/SparkMavenRepo/master/SparkFHElib/libSparkFHE.dylib</url>
+                <url>${sparkfhe.lib.url}</url>
                 <outputDirectory>${sparkfhe.lib.path}</outputDirectory>
               </configuration>
             </execution>
@@ -267,7 +296,31 @@
             </execution>
           </executions>
         </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-enforcer-plugin</artifactId>
+          <version>3.0.0</version>
+          <executions>
+            <execution>
+              <id>enforce-valid-os</id>
+              <goals>
+                <goal>enforce</goal>
+              </goals>
+              <configuration>
+                <rules>
+                  <requireActiveProfile>
+                    <profiles>linux-x86,mac-x86</profiles>
+                    <all>false</all>
+                    <message>Unsupported operating system. Currently only linux x86 and mac x86 are supported</message>
+                  </requireActiveProfile>
+                </rules>
+                <fail>true</fail>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
       </plugins>
     <!--</pluginManagement>-->
   </build>
+
 </project>
