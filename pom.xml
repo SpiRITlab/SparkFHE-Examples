@@ -15,7 +15,7 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <junit.jupiter.version>5.3.2</junit.jupiter.version>
-    <!--<sparkfhe.maven.repo>file://${project.basedir}/../SparkFHEMavenRepo</sparkfhe.maven.repo>-->
+    <sparkfhe.maven.repo>file://${project.basedir}/../../SparkFHEMavenRepo</sparkfhe.maven.repo>
     <sparkfhe.lib.path>lib</sparkfhe.lib.path>
     <scala.binary.version>2.12</scala.binary.version>
     <spark.version>3.0.0-SNAPSHOT</spark.version>
@@ -36,12 +36,17 @@
     <!--</snapshotRepository>-->
   <!--</distributionManagement>-->
 
-  <!--<repositories>-->
+  <repositories>
     <!--<repository>-->
-      <!--<id>sparkfhe-remote</id>-->
-      <!--<url>https://github.com/SpiRITlab/SparkFHEMavenRepo/blob/master</url>-->
+      <!--<id>sparkfhe-local</id>-->
+      <!--<url>${sparkfhe.maven.repo}</url>-->
     <!--</repository>-->
-  <!--</repositories>-->
+    <repository>
+      <id>sparkfhe-remote</id>
+      <url>https://raw.githubusercontent.com/SpiRITlab/SparkMavenRepo/master</url>
+
+    </repository>
+  </repositories>
 
   <dependencies>
     <!-- We will skip all junit5 tests by $> mvn package -Dmaven.test.skip=true -->
@@ -59,62 +64,62 @@
     </dependency>
 
     <!-- =============== Spark dependency block =============== -->
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-core</artifactId>
-      <version>${fasterxml.jackson.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
-      <version>${fasterxml.jackson.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-annotations</artifactId>
-      <version>${fasterxml.jackson.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.module</groupId>
-      <artifactId>jackson-module-jaxb-annotations</artifactId>
-      <version>${fasterxml.jackson.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.json4s</groupId>
-      <artifactId>json4s-jackson_${scala.binary.version}</artifactId>
-      <version>3.5.3</version>
-      <exclusions>
-        <exclusion>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.scala-lang</groupId>
-      <artifactId>scala-compiler</artifactId>
-      <version>${scala.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.scala-lang</groupId>
-      <artifactId>scala-reflect</artifactId>
-      <version>${scala.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.scala-lang</groupId>
-      <artifactId>scala-library</artifactId>
-      <version>${scala.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.scala-lang</groupId>
-      <artifactId>scala-actors</artifactId>
-      <version>2.11.12</version>
-    </dependency>
-    <dependency>
-      <groupId>org.scala-lang.modules</groupId>
-      <artifactId>scala-parser-combinators_${scala.binary.version}</artifactId>
-      <version>1.1.0</version>
-    </dependency>
+    <!--<dependency>-->
+      <!--<groupId>com.fasterxml.jackson.core</groupId>-->
+      <!--<artifactId>jackson-core</artifactId>-->
+      <!--<version>${fasterxml.jackson.version}</version>-->
+    <!--</dependency>-->
+    <!--<dependency>-->
+      <!--<groupId>com.fasterxml.jackson.core</groupId>-->
+      <!--<artifactId>jackson-databind</artifactId>-->
+      <!--<version>${fasterxml.jackson.version}</version>-->
+    <!--</dependency>-->
+    <!--<dependency>-->
+      <!--<groupId>com.fasterxml.jackson.core</groupId>-->
+      <!--<artifactId>jackson-annotations</artifactId>-->
+      <!--<version>${fasterxml.jackson.version}</version>-->
+    <!--</dependency>-->
+    <!--<dependency>-->
+      <!--<groupId>com.fasterxml.jackson.module</groupId>-->
+      <!--<artifactId>jackson-module-jaxb-annotations</artifactId>-->
+      <!--<version>${fasterxml.jackson.version}</version>-->
+    <!--</dependency>-->
+    <!--<dependency>-->
+      <!--<groupId>org.json4s</groupId>-->
+      <!--<artifactId>json4s-jackson_${scala.binary.version}</artifactId>-->
+      <!--<version>3.5.3</version>-->
+      <!--<exclusions>-->
+        <!--<exclusion>-->
+          <!--<groupId>com.fasterxml.jackson.core</groupId>-->
+          <!--<artifactId>*</artifactId>-->
+        <!--</exclusion>-->
+      <!--</exclusions>-->
+    <!--</dependency>-->
+    <!--<dependency>-->
+      <!--<groupId>org.scala-lang</groupId>-->
+      <!--<artifactId>scala-compiler</artifactId>-->
+      <!--<version>${scala.version}</version>-->
+    <!--</dependency>-->
+    <!--<dependency>-->
+      <!--<groupId>org.scala-lang</groupId>-->
+      <!--<artifactId>scala-reflect</artifactId>-->
+      <!--<version>${scala.version}</version>-->
+    <!--</dependency>-->
+    <!--<dependency>-->
+      <!--<groupId>org.scala-lang</groupId>-->
+      <!--<artifactId>scala-library</artifactId>-->
+      <!--<version>${scala.version}</version>-->
+    <!--</dependency>-->
+    <!--<dependency>-->
+      <!--<groupId>org.scala-lang</groupId>-->
+      <!--<artifactId>scala-actors</artifactId>-->
+      <!--<version>2.11.12</version>-->
+    <!--</dependency>-->
+    <!--<dependency>-->
+      <!--<groupId>org.scala-lang.modules</groupId>-->
+      <!--<artifactId>scala-parser-combinators_${scala.binary.version}</artifactId>-->
+      <!--<version>1.1.0</version>-->
+    <!--</dependency>-->
     <!-- =============== END of Spark dependency block =============== -->
 
     <dependency>
