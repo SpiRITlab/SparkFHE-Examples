@@ -15,7 +15,7 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <junit.jupiter.version>5.3.2</junit.jupiter.version>
-    <sparkfhe.maven.repo>file://${project.basedir}/../../SparkFHEMavenRepo</sparkfhe.maven.repo>
+    <sparkfhe.maven.repo>file://${project.basedir}/../SparkFHEMavenRepo</sparkfhe.maven.repo>
 
     <sparkfhe.lib.rev>master</sparkfhe.lib.rev>
     <sparkfhe.lib.path>lib</sparkfhe.lib.path>
@@ -25,13 +25,17 @@
     <scala.version>2.12.7</scala.version>
     <fasterxml.jackson.version>2.9.6</fasterxml.jackson.version>
   </properties>
+
+  <!-- use the following commands to determine the correct profile -->
+  <!-- mvn help:active-profiles | grep -v INFO -->
   <profiles>
     <profile>
-      <id>linux-x86</id>
+      <id>unix-x86</id>
       <activation>
         <os>
-          <family>linux</family>
-          <arch>x86</arch>
+          <family>unix</family>
+          <name>Linux</name>
+          <arch>x86_64</arch>
         </os>
       </activation>
       <properties>
@@ -43,7 +47,8 @@
       <activation>
         <os>
           <family>mac</family>
-          <arch>x86</arch>
+          <name>mac os x</name>
+          <arch>x86_64</arch>
         </os>
       </activation>
       <properties>
@@ -52,28 +57,23 @@
     </profile>
   </profiles>
 
-  <!--<distributionManagement>-->
-    <!--<repository>-->
-      <!--<id>release</id>-->
-      <!--<url>${sparkfhe.maven.repo}</url>-->
-      <!--<uniqueVersion>false</uniqueVersion>-->
-    <!--</repository>-->
-    <!--<snapshotRepository>-->
-      <!--<id>snapshot</id>-->
-      <!--<url>${sparkfhe.maven.repo}</url>-->
-      <!--<uniqueVersion>true</uniqueVersion>-->
-    <!--</snapshotRepository>-->
-  <!--</distributionManagement>-->
+  <distributionManagement>
+    <repository>
+      <id>release</id>
+      <url>${sparkfhe.maven.repo}</url>
+      <uniqueVersion>false</uniqueVersion>
+    </repository>
+    <snapshotRepository>
+      <id>snapshot</id>
+      <url>${sparkfhe.maven.repo}</url>
+      <uniqueVersion>true</uniqueVersion>
+    </snapshotRepository>
+  </distributionManagement>
 
   <repositories>
-    <!--<repository>-->
-      <!--<id>sparkfhe-local</id>-->
-      <!--<url>${sparkfhe.maven.repo}</url>-->
-    <!--</repository>-->
     <repository>
       <id>sparkfhe-remote</id>
       <url>https://raw.githubusercontent.com/SpiRITlab/SparkMavenRepo/master</url>
-
     </repository>
   </repositories>
 
@@ -93,63 +93,62 @@
     </dependency>
 
     <!-- =============== Spark dependency block =============== -->
-    <!--<dependency>-->
-      <!--<groupId>com.fasterxml.jackson.core</groupId>-->
-      <!--<artifactId>jackson-core</artifactId>-->
-      <!--<version>${fasterxml.jackson.version}</version>-->
-    <!--</dependency>-->
-    <!--<dependency>-->
-      <!--<groupId>com.fasterxml.jackson.core</groupId>-->
-      <!--<artifactId>jackson-databind</artifactId>-->
-      <!--<version>${fasterxml.jackson.version}</version>-->
-    <!--</dependency>-->
-    <!--<dependency>-->
-      <!--<groupId>com.fasterxml.jackson.core</groupId>-->
-      <!--<artifactId>jackson-annotations</artifactId>-->
-      <!--<version>${fasterxml.jackson.version}</version>-->
-    <!--</dependency>-->
-    <!--<dependency>-->
-      <!--<groupId>com.fasterxml.jackson.module</groupId>-->
-      <!--<artifactId>jackson-module-jaxb-annotations</artifactId>-->
-      <!--<version>${fasterxml.jackson.version}</version>-->
-    <!--</dependency>-->
-    <!--<dependency>-->
-      <!--<groupId>org.json4s</groupId>-->
-      <!--<artifactId>json4s-jackson_${scala.binary.version}</artifactId>-->
-      <!--<version>3.5.3</version>-->
-      <!--<exclusions>-->
-        <!--<exclusion>-->
-          <!--<groupId>com.fasterxml.jackson.core</groupId>-->
-          <!--<artifactId>*</artifactId>-->
-        <!--</exclusion>-->
-      <!--</exclusions>-->
-    <!--</dependency>-->
-    <!--<dependency>-->
-      <!--<groupId>org.scala-lang</groupId>-->
-      <!--<artifactId>scala-compiler</artifactId>-->
-      <!--<version>${scala.version}</version>-->
-    <!--</dependency>-->
-    <!--<dependency>-->
-      <!--<groupId>org.scala-lang</groupId>-->
-      <!--<artifactId>scala-reflect</artifactId>-->
-      <!--<version>${scala.version}</version>-->
-    <!--</dependency>-->
-    <!--<dependency>-->
-      <!--<groupId>org.scala-lang</groupId>-->
-      <!--<artifactId>scala-library</artifactId>-->
-      <!--<version>${scala.version}</version>-->
-    <!--</dependency>-->
-    <!--<dependency>-->
-      <!--<groupId>org.scala-lang</groupId>-->
-      <!--<artifactId>scala-actors</artifactId>-->
-      <!--<version>2.11.12</version>-->
-    <!--</dependency>-->
-    <!--<dependency>-->
-      <!--<groupId>org.scala-lang.modules</groupId>-->
-      <!--<artifactId>scala-parser-combinators_${scala.binary.version}</artifactId>-->
-      <!--<version>1.1.0</version>-->
-    <!--</dependency>-->
-    <!-- =============== END of Spark dependency block =============== -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>${fasterxml.jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${fasterxml.jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+      <version>${fasterxml.jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.module</groupId>
+      <artifactId>jackson-module-jaxb-annotations</artifactId>
+      <version>${fasterxml.jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.json4s</groupId>
+      <artifactId>json4s-jackson_${scala.binary.version}</artifactId>
+      <version>3.5.3</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-compiler</artifactId>
+      <version>${scala.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-reflect</artifactId>
+      <version>${scala.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-library</artifactId>
+      <version>${scala.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.scala-lang</groupId>
+      <artifactId>scala-actors</artifactId>
+      <version>2.11.12</version>
+    </dependency>
+    <dependency>
+      <groupId>org.scala-lang.modules</groupId>
+      <artifactId>scala-parser-combinators_${scala.binary.version}</artifactId>
+      <version>1.1.0</version>
+    </dependency>
 
     <dependency>
     <groupId>org.apache.spark</groupId>
@@ -187,14 +186,13 @@
     <version>${spark.version}</version>
     <scope>compile</scope>
     </dependency>
-
-    <!-- default spark-hive package from maven central -->
     <dependency>
       <groupId>org.apache.spark</groupId>
-      <artifactId>spark-hive_2.12</artifactId>
-      <version>2.4.0</version>
+      <artifactId>spark-hive_${scala.binary.version}</artifactId>
+      <version>${spark.version}</version>
       <scope>compile</scope>
     </dependency>
+    <!-- =============== END of Spark dependency block =============== -->
 
     <dependency>
       <groupId>spiritlab.sparkfhe</groupId>
@@ -207,13 +205,11 @@
   <build>
     <outputDirectory>target/classes</outputDirectory>
     <testOutputDirectory>target/test-classes</testOutputDirectory>
-    <!--<pluginManagement>&lt;!&ndash; lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) &ndash;&gt;-->
       <plugins>
         <plugin>
           <artifactId>maven-clean-plugin</artifactId>
           <version>3.0.0</version>
         </plugin>
-        <!-- see http://maven.apache.org/ref/current/maven-core/default-bindings.html#Plugin_bindings_for_jar_packaging -->
         <plugin>
           <artifactId>maven-resources-plugin</artifactId>
           <version>3.0.2</version>
@@ -239,11 +235,6 @@
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
           <version>3.7.0</version>
-          <!--<configuration>-->
-            <!--<includes>-->
-              <!--<include>**/spiritlab/sparkfhe/*/*.java</include>-->
-            <!--</includes>-->
-          <!--</configuration>-->
         </plugin>
         <plugin>
           <artifactId>maven-surefire-plugin</artifactId>
@@ -258,11 +249,6 @@
         <plugin>
           <artifactId>maven-jar-plugin</artifactId>
           <version>3.0.2</version>
-          <!--<configuration>-->
-            <!--<includes>-->
-              <!--<include>**/spiritlab/sparkfhe/*/*.class</include>-->
-            <!--</includes>-->
-          <!--</configuration>-->
         </plugin>
         <plugin>
           <artifactId>maven-install-plugin</artifactId>
@@ -309,9 +295,9 @@
               <configuration>
                 <rules>
                   <requireActiveProfile>
-                    <profiles>linux-x86,mac-x86</profiles>
+                    <profiles>unix-x86,mac-x86</profiles>
                     <all>false</all>
-                    <message>Unsupported operating system. Currently only linux x86 and mac x86 are supported</message>
+                    <message>Unsupported operating system. Currently only unix-x86 and mac-x86 are supported</message>
                   </requireActiveProfile>
                 </rules>
                 <fail>true</fail>
@@ -320,7 +306,6 @@
           </executions>
         </plugin>
       </plugins>
-    <!--</pluginManagement>-->
   </build>
 
 </project>

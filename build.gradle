@@ -1,4 +1,3 @@
-// add -Djava.library.path="../../../lib" to VM option to load the native library
 version '1.0-SNAPSHOT'
 apply plugin: 'application'
 
@@ -21,7 +20,7 @@ repositories {
 }
 
 run {
-    systemProperty "java.library.path", 'lib'  // IDE VM option: -Djava.library.path="../../../lib"
+    systemProperty "java.library.path", 'lib'  // IDE VM option: -Djava.library.path="lib"
     //systemProperty "log4j.configuration","file:log4j.properties"
 }
 
@@ -45,17 +44,19 @@ sourceSets {
 }
 
 dependencies {
-    /* Modified packages from https://github.com/SpiRITlab/SparkMavenRepo */
+    /* Modified Spark packages from https://github.com/SpiRITlab/SparkMavenRepo */
     def scala_snapshot_version='2.12'
     def spark_snapshot_version='3.0.0'
     compile group: 'org.apache.spark', name: "spark-core_${scala_snapshot_version}", version: "${spark_snapshot_version}-SNAPSHOT"
     compile group: 'org.apache.spark', name: "spark-streaming_${scala_snapshot_version}", version: "${spark_snapshot_version}-SNAPSHOT"
     compile group: 'org.apache.spark', name: "spark-sql_${scala_snapshot_version}", version: "${spark_snapshot_version}-SNAPSHOT"
+    compile group: 'org.apache.spark', name: "spark-hive_${scala_snapshot_version}", version: "${spark_snapshot_version}-SNAPSHOT"
     compile group: 'org.apache.spark', name: "spark-graphx_${scala_snapshot_version}", version: "${spark_snapshot_version}-SNAPSHOT"
     compile group: 'org.apache.spark', name: "spark-catalyst_${scala_snapshot_version}", version: "${spark_snapshot_version}-SNAPSHOT"
     compile group: 'org.apache.spark', name: "spark-launcher_${scala_snapshot_version}", version: "${spark_snapshot_version}-SNAPSHOT"
     compile group: 'org.apache.spark', name: "spark-mllib_${scala_snapshot_version}", version: "${spark_snapshot_version}-SNAPSHOT"
     compile group: 'org.apache.spark', name: "spark-mllib-local_${scala_snapshot_version}", version: "${spark_snapshot_version}-SNAPSHOT"
+
 
     // Default Spark packages from MavenCentral
     def scala_stable_version='2.12'
@@ -63,15 +64,12 @@ dependencies {
 //    compile group: 'org.apache.spark', name: "spark-core_${scala_stable_version}", version: "${spark_stable_version}"
 //    compile group: 'org.apache.spark', name: "spark-streaming_${scala_stable_version}", version: "${spark_stable_version}"
 //    compile group: 'org.apache.spark', name: "spark-sql_${scala_stable_version}", version: "${spark_stable_version}"
+//    compile group: 'org.apache.spark', name: "spark-hive_${scala_stable_version}", version: "${spark_stable_version}"
 //    compile group: 'org.apache.spark', name: "spark-graphx_${scala_stable_version}", version: "${spark_stable_version}"
 //    compile group: 'org.apache.spark', name: "spark-catalyst_${scala_stable_version}", version: "${spark_stable_version}"
 //    compile group: 'org.apache.spark', name: "spark-launcher_${scala_stable_version}", version: "${spark_stable_version}"
 //    compile group: 'org.apache.spark', name: "spark-mllib_${scala_stable_version}", version: "${spark_stable_version}"
 //    compile group: 'org.apache.spark', name: "spark-mllib-local_${scala_stable_version}", version: "${spark_stable_version}"
-
-
-// hive import older version of spark packages, so we use the official version for now
-    compile group: 'org.apache.spark', name: "spark-hive_${scala_stable_version}", version: "${spark_stable_version}"
 
 
     /* others */
