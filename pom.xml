@@ -18,7 +18,8 @@
     <sparkfhe.maven.repo>file://${project.basedir}/../SparkFHEMavenRepo</sparkfhe.maven.repo>
 
     <sparkfhe.lib.rev>master</sparkfhe.lib.rev>
-    <sparkfhe.lib.path>lib</sparkfhe.lib.path>
+    <sparkfhe.lib.url.base>https://raw.githubusercontent.com/SpiRITlab/SparkMavenRepo/${sparkfhe.lib.rev}/libSparkFHE</sparkfhe.lib.url.base>
+    <downloaded.sparkfhe.lib.path>libSparkFHE/lib</downloaded.sparkfhe.lib.path>
 
     <scala.binary.version>2.12</scala.binary.version>
     <spark.version>3.0.0-SNAPSHOT</spark.version>
@@ -39,7 +40,7 @@
         </os>
       </activation>
       <properties>
-        <sparkfhe.lib.url>https://raw.githubusercontent.com/SpiRITlab/SparkMavenRepo/${sparkfhe.lib.rev}/SparkFHElib/libSparkFHE.so</sparkfhe.lib.url>
+        <sparkfhe.lib.url>${sparkfhe.lib.url.base}/libSparkFHE-unix-x86_64.zip</sparkfhe.lib.url>
       </properties>
     </profile>
     <profile>
@@ -52,7 +53,7 @@
         </os>
       </activation>
       <properties>
-        <sparkfhe.lib.url>https://raw.githubusercontent.com/SpiRITlab/SparkMavenRepo/${sparkfhe.lib.rev}/SparkFHElib/libSparkFHE.so</sparkfhe.lib.url>
+        <sparkfhe.lib.url>${sparkfhe.lib.url.base}/libSparkFHE-unix-amd64.zip</sparkfhe.lib.url>
       </properties>
     </profile>
     <profile>
@@ -65,7 +66,7 @@
         </os>
       </activation>
       <properties>
-        <sparkfhe.lib.url>https://raw.githubusercontent.com/SpiRITlab/SparkMavenRepo/${sparkfhe.lib.rev}/SparkFHElib/libSparkFHE.dylib</sparkfhe.lib.url>
+        <sparkfhe.lib.url>${sparkfhe.lib.url.base}/libSparkFHE-mac-x86_64.zip</sparkfhe.lib.url>
       </properties>
     </profile>
   </profiles>
@@ -240,7 +241,8 @@
               </goals>
               <configuration>
                 <url>${sparkfhe.lib.url}</url>
-                <outputDirectory>${sparkfhe.lib.path}</outputDirectory>
+                <outputDirectory>${downloaded.sparkfhe.lib.path}</outputDirectory>
+                <unpack>true</unpack>
               </configuration>
             </execution>
           </executions>
@@ -255,9 +257,9 @@
           <version>3.0.0-M1</version>
           <configuration>
             <systemPropertyVariables>
-              <java.library.path>${sparkfhe.lib.path}</java.library.path>
+              <java.library.path>${downloaded.sparkfhe.lib.path}</java.library.path>
             </systemPropertyVariables>
-            <argLine>-Djava.library.path=${sparkfhe.lib.path}</argLine>
+            <argLine>-Djava.library.path=${downloaded.sparkfhe.lib.path}</argLine>
             <!-- DONT DO PARALLEL TESTS -->
           </configuration>
         </plugin>
@@ -317,6 +319,24 @@
                 </rules>
                 <fail>true</fail>
               </configuration>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <artifactId>maven-antrun-plugin</artifactId>
+          <version>1.8</version>
+          <executions>
+            <execution>
+              <phase>package</phase>
+              <configuration>
+                <tasks>
+                  <echo message="unzipping libSparkFHE" />
+                  <unzip src="libSparkFHE/libSparkFHE-*-*.zip" dest="libSparkFHE/" />
+                </tasks>
+              </configuration>
+              <goals>
+                <goal>run</goal>
+              </goals>
             </execution>
           </executions>
         </plugin>
