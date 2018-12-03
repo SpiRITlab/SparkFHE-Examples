@@ -18,7 +18,7 @@
     <sparkfhe.maven.repo>file://${project.basedir}/../SparkFHEMavenRepo</sparkfhe.maven.repo>
 
     <sparkfhe.lib.rev>master</sparkfhe.lib.rev>
-    <sparkfhe.lib.url.base>https://raw.githubusercontent.com/SpiRITlab/SparkMavenRepo/${sparkfhe.lib.rev}/libSparkFHE</sparkfhe.lib.url.base>
+    <sparkfhe.lib.url.base>https://raw.githubusercontent.com/SpiRITlab/SparkFHEMavenRepo/${sparkfhe.lib.rev}/libSparkFHE</sparkfhe.lib.url.base>
     <downloaded.sparkfhe.lib.path>libSparkFHE/lib</downloaded.sparkfhe.lib.path>
 
     <scala.binary.version>2.12</scala.binary.version>
@@ -87,7 +87,7 @@
   <repositories>
     <repository>
       <id>sparkfhe-remote</id>
-      <url>https://raw.githubusercontent.com/SpiRITlab/SparkMavenRepo/master</url>
+      <url>https://raw.githubusercontent.com/SpiRITlab/SparkFHEMavenRepo/master</url>
     </repository>
   </repositories>
 
