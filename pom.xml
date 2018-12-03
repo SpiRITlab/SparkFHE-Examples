@@ -5,9 +5,9 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>spiritlab.sparkfhe</groupId>
-  <artifactId>sparkfhe-example</artifactId>
+  <artifactId>sparkfhe-examples</artifactId>
   <version>1.0-SNAPSHOT</version>
-  <name>sparkfhe-example</name>
+  <name>sparkfhe-examples</name>
   <url>https://github.com/SpiRITlab/SparkFHEJava</url>
 
   <properties>
@@ -257,9 +257,9 @@
           <version>3.0.0-M1</version>
           <configuration>
             <systemPropertyVariables>
-              <java.library.path>${downloaded.sparkfhe.lib.path}</java.library.path>
+              <java.library.path>${downloaded.sparkfhe.lib.path}:${env.LD_LIBRARY_PATH}:${env.DYLD_LIBRARY_PATH}</java.library.path>
             </systemPropertyVariables>
-            <argLine>-Djava.library.path=${downloaded.sparkfhe.lib.path}</argLine>
+            <argLine>-Djava.library.path=${downloaded.sparkfhe.lib.path}:${env.LD_LIBRARY_PATH}:${env.DYLD_LIBRARY_PATH}</argLine>
             <!-- DONT DO PARALLEL TESTS -->
           </configuration>
         </plugin>
