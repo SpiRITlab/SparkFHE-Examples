@@ -241,7 +241,7 @@
               </goals>
               <configuration>
                 <url>${sparkfhe.lib.url}</url>
-                <outputDirectory>${downloaded.sparkfhe.lib.path}</outputDirectory>
+                <outputDirectory>${project.basedir}</outputDirectory>
                 <unpack>true</unpack>
               </configuration>
             </execution>
@@ -330,8 +330,8 @@
               <phase>package</phase>
               <configuration>
                 <tasks>
-                  <echo message="unzipping libSparkFHE" />
-                  <unzip src="libSparkFHE/libSparkFHE-*-*.zip" dest="libSparkFHE/" />
+                  <echo message="unzipping libSparkFHE..." />
+                  <unzip src="libSparkFHE-*-*.zip" dest="." />
                 </tasks>
               </configuration>
               <goals>

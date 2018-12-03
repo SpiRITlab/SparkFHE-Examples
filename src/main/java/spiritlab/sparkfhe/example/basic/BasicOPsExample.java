@@ -71,8 +71,9 @@ public class BasicOPsExample {
 
 
     public static void main(String argv[]) {
-        /* Spark code for inner product */
         int slices = (argv.length == 1) ? Integer.parseInt(argv[0]) : 2;
+        // when testing directly, you will need to set master to local
+//        SparkConf sparkConf = new SparkConf().setAppName("DotProductExample").setMaster("local");
         SparkConf sparkConf = new SparkConf().setAppName("BasicOPsExample");
         SparkSession spark = SparkSession.builder().config(sparkConf).getOrCreate();
         JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());

@@ -208,6 +208,8 @@ public class DotProductExample {
 
     public static void main(String[] argv) {
         int slices = (argv.length == 1) ? Integer.parseInt(argv[0]) : 2;
+        // when testing directly, you will need to set master to local
+//        SparkConf sparkConf = new SparkConf().setAppName("DotProductExample").setMaster("local");
         SparkConf sparkConf = new SparkConf().setAppName("DotProductExample");
         SparkSession spark = SparkSession.builder().config(sparkConf).getOrCreate();
         JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());
