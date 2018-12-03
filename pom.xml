@@ -18,8 +18,10 @@
     <sparkfhe.maven.repo>file://${project.basedir}/../SparkFHEMavenRepo</sparkfhe.maven.repo>
 
     <sparkfhe.lib.rev>master</sparkfhe.lib.rev>
-    <sparkfhe.lib.url.base>https://raw.githubusercontent.com/SpiRITlab/SparkFHEMavenRepo/${sparkfhe.lib.rev}/libSparkFHE</sparkfhe.lib.url.base>
-    <downloaded.sparkfhe.lib.path>libSparkFHE/lib</downloaded.sparkfhe.lib.path>
+    <!--<sparkfhe.lib.url.base>https://raw.githubusercontent.com/SpiRITlab/SparkFHEMavenRepo/${sparkfhe.lib.rev}/libSparkFHE</sparkfhe.lib.url.base>-->
+    <!-- for git-lfs file access -->
+      <sparkfhe.lib.url.base>https://github.com/SpiRITlab/SparkFHEMavenRepo/raw/${sparkfhe.lib.rev}/libSparkFHE/</sparkfhe.lib.url.base>
+      <downloaded.sparkfhe.lib.path>libSparkFHE/lib</downloaded.sparkfhe.lib.path>
 
     <scala.binary.version>2.12</scala.binary.version>
     <spark.version>3.0.0-SNAPSHOT</spark.version>
