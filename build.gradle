@@ -1,0 +1,132 @@
+version '1.0-SNAPSHOT'
+apply plugin: 'application'
+
+// Individual tests may be run by calling
+//     gradle run -Ptest=fully.qualified.MainClassName --args="..."
+mainClassName = project.hasProperty("test") ? project.getProperty("test") : "SparkFHETest"
+
+sourceCompatibility = 1.8
+
+repositories {
+    /* Comment out the following custom maven repo to use locally installed packages */
+    maven {
+        url "https://raw.githubusercontent.com/SpiRITlab/SparkMavenRepo/master"
+    }
+
+    mavenLocal()
+
+    // must be the last
+    mavenCentral()
+}
+
+run {
+    systemProperty "java.library.path", 'lib'  // IDE VM option: -Djava.library.path="lib"
+    //systemProperty "log4j.configuration","file:log4j.properties"
+}
+
+tasks.withType(Test) {
+    systemProperty "java.library.path", "lib"
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main/java']
+        }
+    }
+
+    test {
+        java {
+            srcDirs = ['src/test/java']
+        }
+    }
+
+}
+
+dependencies {
+    /* Modified Spark packages from https://github.com/SpiRITlab/SparkMavenRepo */
+    def scala_snapshot_version='2.12'
+    def spark_snapshot_version='3.0.0'
+    compile group: 'org.apache.spark', name: "spark-core_${scala_snapshot_version}", version: "${spark_snapshot_version}-SNAPSHOT"
+    compile group: 'org.apache.spark', name: "spark-streaming_${scala_snapshot_version}", version: "${spark_snapshot_version}-SNAPSHOT"
+    compile group: 'org.apache.spark', name: "spark-sql_${scala_snapshot_version}", version: "${spark_snapshot_version}-SNAPSHOT"
+    compile group: 'org.apache.spark', name: "spark-hive_${scala_snapshot_version}", version: "${spark_snapshot_version}-SNAPSHOT"
+    compile group: 'org.apache.spark', name: "spark-graphx_${scala_snapshot_version}", version: "${spark_snapshot_version}-SNAPSHOT"
+    compile group: 'org.apache.spark', name: "spark-catalyst_${scala_snapshot_version}", version: "${spark_snapshot_version}-SNAPSHOT"
+    compile group: 'org.apache.spark', name: "spark-launcher_${scala_snapshot_version}", version: "${spark_snapshot_version}-SNAPSHOT"
+    compile group: 'org.apache.spark', name: "spark-mllib_${scala_snapshot_version}", version: "${spark_snapshot_version}-SNAPSHOT"
+    compile group: 'org.apache.spark', name: "spark-mllib-local_${scala_snapshot_version}", version: "${spark_snapshot_version}-SNAPSHOT"
+
+
+    // Default Spark packages from MavenCentral
+    def scala_stable_version='2.12'
+    def spark_stable_version='2.4.0'
+//    compile group: 'org.apache.spark', name: "spark-core_${scala_stable_version}", version: "${spark_stable_version}"
+//    compile group: 'org.apache.spark', name: "spark-streaming_${scala_stable_version}", version: "${spark_stable_version}"
+//    compile group: 'org.apache.spark', name: "spark-sql_${scala_stable_version}", version: "${spark_stable_version}"
+//    compile group: 'org.apache.spark', name: "spark-hive_${scala_stable_version}", version: "${spark_stable_version}"
+//    compile group: 'org.apache.spark', name: "spark-graphx_${scala_stable_version}", version: "${spark_stable_version}"
+//    compile group: 'org.apache.spark', name: "spark-catalyst_${scala_stable_version}", version: "${spark_stable_version}"
+//    compile group: 'org.apache.spark', name: "spark-launcher_${scala_stable_version}", version: "${spark_stable_version}"
+//    compile group: 'org.apache.spark', name: "spark-mllib_${scala_stable_version}", version: "${spark_stable_version}"
+//    compile group: 'org.apache.spark', name: "spark-mllib-local_${scala_stable_version}", version: "${spark_stable_version}"
+
+
+    /* others */
+    compile group: 'spiritlab.sparkfhe', name: 'sparkfhe-api', version: '1.0-SNAPSHOT'
+
+    def junit_version='5.3.1'
+    testImplementation("org.junit.jupiter:junit-jupiter-api:${junit_version}")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junit_version}")
+}
+
+
+// to skip tests, $> gradle build -x test
+// to run tests, $> gradle test
+test {
+    // Enable JUnit 5 (Gradle 4.6+).
+    useJUnitPlatform()
+
+    // Always run tests, even when nothing changed.
+    dependsOn 'cleanTest'
+
+    // Show test results.
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+
+    // running single test
+//    gradle test --tests org.gradle.SomeTest.someSpecificFeature
+//    gradle test --tests *SomeTest.someSpecificFeature
+//    gradle test --tests *SomeSpecificTest
+//    gradle test --tests all.in.specific.package*
+//    gradle test --tests *IntegTest
+//    gradle test --tests *IntegTest*ui*
+//    gradle test --tests *IntegTest.singleMethod
+//    gradle someTestTask --tests *UiTest someOtherTestTask --tests *WebTest*ui
+
+
+//    filter {
+//    //specific test method
+//    includeTestsMatching "org.gradle.SomeTest.someSpecificFeature"
+//
+//    //specific test method, use wildcard for packages
+//    includeTestsMatching "*SomeTest.someSpecificFeature"
+//
+//    //specific test class
+//    includeTestsMatching "org.gradle.SomeTest"
+//
+//    //specific test class, wildcard for packages
+//    includeTestsMatching "*.SomeTest"
+//
+//    //all classes in package, recursively
+//    includeTestsMatching "com.gradle.tooling.*"
+//
+//    //all integration tests, by naming convention
+//    includeTestsMatching "*IntegTest"
+//
+//    //only ui tests from integration tests, by some naming convention
+//    includeTestsMatching "*IntegTest*ui"
+//    }
+}
+
