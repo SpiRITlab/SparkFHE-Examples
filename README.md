@@ -1,4 +1,4 @@
-# SparkFHEJava
+# sparkfhe-examples
 
 Download the C++ SparkFHE shared library
 ```
@@ -20,8 +20,8 @@ repositories {
 
 Add this maven artifact as a dependency
 ```groovy
-compile group: 'spiritlab.sparkfhe', name: 'sparkfhe-example', version: '1.0-SNAPSHOT'
+compile group: 'spiritlab.sparkfhe', name: 'sparkfhe-examples', version: '1.0-SNAPSHOT'
 ```
 
 # Use remote maven repo
-More information, https://github.com/SpiRITlab/SparkMavenRepo
+More information, https://github.com/SpiRITlab/SparkFHEMavenRepo
