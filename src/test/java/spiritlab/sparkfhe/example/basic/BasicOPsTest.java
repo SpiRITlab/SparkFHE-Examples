@@ -12,6 +12,8 @@ import org.junit.jupiter.api.*;
 import spiritlab.sparkfhe.api.FHELibrary;
 import spiritlab.sparkfhe.api.SparkFHE;
 import spiritlab.sparkfhe.api.CtxtString;
+import spiritlab.sparkfhe.example.Config;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -21,10 +23,9 @@ More info, https://junit.org/junit5/docs/current/user-guide/#writing-tests-class
 
 @DisplayName("TestCase for basic operations")
 public class BasicOPsTest {
-    private static String sparkfhe_path="../SparkFHE";
-    private static String zero_ctxt = "ptxt_long_0_PlaintextModule71CiphertextModule15313MultiplicativeDepth15SecurityParameter80.json";
-    private static String one_ctxt = "ptxt_long_1_PlaintextModule71CiphertextModule15313MultiplicativeDepth15SecurityParameter80.json";
-    private static final int slices = 4;
+    private static String CTXT_0_FILE;
+    private static String CTXT_1_FILE;
+    private static final int slices = 2;
 
     private static SparkConf sparkConf;
     private static SparkSession spark;
@@ -47,7 +48,10 @@ public class BasicOPsTest {
         spark = SparkSession.builder().config(sparkConf).getOrCreate();
         jsc = new JavaSparkContext(spark.sparkContext());
 
-        SparkFHE.init(FHELibrary.HELIB, sparkfhe_path + "/bin/keys/public_key.txt", sparkfhe_path + "/bin/keys/secret_key.txt");
+        SparkFHE.init(FHELibrary.HELIB,  Config.DEFAULT_PUBLIC_KEY_FILE, Config.DEFAULT_SECRET_KEY_FILE);
+
+        CTXT_0_FILE = Config.DEFAULT_RECORDS_DIRECTORY+"/ptxt_long_0_"+ SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json";
+        CTXT_1_FILE = Config.DEFAULT_RECORDS_DIRECTORY+"/ptxt_long_1_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json";
     }
 
     @BeforeEach
@@ -71,13 +75,10 @@ public class BasicOPsTest {
         Encoder<CtxtString> ctxtJSONEncoder = Encoders.bean(CtxtString.class);
 
         // https://spark.apache.org/docs/latest/sql-programming-guide.html#untyped-dataset-operations-aka-dataframe-operations
-        String ctxt_zero_rdd_path = sparkfhe_path + "/bin/records/"+zero_ctxt;
-        String ctxt_one_rdd_path = sparkfhe_path + "/bin/records/"+one_ctxt;
-
         // READ as a dataset
-        Dataset<CtxtString> ctxt_zero_ds = spark.read().json(ctxt_zero_rdd_path).as(ctxtJSONEncoder);
+        Dataset<CtxtString> ctxt_zero_ds = spark.read().json(CTXT_0_FILE).as(ctxtJSONEncoder);
         assertEquals("0", SparkFHE.getInstance().decrypt(ctxt_zero_ds.first().getCtxt()));
-        Dataset<CtxtString> ctxt_one_ds = spark.read().json(ctxt_one_rdd_path).as(ctxtJSONEncoder);
+        Dataset<CtxtString> ctxt_one_ds = spark.read().json(CTXT_1_FILE).as(ctxtJSONEncoder);
         assertEquals("1", SparkFHE.getInstance().decrypt(ctxt_one_ds.first().getCtxt()));
 
         JavaRDD<CtxtString> ctxt_zero_rdd = ctxt_zero_ds.javaRDD();
