@@ -16,8 +16,8 @@ Run examples
 ```
 
 
-
 For developer, you can update the shared libraries manually and recompile as below.
 ```bash
 ./mvn -f resources/pom-devel.xml compile
 ```
+
