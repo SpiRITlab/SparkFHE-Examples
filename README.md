@@ -1,8 +1,19 @@
 # SparkFHE-Examples
 
-Compile
+Note, there are two pom files which you can use to compile or package:
 ```bash
-./mvn comppile
+pom.xml                   # will use the existing shared lib within ./libSparkFHE/lib
+pom-refresh-lib.xml       # will refresh the C++ shared lib
+```
+
+Compile for the first time (so that, maven will download the shared lib)
+```bash
+./mvn -f pom-refresh-lib.xml clean compile
+```
+
+Subsequent compilation as following
+```bash
+./mvn clean compile
 ```
 
 Package into .jar
@@ -15,9 +26,4 @@ Run examples
 ./mvn exec:java -Dexec.mainClass="spiritlab.sparkfhe.example.basic.BasicOPsExample"
 ```
 
-
-For developer, you can update the shared libraries manually and recompile as below.
-```bash
-./mvn -f resources/pom-devel.xml compile
-```
 
