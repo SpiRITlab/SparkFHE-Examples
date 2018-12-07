@@ -76,7 +76,7 @@ public class FHEWordCountExample {
 
         //// Do the RDD word count
         //SparkConf sparkConf = new SparkConf().setAppName("SparkFHETest").setMaster("local");
-        //SparkSession spark = SparkSession.builder().config(sparkConf).getOrCreate();
+        //SparkSession spark = SparkSession.builder().Config(sparkConf).getOrCreate();
         //JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());
 
         ////JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());
