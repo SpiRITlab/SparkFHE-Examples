@@ -16,6 +16,11 @@ Subsequent compilation as following
 ./mvn clean compile
 ```
 
+Run JUnit5 tests
+```bash
+./mvn test
+```
+
 Package into .jar
 ```bash
 ./mvn -DskipTests package
