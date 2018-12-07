@@ -8,9 +8,11 @@ import org.apache.spark.sql.*;
 import spiritlab.sparkfhe.api.SparkFHE;
 import spiritlab.sparkfhe.api.FHELibrary;
 import spiritlab.sparkfhe.api.CtxtString;
+import spiritlab.sparkfhe.example.Config;
 
 public class BasicOPsExample {
     static {
+        System.out.println("Execution path: " + System.getProperty("user.dir"));
         System.out.println("libSparkFHE path: " + System.getProperty("java.library.path"));
         try {
             System.loadLibrary("SparkFHE");
@@ -21,9 +23,9 @@ public class BasicOPsExample {
         System.out.println("Loaded native code library. \n");
     }
 
-    private static String sparkfhe_path="../SparkFHE";
-    private static String zero_ctxt = "ptxt_long_0_PlaintextModule71CiphertextModule15313MultiplicativeDepth15SecurityParameter80.json";
-    private static String one_ctxt = "ptxt_long_1_PlaintextModule71CiphertextModule15313MultiplicativeDepth15SecurityParameter80.json";
+    private static String CTXT_0_FILE;
+    private static String CTXT_1_FILE;
+
 
     public static void test_basic_op() {
         System.out.println("ADD(1, 0):"+SparkFHE.do_basic_op(1, 0, SparkFHE.ADD));
@@ -37,14 +39,10 @@ public class BasicOPsExample {
         Encoder<CtxtString> ctxtJSONEncoder = Encoders.bean(CtxtString.class);
 
         // https://spark.apache.org/docs/latest/sql-programming-guide.html#untyped-dataset-operations-aka-dataframe-operations
-        String ctxt_zero_rdd_path = sparkfhe_path+"/bin/records/"+zero_ctxt;
-        String ctxt_one_rdd_path = sparkfhe_path+"/bin/records/"+one_ctxt;
-
-
         // READ as a dataset
-        Dataset<CtxtString> ctxt_zero_ds = spark.read().json(ctxt_zero_rdd_path).as(ctxtJSONEncoder);
+        Dataset<CtxtString> ctxt_zero_ds = spark.read().json(CTXT_0_FILE).as(ctxtJSONEncoder);
         System.out.println("Ciphertext Zero:"+SparkFHE.getInstance().decrypt(ctxt_zero_ds.first().getCtxt()));
-        Dataset<CtxtString> ctxt_one_ds = spark.read().json(ctxt_one_rdd_path).as(ctxtJSONEncoder);
+        Dataset<CtxtString> ctxt_one_ds = spark.read().json(CTXT_1_FILE).as(ctxtJSONEncoder);
         System.out.println("Ciphertext Zero:"+SparkFHE.getInstance().decrypt(ctxt_one_ds.first().getCtxt()));
 
 
@@ -71,14 +69,23 @@ public class BasicOPsExample {
 
 
     public static void main(String argv[]) {
-        int slices = (argv.length == 1) ? Integer.parseInt(argv[0]) : 2;
-        // when testing directly, you will need to set master to local
-//        SparkConf sparkConf = new SparkConf().setAppName("DotProductExample").setMaster("local");
-        SparkConf sparkConf = new SparkConf().setAppName("BasicOPsExample");
+        int slices = 2;
+        SparkConf sparkConf;
+        if ( "local".equalsIgnoreCase(argv[0]) ) {
+            sparkConf = new SparkConf().setAppName("BasicOPsExample").setMaster("local");
+        } else {
+            slices=Integer.parseInt(argv[0]);
+            sparkConf = new SparkConf().setAppName("BasicOPsExample");
+        }
         SparkSession spark = SparkSession.builder().config(sparkConf).getOrCreate();
         JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());
 
-        SparkFHE.init(FHELibrary.HELIB,  sparkfhe_path + "/bin/keys/public_key.txt", sparkfhe_path + "/bin/keys/secret_key.txt");
+        System.out.println(String.valueOf(SparkFHE.do_basic_op(1,1, SparkFHE.ADD)));
+
+        SparkFHE.init(FHELibrary.HELIB,  Config.DEFAULT_PUBLIC_KEY_FILE, Config.DEFAULT_SECRET_KEY_FILE);
+
+        CTXT_0_FILE = Config.DEFAULT_RECORDS_DIRECTORY+"/ptxt_long_0_"+ SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json";
+        CTXT_1_FILE = Config.DEFAULT_RECORDS_DIRECTORY+"/ptxt_long_1_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json";
 
         test_basic_op();
         test_FHE_basic_op(spark, slices);

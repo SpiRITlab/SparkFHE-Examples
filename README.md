@@ -1,27 +1,23 @@
-# SparkFHEJava
+# SparkFHE-Examples
 
-Download the C++ SparkFHE shared library
-```
-mvn process-resources
-```
-
-
-Install to local maven repository with
+Compile
 ```bash
-mvn install
+./mvn comppile
 ```
 
-Make sure the local maven repository is in the build.gradle settings
-```groovy
-repositories {
-    mavenLocal()
-}
+Package into .jar
+```bash
+./mvn -DskipTests package
 ```
 
-Add this maven artifact as a dependency
-```groovy
-compile group: 'spiritlab.sparkfhe', name: 'sparkfhe-utils', version: '1.0-SNAPSHOT'
+Run examples
+```bash
+./mvn exec:java -Dexec.mainClass="spiritlab.sparkfhe.example.basic.BasicOPsExample"
 ```
 
-# Use remote maven repo
-More information, https://github.com/SpiRITlab/SparkMavenRepo
+
+
+For developer, you can update the shared libraries manually and recompile as below.
+```bash
+./mvn -f resources/pom-devel.xml compile
+```

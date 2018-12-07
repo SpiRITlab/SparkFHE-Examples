@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
 export LD_LIBRARY_PATH=$(pwd)/libSparkFHE/lib:$LD_LIBRARY_PATH
+export DYLD_LIBRARY_PATH=$(pwd)/libSparkFHE/lib:$DYLD_LIBRARY_PATH
 mvn $@

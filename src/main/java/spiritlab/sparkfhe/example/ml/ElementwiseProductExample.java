@@ -131,7 +131,7 @@ public class ElementwiseProductExample {
             org.apache.spark.ml_fhe.linalg.CtxtVector v = row.getAs("transformedVector");
             AbstractFunction2<Object, String, BoxedUnit> f = new AbstractFunction2<Object, String, BoxedUnit>() {
                 public BoxedUnit apply(Object t1, String t2) {
-                    System.out.println("Index:" + t1 + "      Value:" + decryptCtxt((String)t2));
+                    System.out.println("Index:" + t1 + "      Value:" + SparkFHE.getInstance().decrypt((String)t2));
                     return BoxedUnit.UNIT;
                 }
             };
