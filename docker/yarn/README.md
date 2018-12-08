@@ -14,7 +14,7 @@ sudo bash build_docker_image.bash
 
 We also need to specify the number of nodes in cluster as a parameter. The number should be greater than 2.
 ```bash
-sudo bash generate_cluster.bash 5
+sudo bash create_cluster.bash 5
 ```
 The URL for hadoop cluster should be generated in the end. Open that to view details about job and cluster.
 

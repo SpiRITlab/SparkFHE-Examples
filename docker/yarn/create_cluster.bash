@@ -21,8 +21,8 @@ do
 	((i++))
 done 
 
-image_name="cluster/hadoop"
-image_name="$image_name:new"
+image_name="spiritlab/sparkfhe-hadoop-cluster"
+# image_name="$image_name:new"
 
 network_name="hadoop"
 

@@ -11,4 +11,4 @@ echo "Hadoop Cluster Removed"
 
 echo "Exiting Master Node of Docker"
 
-bash clean_environment.bash
+bash cleanup_docker.bash
