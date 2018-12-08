@@ -18,6 +18,8 @@ import spiritlab.sparkfhe.api.FHELibrary;
 import spiritlab.sparkfhe.api.SparkFHE;
 import spiritlab.sparkfhe.api.StringVector;
 import spiritlab.sparkfhe.api.CtxtString;
+import spiritlab.sparkfhe.example.Config;
+
 import java.util.Arrays;
 import java.util.LinkedList;
 import static org.apache.spark.sql.functions.col;
@@ -27,10 +29,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @DisplayName("TestCase for calculating dot product")
 public class DotProductTest {
-    private static String sparkfhe_path="../SparkFHE";
-    private static String vec_a_ctxt = "vec_a_5_PlaintextModule71CiphertextModule15313MultiplicativeDepth15SecurityParameter80.json";
-    private static String vec_b_ctxt = "vec_b_5_PlaintextModule71CiphertextModule15313MultiplicativeDepth15SecurityParameter80.json";
-    private static final int slices = 4;
+    private static String vec_a_ctxt;
+    private static String vec_b_ctxt;
+    private static final int slices = 2;
     private static final int plaintext_module=71;
 
     private static SparkConf sparkConf;
@@ -54,7 +55,11 @@ public class DotProductTest {
         spark = SparkSession.builder().config(sparkConf).getOrCreate();
         jsc = new JavaSparkContext(spark.sparkContext());
 
-        SparkFHE.init(FHELibrary.HELIB, sparkfhe_path + "/bin/keys/public_key.txt", sparkfhe_path + "/bin/keys/secret_key.txt");
+        SparkFHE.init(FHELibrary.HELIB, Config.DEFAULT_PUBLIC_KEY_FILE, Config.DEFAULT_SECRET_KEY_FILE);
+
+        vec_a_ctxt = Config.DEFAULT_RECORDS_DIRECTORY+"/vec_a_"+String.valueOf(Config.NUM_OF_VECTOR_ELEMENTS)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+".json";
+        vec_b_ctxt = Config.DEFAULT_RECORDS_DIRECTORY+"/vec_b_"+String.valueOf(Config.NUM_OF_VECTOR_ELEMENTS)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+".json";
+
     }
 
     @BeforeEach
@@ -93,12 +98,9 @@ public class DotProductTest {
         Encoder<CtxtString> ctxtJSONEncoder = Encoders.bean(CtxtString.class);
 
         // https://spark.apache.org/docs/latest/sql-programming-guide.html#untyped-dataset-operations-aka-dataframe-operations
-        String ctxt_a_rdd_path = sparkfhe_path + "/bin/records/" + vec_a_ctxt;
-        String ctxt_b_rdd_path = sparkfhe_path + "/bin/records/" + vec_b_ctxt;
-
         // READ as a dataset
-        Dataset<CtxtString> ctxt_a_ds = spark.read().json(ctxt_a_rdd_path).as(ctxtJSONEncoder);
-        Dataset<CtxtString> ctxt_b_ds = spark.read().json(ctxt_b_rdd_path).as(ctxtJSONEncoder);
+        Dataset<CtxtString> ctxt_a_ds = spark.read().json(vec_a_ctxt).as(ctxtJSONEncoder);
+        Dataset<CtxtString> ctxt_b_ds = spark.read().json(vec_b_ctxt).as(ctxtJSONEncoder);
 
         JavaRDD<String> ctxt_a_rdd = ctxt_a_ds.select(org.apache.spark.sql.functions.explode(ctxt_a_ds.col("ctxt")).alias("ctxt")).as(Encoders.STRING()).javaRDD();
         JavaRDD<String> ctxt_b_rdd = ctxt_b_ds.select(org.apache.spark.sql.functions.explode(ctxt_b_ds.col("ctxt")).alias("ctxt")).as(Encoders.STRING()).javaRDD();
@@ -123,12 +125,9 @@ public class DotProductTest {
         Encoder<CtxtString> ctxtJSONEncoder = Encoders.bean(CtxtString.class);
 
         // https://spark.apache.org/docs/latest/sql-programming-guide.html#untyped-dataset-operations-aka-dataframe-operations
-        String ctxt_a_rdd_path = sparkfhe_path + "/bin/records/" + vec_a_ctxt;
-        String ctxt_b_rdd_path = sparkfhe_path + "/bin/records/" + vec_b_ctxt;
-
         // READ as a dataset
-        Dataset<CtxtString> ctxt_a_ds = spark.read().json(ctxt_a_rdd_path).as(ctxtJSONEncoder);
-        Dataset<CtxtString> ctxt_b_ds = spark.read().json(ctxt_b_rdd_path).as(ctxtJSONEncoder);
+        Dataset<CtxtString> ctxt_a_ds = spark.read().json(vec_a_ctxt).as(ctxtJSONEncoder);
+        Dataset<CtxtString> ctxt_b_ds = spark.read().json(vec_b_ctxt).as(ctxtJSONEncoder);
 
         JavaRDD<String> ctxt_a_rdd = ctxt_a_ds.select(org.apache.spark.sql.functions.explode(ctxt_a_ds.col("ctxt")).alias("ctxt")).as(Encoders.STRING()).javaRDD();
         JavaRDD<String> ctxt_b_rdd = ctxt_b_ds.select(org.apache.spark.sql.functions.explode(ctxt_b_ds.col("ctxt")).alias("ctxt")).as(Encoders.STRING()).javaRDD();
@@ -176,12 +175,9 @@ public class DotProductTest {
         // Encoders are created for Java beans
         Encoder<CtxtString> ctxtJSONEncoder = Encoders.bean(CtxtString.class);
         // https://spark.apache.org/docs/latest/sql-programming-guide.html#untyped-dataset-operations-aka-dataframe-operations
-        String ctxt_a_rdd_path = sparkfhe_path + "/bin/records/"+vec_a_ctxt;
-        String ctxt_b_rdd_path = sparkfhe_path + "/bin/records/"+vec_b_ctxt;
-
         // READ as a dataset
-        Dataset<CtxtString> ctxt_a_ds = spark.read().json(ctxt_a_rdd_path).as(ctxtJSONEncoder);
-        Dataset<CtxtString> ctxt_b_ds = spark.read().json(ctxt_b_rdd_path).as(ctxtJSONEncoder);
+        Dataset<CtxtString> ctxt_a_ds = spark.read().json(vec_a_ctxt).as(ctxtJSONEncoder);
+        Dataset<CtxtString> ctxt_b_ds = spark.read().json(vec_b_ctxt).as(ctxtJSONEncoder);
 
         Dataset<String> ctxt_a_ds2 = ctxt_a_ds.select(org.apache.spark.sql.functions.explode(ctxt_a_ds.col("ctxt")).alias("ctxt")).as(Encoders.STRING());
         Dataset<String> ctxt_b_ds2 = ctxt_b_ds.select(org.apache.spark.sql.functions.explode(ctxt_b_ds.col("ctxt")).alias("ctxt2")).as(Encoders.STRING());
