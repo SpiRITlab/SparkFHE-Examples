@@ -1,7 +1,6 @@
 #!/bin/bash
 
 image_name="spiritlab/sparkfhe-hadoop-cluster"
-# image_name="$image_name:new"
 
 network_name="hadoop"
 
