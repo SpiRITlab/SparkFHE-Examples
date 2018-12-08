@@ -18,7 +18,7 @@
     <sparkfhe.maven.repo>file://${project.basedir}/../SparkFHE-Maven-Repo</sparkfhe.maven.repo>
 
     <sparkfhe.lib.rev>master</sparkfhe.lib.rev>
-    <sparkfhe.lib.url.base>https://github.com/SpiRITlab/SparkFHE-Maven-Repo/raw/${sparkfhe.lib.rev}/libSparkFHE</sparkfhe.lib.url.base>
+    <sparkfhe.lib.url.base>https://github.com/SpiRITlab/SparkFHE-Maven-Repo/raw/${sparkfhe.lib.rev}/libSparkFHE/</sparkfhe.lib.url.base>
     <downloaded.sparkfhe.lib.path>libSparkFHE/lib</downloaded.sparkfhe.lib.path>
 
     <scala.binary.version>2.12</scala.binary.version>
@@ -26,50 +26,6 @@
     <scala.version>2.12.7</scala.version>
     <fasterxml.jackson.version>2.9.6</fasterxml.jackson.version>
   </properties>
-
-  <!-- use the following commands to determine the correct profile -->
-  <!-- mvn help:active-profiles | grep -v INFO -->
-  <profiles>
-    <profile>
-      <id>unix-x86</id>
-      <activation>
-        <os>
-          <family>unix</family>
-          <name>Linux</name>
-          <arch>x86_64</arch>
-        </os>
-      </activation>
-      <properties>
-        <sparkfhe.lib.url>${sparkfhe.lib.url.base}/libSparkFHE-unix-x86_64.zip</sparkfhe.lib.url>
-      </properties>
-    </profile>
-    <profile>
-      <id>unix-amd64</id>
-      <activation>
-        <os>
-          <family>unix</family>
-          <name>linux</name>
-          <arch>amd64</arch>
-        </os>
-      </activation>
-      <properties>
-        <sparkfhe.lib.url>${sparkfhe.lib.url.base}/libSparkFHE-unix-amd64.zip</sparkfhe.lib.url>
-      </properties>
-    </profile>
-    <profile>
-      <id>mac-x86</id>
-      <activation>
-        <os>
-          <family>mac</family>
-          <name>mac os x</name>
-          <arch>x86_64</arch>
-        </os>
-      </activation>
-      <properties>
-        <sparkfhe.lib.url>${sparkfhe.lib.url.base}/libSparkFHE-mac-x86_64.zip</sparkfhe.lib.url>
-      </properties>
-    </profile>
-  </profiles>
 
   <distributionManagement>
     <repository>
@@ -229,25 +185,6 @@
           <version>3.1.0</version>
         </plugin>
         <plugin>
-          <groupId>com.googlecode.maven-download-plugin</groupId>
-          <artifactId>download-maven-plugin</artifactId>
-          <version>1.4.1</version>
-          <executions>
-            <execution>
-              <!-- the wget goal actually binds itself to this phase by default -->
-              <phase>process-resources</phase>
-              <goals>
-                <goal>wget</goal>
-              </goals>
-              <configuration>
-                <url>${sparkfhe.lib.url}</url>
-                <outputDirectory>${project.basedir}</outputDirectory>
-                <unpack>true</unpack>
-              </configuration>
-            </execution>
-          </executions>
-        </plugin>
-        <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
           <version>3.7.0</version>
         </plugin>
@@ -263,20 +200,6 @@
             <!-- DONT DO PARALLEL TESTS -->
           </configuration>
         </plugin>
-        <!--<plugin>-->
-          <!--<groupId>org.codehaus.mojo</groupId>-->
-          <!--<artifactId>exec-maven-plugin</artifactId>-->
-          <!--<version>1.6.0</version>-->
-          <!--&lt;!&ndash;<configuration>&ndash;&gt;-->
-            <!--&lt;!&ndash;<executable>java</executable>&ndash;&gt;-->
-            <!--&lt;!&ndash;<arguments>&ndash;&gt;-->
-              <!--&lt;!&ndash;<argument>-Djava.library.path=${downloaded.sparkfhe.lib.path}</argument>&ndash;&gt;-->
-              <!--&lt;!&ndash;<argument>-classpath</argument>&ndash;&gt;-->
-              <!--&lt;!&ndash;<classpath />&ndash;&gt;-->
-              <!--&lt;!&ndash;<argument>spiritlab.sparkfhe.example.basic.BasicOPsExample</argument>&ndash;&gt;-->
-            <!--&lt;!&ndash;</arguments>&ndash;&gt;-->
-          <!--&lt;!&ndash;</configuration>&ndash;&gt;-->
-        <!--</plugin>-->
         <plugin>
           <artifactId>maven-jar-plugin</artifactId>
           <version>3.1.0</version>
@@ -310,29 +233,6 @@
               <goals>
                 <goal>jar</goal>
               </goals>
-            </execution>
-          </executions>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-enforcer-plugin</artifactId>
-          <version>3.0.0-M2</version>
-          <executions>
-            <execution>
-              <id>enforce-valid-os</id>
-              <goals>
-                <goal>enforce</goal>
-              </goals>
-              <configuration>
-                <rules>
-                  <requireActiveProfile>
-                    <profiles>unix-x86,unix-amd64,mac-x86</profiles>
-                    <all>false</all>
-                    <message>Unsupported operating system. Currently only unix-x86, unix-amd64, and mac-x86 are supported</message>
-                  </requireActiveProfile>
-                </rules>
-                <fail>true</fail>
-              </configuration>
             </execution>
           </executions>
         </plugin>
