@@ -28,14 +28,14 @@ Run examples
 
 Step 1: Generate necessary key pair and example ciphertexts (only needed to run once)
 ```bash
-./mvn exec:java -Dexec.mainClass="spiritlab.sparkfhe.example.basic.KeyGenExample"       # this will generate the example key pair
-./mvn exec:java -Dexec.mainClass="spiritlab.sparkfhe.example.basic.EncDecExample"       # this will generate some ciphertexts
+./mvn exec:java -Dexec.mainClass="spiritlab.sparkfhe.example.basic.KeyGenExample" -Dexec.args="local"      # this will generate the example key pair
+./mvn exec:java -Dexec.mainClass="spiritlab.sparkfhe.example.basic.EncDecExample" -Dexec.args="local"      # this will generate some ciphertexts
 ```
 
 Step 2: Test different FHE operations on example ciphertexts and vectors of ciphertexts
 ```bash
-./mvn exec:java -Dexec.mainClass="spiritlab.sparkfhe.example.basic.BasicOPsExample"     # this will perform some basic FHE operations
-./mvn exec:java -Dexec.mainClass="spiritlab.sparkfhe.example.basic.DotProductExample"   # this will perform dot product calculation on vectors of encrypted numbers 
+./mvn exec:java -Dexec.mainClass="spiritlab.sparkfhe.example.basic.BasicOPsExample" -Dexec.args="local"    # this will perform some basic FHE operations
+./mvn exec:java -Dexec.mainClass="spiritlab.sparkfhe.example.basic.DotProductExample" -Dexec.args="local"  # this will perform dot product calculation on vectors of encrypted numbers 
 ```
 
 
