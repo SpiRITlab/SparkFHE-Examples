@@ -11,31 +11,26 @@ Compile for the first time (so that, maven will download the shared lib)
 ./mvn clean compile
 ```
 
+Generate necessary key pair and example ciphertexts (only needed to run once)
+```bash
+./mvn exec:java -Dexec.mainClass="spiritlab.sparkfhe.example.basic.KeyGenExample" -Dexec.args="local"      # this will generate the example key pair
+./mvn exec:java -Dexec.mainClass="spiritlab.sparkfhe.example.basic.EncDecExample" -Dexec.args="local"      # this will generate some ciphertexts
+```
+
+Run examples: Test different FHE operations on example ciphertexts and vectors of ciphertexts
+```bash
+./mvn exec:java -Dexec.mainClass="spiritlab.sparkfhe.example.basic.BasicOPsExample" -Dexec.args="local"    # this will perform some basic FHE operations
+./mvn exec:java -Dexec.mainClass="spiritlab.sparkfhe.example.basic.DotProductExample" -Dexec.args="local"  # this will perform dot product calculation on vectors of encrypted numbers 
+```
 
 Run JUnit5 tests
 ```bash
 ./mvn test
 ```
 
-
 Package into .jar
 ```bash
 ./mvn -U -DskipTests clean package
-```
-
-
-Run examples
-
-Step 1: Generate necessary key pair and example ciphertexts (only needed to run once)
-```bash
-./mvn exec:java -Dexec.mainClass="spiritlab.sparkfhe.example.basic.KeyGenExample" -Dexec.args="local"      # this will generate the example key pair
-./mvn exec:java -Dexec.mainClass="spiritlab.sparkfhe.example.basic.EncDecExample" -Dexec.args="local"      # this will generate some ciphertexts
-```
-
-Step 2: Test different FHE operations on example ciphertexts and vectors of ciphertexts
-```bash
-./mvn exec:java -Dexec.mainClass="spiritlab.sparkfhe.example.basic.BasicOPsExample" -Dexec.args="local"    # this will perform some basic FHE operations
-./mvn exec:java -Dexec.mainClass="spiritlab.sparkfhe.example.basic.DotProductExample" -Dexec.args="local"  # this will perform dot product calculation on vectors of encrypted numbers 
 ```
 
 
