@@ -4,25 +4,15 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.mllib_fhe.SparkFHESetup;
 import org.apache.spark.sql.*;
+import org.apache.spark.spiritlab.sparkfhe.SparkFHESetup;
 import spiritlab.sparkfhe.api.SparkFHE;
 import spiritlab.sparkfhe.api.FHELibrary;
 import spiritlab.sparkfhe.api.CtxtString;
 import spiritlab.sparkfhe.example.Config;
 
+
 public class BasicOPsExample {
-    /*static {
-        System.out.println("Execution path: " + System.getProperty("user.dir"));
-        System.out.println("libSparkFHE path: " + System.getProperty("java.library.path"));
-        try {
-            System.loadLibrary("SparkFHE");
-        } catch (UnsatisfiedLinkError e) {
-            System.err.println("Native code library failed to load. \n" + e);
-            System.exit(1);
-        }
-        System.out.println("Loaded native code library. \n");
-    }*/
 
     private static String CTXT_0_FILE;
     private static String CTXT_1_FILE;
@@ -72,8 +62,7 @@ public class BasicOPsExample {
     public static void main(String[] args) {
         int slices = 2;
         SparkConf sparkConf;
-        SparkFHESetup.load();
-        SparkFHESetup.register();
+        SparkFHESetup.setup();
         if ( "local".equalsIgnoreCase(args[0]) ) {
             sparkConf = new SparkConf().setAppName("BasicOPsExample").setMaster("local");
         } else {

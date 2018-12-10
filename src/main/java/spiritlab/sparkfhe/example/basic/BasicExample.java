@@ -2,7 +2,7 @@ package spiritlab.sparkfhe.example.basic;
 
 //import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.mllib_fhe.SparkFHESetup;
+import org.apache.spark.spiritlab.sparkfhe.SparkFHESetup;
 import org.apache.spark.sql.SparkSession;
 import spiritlab.sparkfhe.api.SparkFHE;
 
@@ -20,8 +20,7 @@ public class BasicExample {
 
 
     public static void main(String[] args) {
-        SparkFHESetup.load();
-        SparkFHESetup.register();
+        SparkFHESetup.setup();
         test_basic_op();
     }
 
