@@ -5,23 +5,14 @@ import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.*;
+import org.apache.spark.spiritlab.sparkfhe.SparkFHESetup;
 import spiritlab.sparkfhe.api.SparkFHE;
 import spiritlab.sparkfhe.api.FHELibrary;
 import spiritlab.sparkfhe.api.CtxtString;
 import spiritlab.sparkfhe.example.Config;
 
+
 public class BasicOPsExample {
-    static {
-        System.out.println("Execution path: " + System.getProperty("user.dir"));
-        System.out.println("libSparkFHE path: " + System.getProperty("java.library.path"));
-        try {
-            System.loadLibrary("SparkFHE");
-        } catch (UnsatisfiedLinkError e) {
-            System.err.println("Native code library failed to load. \n" + e);
-            System.exit(1);
-        }
-        System.out.println("Loaded native code library. \n");
-    }
 
     private static String CTXT_0_FILE;
     private static String CTXT_1_FILE;
@@ -68,13 +59,14 @@ public class BasicOPsExample {
     }
 
 
-    public static void main(String argv[]) {
+    public static void main(String[] args) {
         int slices = 2;
         SparkConf sparkConf;
-        if ( "local".equalsIgnoreCase(argv[0]) ) {
+        SparkFHESetup.setup();
+        if ( "local".equalsIgnoreCase(args[0]) ) {
             sparkConf = new SparkConf().setAppName("BasicOPsExample").setMaster("local");
         } else {
-            slices=Integer.parseInt(argv[0]);
+            slices=Integer.parseInt(args[0]);
             sparkConf = new SparkConf().setAppName("BasicOPsExample");
         }
         SparkSession spark = SparkSession.builder().config(sparkConf).getOrCreate();
@@ -82,10 +74,16 @@ public class BasicOPsExample {
 
         System.out.println(String.valueOf(SparkFHE.do_basic_op(1,1, SparkFHE.ADD)));
 
-        SparkFHE.init(FHELibrary.HELIB,  Config.DEFAULT_PUBLIC_KEY_FILE, Config.DEFAULT_SECRET_KEY_FILE);
+        String pk = args[1];
+        String sk = args[2];
+        CTXT_0_FILE = args[3];
+        CTXT_1_FILE = args[4];
 
-        CTXT_0_FILE = Config.DEFAULT_RECORDS_DIRECTORY+"/ptxt_long_0_"+ SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json";
-        CTXT_1_FILE = Config.DEFAULT_RECORDS_DIRECTORY+"/ptxt_long_1_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json";
+        SparkFHE.init(FHELibrary.HELIB,  pk, sk);
+
+//        SparkFHE.init(FHELibrary.HELIB,  Config.DEFAULT_PUBLIC_KEY_FILE, Config.DEFAULT_SECRET_KEY_FILE);
+//        CTXT_0_FILE = Config.DEFAULT_RECORDS_DIRECTORY+"/ptxt_long_0_"+ SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json";
+//        CTXT_1_FILE = Config.DEFAULT_RECORDS_DIRECTORY+"/ptxt_long_1_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json";
 
         test_basic_op();
         test_FHE_basic_op(spark, slices);

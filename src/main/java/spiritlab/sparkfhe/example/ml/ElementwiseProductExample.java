@@ -7,6 +7,8 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.SparkSession;
 
+import org.apache.spark.spiritlab.sparkfhe.SparkFHESetup;
+
 // $example on$
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,17 +32,6 @@ import spiritlab.sparkfhe.api.SparkFHE;
 // $example off$
 
 public class ElementwiseProductExample {
-
-    static {
-        System.out.println("libSparkFHE path: " + System.getProperty("java.library.path"));
-        try {
-            System.loadLibrary("SparkFHE");
-        } catch (UnsatisfiedLinkError e) {
-            System.err.println("Native code library failed to load. \n" + e);
-            System.exit(1);
-        }
-        System.out.println("Loaded native code library. \n");
-    }
 
     private static String sparkfhe_path="../SparkFHE";
 
@@ -99,10 +90,10 @@ public class ElementwiseProductExample {
 //        transformedData2.foreach(x -> System.out.println(x));
 //    }
 
-    public static void RunCtxtExample(SparkSession spark) {
+    public static void RunCtxtExample(SparkSession spark, String zero_ctxt_path, String one_ctxt_path) {
         // Create some vector data; also works for sparse vectors
-        String zero_ctxt = loadCtxt(sparkfhe_path + "/bin/records/ptxt_long_0_PlaintextModule71CiphertextModule15313MultiplicativeDepth15SecurityParameter80.json");
-        String one_ctxt = loadCtxt(sparkfhe_path + "/bin/records/ptxt_long_1_PlaintextModule71CiphertextModule15313MultiplicativeDepth15SecurityParameter80.json");
+        String zero_ctxt = loadCtxt(zero_ctxt_path);
+        String one_ctxt = loadCtxt(one_ctxt_path);
         List<Row> data = Arrays.asList(
                 RowFactory.create("a", org.apache.spark.ml_fhe.linalg.CtxtVectors.dense(one_ctxt, zero_ctxt, one_ctxt)),
                 RowFactory.create("b", org.apache.spark.ml_fhe.linalg.CtxtVectors.dense(zero_ctxt, one_ctxt, one_ctxt))
@@ -139,15 +130,14 @@ public class ElementwiseProductExample {
         });
     }
 
-    public static void RunCtxtRDDExample(JavaSparkContext jsc) {
-        String zero_ctxt = loadCtxt(sparkfhe_path + "/bin/records/ptxt_long_0_PlaintextModule71CiphertextModule15313MultiplicativeDepth15SecurityParameter80.json");
-        String one_ctxt = loadCtxt(sparkfhe_path + "/bin/records/ptxt_long_1_PlaintextModule71CiphertextModule15313MultiplicativeDepth15SecurityParameter80.json");
+    public static void RunCtxtRDDExample(JavaSparkContext jsc, String zero_ctxt_path, String one_ctxt_path) {
+        String zero_ctxt = loadCtxt(zero_ctxt_path);
+        String one_ctxt = loadCtxt(one_ctxt_path);
         JavaRDD<CtxtVector> data = jsc.parallelize(Arrays.asList(
                 CtxtVectors.dense(one_ctxt, zero_ctxt, one_ctxt), CtxtVectors.dense(zero_ctxt, one_ctxt, one_ctxt)));
         CtxtVector transformingVector = CtxtVectors.dense(zero_ctxt, one_ctxt, zero_ctxt);
-        System.out.println("here we go");
-        System.out.println(SparkFHE.getInstance().decrypt(transformingVector.numNonzeros()));
-        /*org.apache.spark.mllib_fhe.feature.ElementwiseProduct transformer = new org.apache.spark.mllib_fhe.feature.ElementwiseProduct(transformingVector);
+//        System.out.println(SparkFHE.getInstance().decrypt(transformingVector.numNonzeros()));
+        org.apache.spark.mllib_fhe.feature.ElementwiseProduct transformer = new org.apache.spark.mllib_fhe.feature.ElementwiseProduct(transformingVector);
 
         // Batch transform and per-row transform give the same results:
         JavaRDD<CtxtVector> transformedData = transformer.transform(data);
@@ -160,7 +150,7 @@ public class ElementwiseProductExample {
         transformedData.foreach(x -> {
             AbstractFunction2<Object, String, BoxedUnit> f = new AbstractFunction2<Object, String, BoxedUnit>() {
                 public BoxedUnit apply(Object t1, String t2) {
-                    System.out.println("Index:" + t1 + "      Value:" + decryptCtxt((String)t2));
+                    System.out.println("Index:" + t1 + "      Value:" + SparkFHE.getInstance().decrypt((String)t2));
                     return BoxedUnit.UNIT;
                 }
             };
@@ -171,23 +161,29 @@ public class ElementwiseProductExample {
         transformedData2.foreach(x -> {
             AbstractFunction2<Object, String, BoxedUnit> f = new AbstractFunction2<Object, String, BoxedUnit>() {
                 public BoxedUnit apply(Object t1, String t2) {
-                    System.out.println("Index:" + t1 + "      Value:" + decryptCtxt((String)t2));
+                    System.out.println("Index:" + t1 + "      Value:" + SparkFHE.getInstance().decrypt((String)t2));
                     return BoxedUnit.UNIT;
                 }
             };
             x.foreachActive(f);
-        });*/
+        });
     }
 
-    public static void main(String argv[]) {
-        int slices = (argv.length == 1) ? Integer.parseInt(argv[0]) : 2;
+    public static void main(String[] args) {
+        SparkFHESetup.setup();
+
+        int slices = (args.length == 5) ? Integer.parseInt(args[4]) : 2;
+
+        String pk = args[0];
+        String sk = args[1];
         SparkConf sparkConf = new SparkConf().setAppName("ElementwiseProductExample");
         SparkSession spark = SparkSession.builder().config(sparkConf).getOrCreate();
         JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());
 
-        SparkFHE.init(FHELibrary.HELIB, sparkfhe_path + "/bin/keys/public_key.txt", sparkfhe_path + "/bin/keys/secret_key.txt");
+        SparkFHE.init(FHELibrary.HELIB, pk, sk);
 
-        RunCtxtExample(spark);
+        RunCtxtExample(spark, args[2], args[3]);
+        RunCtxtRDDExample(jsc, args[2], args[3]);
 
         jsc.close();
         spark.close();

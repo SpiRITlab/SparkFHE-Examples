@@ -5,7 +5,7 @@ MAINTAINER Pranav Rane <pmr5279@g.rit.com>
 WORKDIR /root
 
 # install openssh-server, openjdk and wget
-RUN apt-get update && apt-get install -y openssh-server openjdk-8-jdk wget
+RUN apt-get update && apt-get install -y openssh-server openjdk-8-jdk wget git vim
 
 # install hadoop 2.8.5
 
