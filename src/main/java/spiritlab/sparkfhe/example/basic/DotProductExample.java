@@ -6,6 +6,7 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.MapPartitionsFunction;
 import org.apache.spark.api.java.function.ReduceFunction;
+import org.apache.spark.spiritlab.sparkfhe.SparkFHESetup;
 import org.apache.spark.sql.*;
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder;
 import org.apache.spark.sql.catalyst.encoders.RowEncoder;
@@ -201,6 +202,7 @@ public class DotProductExample {
     public static void main(String[] argv) {
         int slices=2;
         SparkConf sparkConf;
+        SparkFHESetup.setup();
         if( "local".equalsIgnoreCase(argv[0]) ) {
             sparkConf = new SparkConf().setAppName("DotProductExample").setMaster("local");
         } else {
