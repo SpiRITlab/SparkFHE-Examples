@@ -1,4 +1,7 @@
-# SparkFHE-Examples
+# For testers
+Visit https://github.com/SpiRITlab/SparkFHE-Examples/wiki
+
+# For developers
 
 Note, there are two pom files which you can use to compile or package:
 ```bash
