@@ -1,0 +1,2 @@
+export PATH=$PATH:$SPARK_HOME/bin:$SPARK_HOME/sbin
+export CLASSPATH=$SPARK_HOME/jars:$CLASSPATH
