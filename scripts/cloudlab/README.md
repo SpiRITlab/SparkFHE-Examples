@@ -1,3 +1,5 @@
+To run scripts within the cloudlab folder, you need to create two files *WITHIN* this folder.
+
 # Provide your Cloudlab.us username 
 - Create a file called "myUserName.txt"
 - Enter your Cloudlab.us username in one single line
