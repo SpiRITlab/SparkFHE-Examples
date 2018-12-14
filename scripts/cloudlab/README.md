@@ -19,4 +19,10 @@ The content should look like the following:
 
  
 
+# Running "git_pull_on_all_nodes.bash"
+This script will update the give repo of the SparkFHE project code from our private repo. Because we are using ssh to automate things on all nodes, you need to provide SSH key you used for your github account. Alternatively, you can use https with your username and password to update on each node manually.
 
+Run this script as
+```bash
+bash git_pull_on_all_nodes.bash YOUR_SSH_PRIVATE_KEY
+```
