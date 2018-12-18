@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-ProjectRoot=..
-cd $ProjectRoot
-
 # generate example key pairs
 ./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.KeyGenExample -Dexec.args="local"
 
