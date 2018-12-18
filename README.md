@@ -17,38 +17,37 @@ First, soft-link the libSparkFHE folder
 ln -s PATH_TO_spark-3.0.0-SNAPSHOT-bin-SparkFHE ./
 ```
 
-Compile for the first time (so that, maven will download the shared lib)
+Compile the example code (the example code will use the shared libraries downloaded while setting up the Apache Spark environment.)
 ```bash
-./mvn -U clean compile
+./mvn -f pom-devel.xml -U clean compile
 ```
+Note, without '-f pom-devel.xml', maven will download a new shared library from our repo and overwrite the existing one in libSparkFHE/lib.
 
 Generate necessary key pair and example ciphertexts (only needed to run once)
 ```bash
-./mvn exec:java -Dexec.mainClass="spiritlab.sparkfhe.example.basic.KeyGenExample" -Dexec.args="local"      # this will generate the example key pair
-./mvn exec:java -Dexec.mainClass="spiritlab.sparkfhe.example.basic.EncDecExample" -Dexec.args="local"      # this will generate some ciphertexts
+./mvn -f pom-devel.xml exec:java -Dexec.mainClass="spiritlab.sparkfhe.example.basic.KeyGenExample" -Dexec.args="local"      # this will generate the example key pair
+./mvn -f pom-devel.xml exec:java -Dexec.mainClass="spiritlab.sparkfhe.example.basic.EncDecExample" -Dexec.args="local"      # this will generate some ciphertexts
 ```
 
 Run examples: Test different FHE operations on example ciphertexts and vectors of ciphertexts
 ```bash
-./mvn exec:java -Dexec.mainClass="spiritlab.sparkfhe.example.basic.BasicOPsExample" -Dexec.args="local"    # this will perform some basic FHE operations
-./mvn exec:java -Dexec.mainClass="spiritlab.sparkfhe.example.basic.DotProductExample" -Dexec.args="local"  # this will perform dot product calculation on vectors of encrypted numbers 
+./mvn -f pom-devel.xml exec:java -Dexec.mainClass="spiritlab.sparkfhe.example.basic.BasicOPsExample" -Dexec.args="local"    # this will perform some basic FHE operations
+./mvn -f pom-devel.xml exec:java -Dexec.mainClass="spiritlab.sparkfhe.example.basic.DotProductExample" -Dexec.args="local"  # this will perform dot product calculation on vectors of encrypted numbers 
 ```
 
 Run JUnit5 tests
 ```bash
-./mvn test
+./mvn -f pom-devel.xml test
 ```
 
 Package into .jar
 ```bash
-./mvn -U -DskipTests clean package
+./mvn -f pom-devel.xml -U -DskipTests clean package
 ```
 
 
 
 
-For developer, you can update the shared libraries manually and recompile as below.
-```bash
-./mvn -f pom-devel.xml compile
-```
+
+
 
