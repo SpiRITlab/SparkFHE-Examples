@@ -35,15 +35,19 @@ bash myMavenExampleRun.bash
 OR run it step-by-step
 ### Step 1. Generate necessary key pair and example ciphertexts (only needed to run once)
 ```bash
-./mvn -f pom-devel.xml exec:java -Dexec.mainClass="spiritlab.sparkfhe.example.basic.KeyGenExample" -Dexec.args="local"      # this will generate the example key pair
-./mvn -f pom-devel.xml exec:java -Dexec.mainClass="spiritlab.sparkfhe.example.basic.EncDecExample" -Dexec.args="local"      # this will generate some ciphertexts
+# this will generate the example key pair
+./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.KeyGenExample -Dexec.args="local" 
+
+# this will generate some ciphertexts
+./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.EncDecExample -Dexec.args="local"      
 ```
 ### Step 2. Run examples: Test different FHE operations on example ciphertexts and vectors of ciphertexts
 ```bash
 # this will perform some basic FHE operations
-./mvn -f pom-devel.xml exec:java -Dexec.mainClass="spiritlab.sparkfhe.example.basic.BasicOPsExample" -Dexec.args="local  "gen/keys/my_public_key.txt" "gen/keys/my_secret_key.txt gen/records/$(ls gen/records | grep ptxt_long_0)" "gen/records/$(ls gen/records | grep ptxt_long_1)"   
+./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.BasicOPsExample -Dexec.args="local  gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/records/ptxt_long_0_PlaintextModule73CiphertextModule9791MultiplicativeDepth10SecurityParameter80.json gen/records/ptxt_long_1_PlaintextModule73CiphertextModule9791MultiplicativeDepth10SecurityParameter80.json"
+
 # this will perform dot product calculation on vectors of encrypted numbers 
-./mvn -f pom-devel.xml exec:java -Dexec.mainClass="spiritlab.sparkfhe.example.basic.DotProductExample" -Dexec.args="local" "gen/keys/my_public_key.txt" "gen/keys/my_secret_key.txt"   "gen/records/$(ls gen/records | grep vec_a)" "gen/records/$(ls gen/records | grep vec_b)" 
+./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.DotProductExample -Dexec.args="local gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/records/vec_a_5_PlaintextModule73CiphertextModule9791MultiplicativeDepth10SecurityParameter80.json gen/records/vec_b_5_PlaintextModule73CiphertextModule9791MultiplicativeDepth10SecurityParameter80.json"
 ```
 
 
