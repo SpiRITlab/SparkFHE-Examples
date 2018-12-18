@@ -1,7 +1,10 @@
-# For testers
-Visit https://github.com/SpiRITlab/SparkFHE-Examples/wiki
+# For Testers
+If you want to go for a quick test drive of the SparkFHE code within the Apache Spark environment, please visit and follow these instructions, https://github.com/SpiRITlab/SparkFHE-Examples/wiki
+
+
 
 # For developers
+If you are a developer working on the SparkFHE-Examples code, you can use the following instructions to develop new example code. You will also need to setup the Apache Spark environment, because it will download and install all dependencies. If you haven't done so, please visit and follow these instructions, https://github.com/SpiRITlab/SparkFHE-Examples/wiki
 
 Note, there are two pom files which you can use to compile or package:
 ```bash
@@ -9,9 +12,14 @@ pom-devel.xml                   # will use the existing shared lib within ./libS
 pom.xml                         # will download and refresh the C++ shared lib from our repo
 ```
 
+First, soft-link the libSparkFHE folder
+```bash
+ln -s PATH_TO_spark-3.0.0-SNAPSHOT-bin-SparkFHE ./
+```
+
 Compile for the first time (so that, maven will download the shared lib)
 ```bash
-./mvn clean compile
+./mvn -U clean compile
 ```
 
 Generate necessary key pair and example ciphertexts (only needed to run once)
