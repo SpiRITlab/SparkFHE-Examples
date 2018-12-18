@@ -5,4 +5,4 @@ export LD_LIBRARY_PATH=$(pwd)/libSparkFHE/lib:$LD_LIBRARY_PATH
 export DYLD_LIBRARY_PATH=$(pwd)/libSparkFHE/lib:$DYLD_LIBRARY_PATH
 export MAVEN_OPTS=-Djava.library.path="libSparkFHE/lib"
 
-mvn $@
+mvn "$@"
