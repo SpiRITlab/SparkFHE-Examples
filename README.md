@@ -12,43 +12,59 @@ pom-devel.xml                   # will use the existing shared lib within ./libS
 pom.xml                         # will download and refresh the C++ shared lib from our repo
 ```
 
-First, soft-link the libSparkFHE folder
+## Soft-link the libSparkFHE folder
 ```bash
 ln -s PATH_TO_spark-3.0.0-SNAPSHOT-bin-SparkFHE ./
 ```
 
-Compile for the first time (so that, maven will download the shared lib)
+## Compile the example code
+The example code will use the shared libraries downloaded while setting up the Apache Spark environment.
 ```bash
-./mvn -U clean compile
+./mvn -f pom-devel.xml -U clean compile
+```
+Note, without '-f pom-devel.xml', maven will download a new shared library from our repo and overwrite the existing one in libSparkFHE/lib.
+
+
+## Run the demo code
+### Run it with a script 
+```bash
+cd scripts
+bash myMavenExampleRun.bash
 ```
 
-Generate necessary key pair and example ciphertexts (only needed to run once)
+OR run it step-by-step
+### Step 1. Generate necessary key pair and example ciphertexts (only needed to run once)
 ```bash
-./mvn exec:java -Dexec.mainClass="spiritlab.sparkfhe.example.basic.KeyGenExample" -Dexec.args="local"      # this will generate the example key pair
-./mvn exec:java -Dexec.mainClass="spiritlab.sparkfhe.example.basic.EncDecExample" -Dexec.args="local"      # this will generate some ciphertexts
-```
+# this will generate the example key pair
+./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.KeyGenExample -Dexec.args="local" 
 
-Run examples: Test different FHE operations on example ciphertexts and vectors of ciphertexts
-```bash
-./mvn exec:java -Dexec.mainClass="spiritlab.sparkfhe.example.basic.BasicOPsExample" -Dexec.args="local"    # this will perform some basic FHE operations
-./mvn exec:java -Dexec.mainClass="spiritlab.sparkfhe.example.basic.DotProductExample" -Dexec.args="local"  # this will perform dot product calculation on vectors of encrypted numbers 
+# this will generate some ciphertexts
+./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.EncDecExample -Dexec.args="local"      
 ```
-
-Run JUnit5 tests
+### Step 2. Run examples: Test different FHE operations on example ciphertexts and vectors of ciphertexts
 ```bash
-./mvn test
-```
+# this will perform some basic FHE operations
+./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.BasicOPsExample -Dexec.args="local  gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/records/ptxt_long_0_PlaintextModule73CiphertextModule9791MultiplicativeDepth10SecurityParameter80.json gen/records/ptxt_long_1_PlaintextModule73CiphertextModule9791MultiplicativeDepth10SecurityParameter80.json"
 
-Package into .jar
-```bash
-./mvn -U -DskipTests clean package
+# this will perform dot product calculation on vectors of encrypted numbers 
+./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.DotProductExample -Dexec.args="local gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/records/vec_a_5_PlaintextModule73CiphertextModule9791MultiplicativeDepth10SecurityParameter80.json gen/records/vec_b_5_PlaintextModule73CiphertextModule9791MultiplicativeDepth10SecurityParameter80.json"
 ```
 
 
-
-
-For developer, you can update the shared libraries manually and recompile as below.
+## Run JUnit5 tests
 ```bash
-./mvn -f pom-devel.xml compile
+./mvn -f pom-devel.xml test
 ```
+
+## Package into .jar
+```bash
+./mvn -f pom-devel.xml -U -DskipTests clean package
+```
+
+
+# Known issues
+You may see the these [warnings](https://github.com/SpiRITlab/SparkFHE-Examples/issues/7). It maybe due to Spark's internal bugs. 
+
+
+
 
