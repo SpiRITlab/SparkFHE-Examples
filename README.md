@@ -1,9 +1,10 @@
-# For testers
+# For Testers
 If you want to go for a quick test drive of the SparkFHE code within the Apache Spark environment, please visit and follow these instructions, https://github.com/SpiRITlab/SparkFHE-Examples/wiki
 
 
+
 # For developers
-If you are a developer working on the SparkFHE-Examples code, you can use the following instructions to test the example code.
+If you are a developer working on the SparkFHE-Examples code, you can use the following instructions to develop new example code. You will also need to setup the Apache Spark environment, because it will download and install all dependencies. If you haven't done so, please visit and follow these instructions, https://github.com/SpiRITlab/SparkFHE-Examples/wiki
 
 Note, there are two pom files which you can use to compile or package:
 ```bash
