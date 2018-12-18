@@ -11,9 +11,14 @@ pom-devel.xml                   # will use the existing shared lib within ./libS
 pom.xml                         # will download and refresh the C++ shared lib from our repo
 ```
 
+First, soft-link the libSparkFHE folder
+```bash
+ln -s PATH_TO_spark-3.0.0-SNAPSHOT-bin-SparkFHE ./
+```
+
 Compile for the first time (so that, maven will download the shared lib)
 ```bash
-./mvn clean compile
+./mvn -U clean compile
 ```
 
 Generate necessary key pair and example ciphertexts (only needed to run once)
