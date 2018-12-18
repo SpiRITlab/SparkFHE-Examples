@@ -14,6 +14,7 @@ pom.xml                         # will download and refresh the C++ shared lib f
 
 ## Soft-link the libSparkFHE folder
 ```bash
+cd SparkFHE-Examples
 ln -s PATH_TO_spark-3.0.0-SNAPSHOT-bin-SparkFHE ./
 ```
 
