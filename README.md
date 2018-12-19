@@ -29,7 +29,6 @@ Note, without '-f pom-devel.xml', maven will download a new shared library from 
 ## Run the demo code
 ### Run it with a script 
 ```bash
-cd scripts
 bash myMavenExampleRun.bash
 ```
 
