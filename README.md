@@ -18,6 +18,11 @@ cd SparkFHE-Examples
 ln -s PATH_TO_spark-3.0.0-SNAPSHOT-bin-SparkFHE ./
 ```
 
+## Get SparkFHE-Addon
+```bash
+./mvn scm:checkout
+```
+
 ## Compile the example code
 The example code will use the shared libraries downloaded while setting up the Apache Spark environment.
 ```bash
