@@ -20,7 +20,7 @@ ln -s PATH_TO_spark-3.0.0-SNAPSHOT-bin-SparkFHE ./
 
 ## 2. Get SparkFHE-Addon
 ```bash
-./mvn scm:checkout
+./mvn -f pom-devel.xml scm:checkout
 ```
 
 ## 3. Compile the example code
