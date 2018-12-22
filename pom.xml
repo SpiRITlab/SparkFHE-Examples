@@ -27,6 +27,10 @@
     <fasterxml.jackson.version>2.9.6</fasterxml.jackson.version>
   </properties>
 
+  <scm>
+    <developerConnection>scm:git:https://github.com/SpiRITlab/SparkFHE-Addon.git</developerConnection>
+  </scm>
+
   <!-- use the following commands to determine the correct profile -->
   <!-- mvn help:active-profiles | grep -v INFO -->
   <profiles>
@@ -318,6 +322,17 @@
               </configuration>
             </execution>
           </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-scm-plugin</artifactId>
+          <version>1.11.1</version>
+          <configuration>
+            <connectionType>developerConnection</connectionType>
+            <scmVersion>master</scmVersion>
+            <scmVersionType>branch</scmVersionType>
+            <checkoutDirectory>./SparkFHE-Addon</checkoutDirectory>
+          </configuration>
         </plugin>
       </plugins>
   </build>
