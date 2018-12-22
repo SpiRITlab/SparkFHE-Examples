@@ -12,7 +12,8 @@ pom-devel.xml                   # will use the existing shared lib within ./libS
 pom.xml                         # will download and refresh the C++ shared lib from our repo
 ```
 
-## 1. Soft-link the libSparkFHE folder; change ${PATH_TO_spark-3.0.0-SNAPSHOT-bin-SparkFHE} to where you install "spark-3.0.0-SNAPSHOT-bin-SparkFHE"
+## 1. Soft-link the libSparkFHE folder
+Note, change ${PATH_TO_spark-3.0.0-SNAPSHOT-bin-SparkFHE} to where you install "spark-3.0.0-SNAPSHOT-bin-SparkFHE"
 ```bash
 cd SparkFHE-Examples
 ln -s ${PATH_TO_spark-3.0.0-SNAPSHOT-bin-SparkFHE} ./
