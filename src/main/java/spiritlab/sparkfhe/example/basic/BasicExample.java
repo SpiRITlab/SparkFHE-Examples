@@ -16,22 +16,22 @@ import org.apache.spark.SparkConf;
 public class BasicExample {
 
     /**
-     * involving the basic C++ API functions
+     * Invoking the basic C++ API functions
      */
     public static void test_basic_op() {
-        // testing the addition function
+        // Testing the addition function
         System.out.println("ADD(1, 0):"+SparkFHE.do_basic_op(1, 0, SparkFHE.ADD));
-        // testing the multiplication function
+        // Testing the multiplication function
         System.out.println("MUL(1, 0):"+SparkFHE.do_basic_op(1, 0, SparkFHE.MUL));
-        // testing the substraction function
+        // Testing the substraction function
         System.out.println("SUB(1, 0):"+SparkFHE.do_basic_op(1, 0, SparkFHE.SUB));
     }
 
 
     public static void main(String[] args) {
-        // setting up the SparkFHE
+        // Setting up the SparkFHE
         SparkFHESetup.setup();
-        // calling the test_basic_op method
+        // Calling the test_basic_op method
         test_basic_op();
     }
 
