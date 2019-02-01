@@ -14,32 +14,18 @@ import org.apache.spark.sql.expressions.Window;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructType;
 import scala.Tuple2;
-import spiritlab.sparkfhe.api.SparkFHE;
-import spiritlab.sparkfhe.api.FHELibrary;
-import spiritlab.sparkfhe.api.StringVector;
-import spiritlab.sparkfhe.api.CtxtString;
+import spiritlab.sparkfhe.api.*;
 import spiritlab.sparkfhe.example.Config;
 
 import java.util.*;
 import static org.apache.spark.sql.functions.col;
 
 public class DotProductExample {
-    static {
-        System.out.println("Execution path: " + System.getProperty("user.dir"));
-        System.out.println("libSparkFHE path: " + System.getProperty("java.library.path"));
-        try {
-            System.loadLibrary("SparkFHE");
-        } catch (UnsatisfiedLinkError e) {
-            System.err.println("Native code library failed to load. \n" + e);
-            System.exit(1);
-        }
-        System.out.println("Loaded native code library. \n");
-    }
 
     private static String vec_a_ctxt;
     private static String vec_b_ctxt;
 
-    public static void test_basic_dot_product(JavaSparkContext jsc, int slices) {
+    public static void test_basic_dot_product(JavaSparkContext jsc, int slices, String pk, String sk) {
         System.out.println("test_basic_dot_product");
         JavaRDD A = jsc.parallelize(Arrays.asList(1,2,3,4,5,6,7,8,9), slices);
         JavaRDD B = jsc.parallelize(Arrays.asList(9,8,7,6,5,4,3,2,1), slices);
@@ -52,16 +38,22 @@ public class DotProductExample {
         });
 
         JavaRDD<Integer> Result_RDD = Combined_RDD.map(tuple -> {
+            // we need to load the shared library and init a copy of SparkFHE on the executor
+            SparkFHESetup.setup();
+            SparkFHE.init(FHELibrary.HELIB,  pk, sk);
             return SparkFHE.do_basic_op(tuple._1(), tuple._2(), SparkFHE.MUL);
         });
 
         System.out.println("Result_RDD:"+Result_RDD.reduce((x, y) -> {
+            // we need to load the shared library and init a copy of SparkFHE on the executor
+            SparkFHESetup.setup();
+            SparkFHE.init(FHELibrary.HELIB,  pk, sk);
             return SparkFHE.do_basic_op(x, y, SparkFHE.ADD);
         }));
     }
 
 
-    public static void test_FHE_dot_product_via_lambda(SparkSession spark, int slices) {
+    public static void test_FHE_dot_product_via_lambda(SparkSession spark, int slices, String pk, String sk) {
         System.out.println("test_FHE_dot_product_via_lambda");
         /* Spark example for FHE calculations */
         // Encoders are created for Java beans
@@ -80,16 +72,22 @@ public class DotProductExample {
         JavaPairRDD<String, String> combined_ctxt_rdd = ctxt_a_rdd2.zip(ctxt_b_rdd2);
 
         JavaRDD<String> result_rdd = combined_ctxt_rdd.map(tuple -> {
+            // we need to load the shared library and init a copy of SparkFHE on the executor
+            SparkFHESetup.setup();
+            SparkFHE.init(FHELibrary.HELIB,  pk, sk);
             return SparkFHE.getInstance().do_FHE_basic_op(tuple._1(), tuple._2(), SparkFHE.FHE_MULTIPLY);
         });
 
         System.out.println("Dot product: " + SparkFHE.getInstance().decrypt(result_rdd.reduce((x, y) -> {
+            // we need to load the shared library and init a copy of SparkFHE on the executor
+            SparkFHESetup.setup();
+            SparkFHE.init(FHELibrary.HELIB,  pk, sk);
             return SparkFHE.getInstance().do_FHE_basic_op(x, y, SparkFHE.FHE_ADD);
         })));
     }
 
 
-    public static void test_FHE_dot_product_via_native_code(SparkSession spark, int slices) {
+    public static void test_FHE_dot_product_via_native_code(SparkSession spark, int slices, String pk, String sk) {
         System.out.println("test_FHE_dot_product_via_native_code");
         /* Spark example for FHE calculations */
         // Encoders are created for Java beans
@@ -105,10 +103,16 @@ public class DotProductExample {
 
         System.out.println("ctxt_a_rdd.count() = " + ctxt_a_rdd.count());
         ctxt_a_rdd.foreach(data -> {
+            // we need to load the shared library and init a copy of SparkFHE on the executor
+            SparkFHESetup.setup();
+            SparkFHE.init(FHELibrary.HELIB,  pk, sk);
             System.out.println(SparkFHE.getInstance().decrypt(data));
         });
         System.out.println("ctxt_b_rdd.count() = " + ctxt_b_rdd.count());
         ctxt_b_rdd.foreach(data -> {
+            // we need to load the shared library and init a copy of SparkFHE on the executor
+            SparkFHESetup.setup();
+            SparkFHE.init(FHELibrary.HELIB,  pk, sk);
             System.out.println(SparkFHE.getInstance().decrypt(data));
         });
 
@@ -117,6 +121,10 @@ public class DotProductExample {
         System.out.println("combined_ctxt_rdd.count() = " + combined_ctxt_rdd.count());
 
         JavaRDD<String> collection = combined_ctxt_rdd.mapPartitions(records -> {
+            // we need to load the shared library and init a copy of SparkFHE on the executor
+            SparkFHESetup.setup();
+            SparkFHE.init(FHELibrary.HELIB,  pk, sk);
+
             LinkedList v = new LinkedList<String>();
             StringVector a = new StringVector();
             StringVector b = new StringVector();
@@ -134,13 +142,16 @@ public class DotProductExample {
         System.out.println("collection.count() = " + collection.count());
 
         String res = collection.reduce((x, y) -> {
+            // we need to load the shared library and init a copy of SparkFHE on the executor
+            SparkFHESetup.setup();
+            SparkFHE.init(FHELibrary.HELIB,  pk, sk);
             return SparkFHE.getInstance().do_FHE_basic_op(x, y, SparkFHE.FHE_ADD);
         });
 
         System.out.println("Dot product: " + SparkFHE.getInstance().decrypt(res));
     }
 
-    public static void test_FHE_dot_product_via_sql(SparkSession spark, int slices) {
+    public static void test_FHE_dot_product_via_sql(SparkSession spark, int slices, String pk, String sk) {
         System.out.println("test_FHE_dot_product_via_sql");
         /* Spark example for FHE calculations */
         // Encoders are created for Java beans
@@ -172,6 +183,10 @@ public class DotProductExample {
         ExpressionEncoder<Row> encoder2 = RowEncoder.apply(structType);
 
         Dataset<String> collection = fin.mapPartitions((MapPartitionsFunction<Row, String>)  iter -> {
+            // we need to load the shared library and init a copy of SparkFHE on the executor
+            SparkFHESetup.setup();
+            SparkFHE.init(FHELibrary.HELIB,  pk, sk);
+
             LinkedList v = new LinkedList<String>();
             StringVector a = new StringVector();
             StringVector b = new StringVector();
@@ -192,6 +207,9 @@ public class DotProductExample {
         collection.printSchema();
 
         String res = collection.reduce((ReduceFunction<String>) (x, y) -> {
+            // we need to load the shared library and init a copy of SparkFHE on the executor
+            SparkFHESetup.setup();
+            SparkFHE.init(FHELibrary.HELIB,  pk, sk);
             return SparkFHE.getInstance().do_FHE_basic_op(x, y, SparkFHE.FHE_ADD);
         });
 
@@ -201,29 +219,33 @@ public class DotProductExample {
 
     public static void main(String[] argv) {
         int slices=2;
-        SparkConf sparkConf;
-        SparkFHESetup.setup();
+        SparkConf sparkConf = new SparkConf();
+        sparkConf.setAppName("DotProductExample");
+
         if( "local".equalsIgnoreCase(argv[0]) ) {
-            sparkConf = new SparkConf().setAppName("DotProductExample").setMaster("local");
+            sparkConf.setMaster("local");
         } else {
             slices=Integer.parseInt(argv[0]);
-            sparkConf = new SparkConf().setAppName("DotProductExample");
+            Config.update_current_directory(sparkConf.get("spark.mesos.executor.home"));
+            System.out.println("CURRENT_DIRECTORY = "+Config.get_current_directory());
         }
         SparkSession spark = SparkSession.builder().config(sparkConf).getOrCreate();
         JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());
 
         String pk = argv[1];
         String sk = argv[2];
-        vec_a_ctxt = argv[3]; // Config.DEFAULT_RECORDS_DIRECTORY+"/vec_a_"+String.valueOf(Config.NUM_OF_VECTOR_ELEMENTS)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+".json";
-        vec_b_ctxt = argv[4]; // Config.DEFAULT_RECORDS_DIRECTORY+"/vec_b_"+String.valueOf(Config.NUM_OF_VECTOR_ELEMENTS)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+".json";
+        vec_a_ctxt = argv[3];
+        vec_b_ctxt = argv[4];
 
-
+        // required to load our shared library
+        SparkFHESetup.setup();
+        // create SparkFHE object
         SparkFHE.init(FHELibrary.HELIB, pk, sk);
 
-        test_basic_dot_product(jsc, slices);
-        test_FHE_dot_product_via_lambda(spark, slices);
-        test_FHE_dot_product_via_native_code(spark, slices);
-        test_FHE_dot_product_via_sql(spark, slices);
+        test_basic_dot_product(jsc, slices, pk, sk);
+        test_FHE_dot_product_via_lambda(spark, slices, pk, sk);
+        test_FHE_dot_product_via_native_code(spark, slices, pk, sk);
+        test_FHE_dot_product_via_sql(spark, slices, pk, sk);
 
 
         jsc.close();

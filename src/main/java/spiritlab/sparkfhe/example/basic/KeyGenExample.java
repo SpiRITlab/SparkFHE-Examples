@@ -1,5 +1,9 @@
 package spiritlab.sparkfhe.example.basic;
 
+import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.spiritlab.sparkfhe.SparkFHESetup;
+import org.apache.spark.sql.SparkSession;
 import spiritlab.sparkfhe.api.FHELibrary;
 import spiritlab.sparkfhe.api.SparkFHE;
 import spiritlab.sparkfhe.example.Config;
@@ -7,22 +11,27 @@ import spiritlab.sparkfhe.example.Config;
 import java.io.File;
 
 public class KeyGenExample {
-    static {
-        System.out.println("Execution path: " + System.getProperty("user.dir"));
-        System.out.println("libSparkFHE path: " + System.getProperty("java.library.path"));
-        try {
-            System.loadLibrary("SparkFHE");
-        } catch (UnsatisfiedLinkError e) {
-            System.err.println("Native code library failed to load. \n" + e);
-            System.exit(1);
-        }
-        System.out.println("Loaded native code library. \n");
-    }
 
-    public static void main(String argv[]) {
-        new File(Config.DEFAULT_KEY_DIRECTORY).mkdirs();
+    public static void main(String args[]) {
+        int slices = 2;
+        SparkConf sparkConf = new SparkConf();
+        sparkConf.setAppName("KeyGenExample");
+
+        if ( "local".equalsIgnoreCase(args[0]) ) {
+            sparkConf.setMaster("local");
+        } else {
+            slices=Integer.parseInt(args[0]);
+            Config.update_current_directory(sparkConf.get("spark.mesos.executor.home"));
+            System.out.println("CURRENT_DIRECTORY = "+Config.get_current_directory());
+        }
+
+        // required to load our shared library
+        SparkFHESetup.setup();
+        // create SparkFHE object
         SparkFHE.init(FHELibrary.HELIB);
-        SparkFHE.getInstance().generate_key_pair(Config.DEFAULT_CRYPTO_PARAMS_FILE, Config.DEFAULT_PUBLIC_KEY_FILE, Config.DEFAULT_SECRET_KEY_FILE);
+
+        new File(Config.get_keys_directory()).mkdirs();
+        SparkFHE.getInstance().generate_key_pair(Config.get_default_crypto_params_file(FHELibrary.HELIB), Config.get_default_public_key_file(), Config.get_default_secret_key_file());
 
         String inputNumber="1";
         String ctxt_string = SparkFHE.getInstance().encrypt(inputNumber);
