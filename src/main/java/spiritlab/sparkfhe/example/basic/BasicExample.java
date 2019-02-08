@@ -9,8 +9,9 @@ import spiritlab.sparkfhe.api.SparkFHE;
 import org.apache.spark.SparkConf;
 
 /**
- * This is an example for SparkFHE project. Created to test the functionality
- * of the underlying C++ APIs. A few simple functions are invoked via lambda.
+ * This is an example for SparkFHE project. Created to confirm the smooth communication between Java and C++ codes.
+ * Data transformations are made in Spark framework are made through the use of lambda function. This program contains
+ * a few very simple example of such transformations.
  */
 
 public class BasicExample {
@@ -29,7 +30,7 @@ public class BasicExample {
 
 
     public static void main(String[] args) {
-        // Setting up the SparkFHE
+        // Loading up the necessary libraries for Java and C++ interaction
         SparkFHESetup.setup();
         // Calling the test_basic_op method
         test_basic_op();

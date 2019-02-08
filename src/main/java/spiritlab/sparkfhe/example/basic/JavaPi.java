@@ -24,13 +24,8 @@ import org.apache.spark.sql.SparkSession;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * This is from Apache Spark project. Created to represent a simple Spark job,
- * which computes an approximation to pi. The example demonstrates the framework's
- * ease of use, by removing the need of managing tasks and resource from the
- * developers.
- * Usage: JavaPi [partitions]
- */
+
+
 public final class JavaPi {
 
   public static void main(String[] args) throws Exception {
