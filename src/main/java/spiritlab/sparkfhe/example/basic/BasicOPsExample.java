@@ -4,6 +4,7 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.sql.*;
 import org.apache.spark.spiritlab.sparkfhe.SparkFHESetup;
 import spiritlab.sparkfhe.api.*;
@@ -22,7 +23,7 @@ public class BasicOPsExample {
         System.out.println("SUB(1, 0):"+SparkFHE.do_basic_op(1, 0, SparkFHE.SUB));
     }
 
-    public static void test_FHE_basic_op(SparkSession spark, int slices, String pk, String sk) {
+    public static void test_FHE_basic_op(SparkSession spark, int slices, Broadcast<String> pk_b, Broadcast<String> sk_b) {
         /* Spark example for FHE calculations */
         // Encoders are created for Java beans
         Encoder<CtxtString> ctxtJSONEncoder = Encoders.bean(CtxtString.class);
@@ -34,7 +35,6 @@ public class BasicOPsExample {
         Dataset<CtxtString> ctxt_one_ds = spark.read().json(CTXT_1_FILE).as(ctxtJSONEncoder);
         System.out.println("Ciphertext One:"+SparkFHE.getInstance().decrypt(ctxt_one_ds.first().getCtxt()));
 
-
         JavaRDD<CtxtString> ctxt_zero_rdd = ctxt_zero_ds.javaRDD();
         JavaRDD<CtxtString> ctxt_one_rdd = ctxt_one_ds.javaRDD();
 
@@ -43,7 +43,7 @@ public class BasicOPsExample {
         JavaRDD<String> Addition_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHESetup.setup();
-            SparkFHE.init(FHELibrary.HELIB,  pk, sk);
+            SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
             return SparkFHE.getInstance().do_FHE_basic_op(tuple._1().getCtxt(), tuple._2().getCtxt(), SparkFHE.FHE_ADD);
         });
         System.out.println("Homomorphic Addition:"+ SparkFHE.getInstance().decrypt(Addition_ctxt_RDD.collect().get(0)));
@@ -51,15 +51,15 @@ public class BasicOPsExample {
         JavaRDD<String> Multiplication_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHESetup.setup();
-            SparkFHE.init(FHELibrary.HELIB,  pk, sk);
+            SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
             return SparkFHE.getInstance().do_FHE_basic_op(tuple._1().getCtxt(), tuple._2().getCtxt(), SparkFHE.FHE_MULTIPLY);
         });
-        System.out.println("Homomorphic Multiplication:"+SparkFHE.getInstance().decrypt(Multiplication_ctxt_RDD.collect().get(0)));
+        System.out.println("Homomorphic Multiplication:"+ SparkFHE.getInstance().decrypt(Multiplication_ctxt_RDD.collect().get(0)));
 
         JavaRDD<String> Subtraction_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHESetup.setup();
-            SparkFHE.init(FHELibrary.HELIB,  pk, sk);
+            SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
             return SparkFHE.getInstance().do_FHE_basic_op(tuple._1().getCtxt(), tuple._2().getCtxt(), SparkFHE.FHE_SUBTRACT);
         });
         System.out.println("Homomorphic Subtraction:"+SparkFHE.getInstance().decrypt(Subtraction_ctxt_RDD.collect().get(0)));
@@ -95,10 +95,13 @@ public class BasicOPsExample {
         SparkFHE.init(FHELibrary.HELIB,  pk, sk);
         System.out.println("after SparkFHE init");
 
+        Broadcast<String> pk_b = jsc.broadcast(pk);
+        Broadcast<String> sk_b = jsc.broadcast(sk);
+
         System.out.println(String.valueOf(SparkFHE.do_basic_op(1,1, SparkFHE.ADD)));
 
         test_basic_op();
-        test_FHE_basic_op(spark, slices, pk, sk);
+        test_FHE_basic_op(spark, slices, pk_b, sk_b);
 
         jsc.close();
         spark.close();
