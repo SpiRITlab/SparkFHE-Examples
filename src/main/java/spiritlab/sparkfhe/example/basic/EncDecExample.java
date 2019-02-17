@@ -36,7 +36,7 @@ public class EncDecExample {
         // create SparkFHE object
         SparkFHE.init(FHELibrary.HELIB, pk, sk);
 
-        new File(Config.get_keys_directory()).mkdirs();
+        new File(Config.get_records_directory()).mkdirs();
         String CTXT_0_FILE = Config.get_records_directory() + "/ptxt_long_0_"+ SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json";
         String CTXT_1_FILE = Config.get_records_directory() +"/ptxt_long_1_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json";
 
