@@ -107,9 +107,6 @@ public class BasicOPsExample {
         // Creating spark context which allows the communication with worker nodes
         JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());
 
-        // Testing and printing the addition function
-        System.out.println(String.valueOf(SparkFHE.do_basic_op(1,1, SparkFHE.ADD)));
-
         // read in the public and secret key and their associated files from terminal arguments
         String pk = args[1];
         String sk = args[2];
@@ -127,6 +124,7 @@ public class BasicOPsExample {
         Broadcast<String> pk_b = jsc.broadcast(pk);
         Broadcast<String> sk_b = jsc.broadcast(sk);
 
+        // Testing and printing the addition function
         System.out.println(String.valueOf(SparkFHE.do_basic_op(1,1, SparkFHE.ADD)));
 
         // Start testing the basic operations in Helib on plain text, such as addition, subtraction, and multiply.
