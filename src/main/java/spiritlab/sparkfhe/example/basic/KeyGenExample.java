@@ -10,6 +10,9 @@ import spiritlab.sparkfhe.example.Config;
 
 import java.io.File;
 
+/**
+ * This is an example for SparkFHE project. Created to test the cryto-libraries basic function - generating a key.
+ */
 public class KeyGenExample {
 
     public static void main(String args[]) {
@@ -25,17 +28,23 @@ public class KeyGenExample {
             System.out.println("CURRENT_DIRECTORY = "+Config.get_current_directory());
         }
 
-        // required to load our shared library
+        // Load C++ shared library
         SparkFHESetup.setup();
-        // create SparkFHE object
+        // Create SparkFHE object with HElib, a library that implements homomorphic encryption
         SparkFHE.init(FHELibrary.HELIB);
 
+        // Creates the directory named by the pathname - current_directiory/gen/keys,
+        // and including any necessary parent directories.
         new File(Config.get_keys_directory()).mkdirs();
+        // Using the object created to call the C++ function to generate the keys.
         SparkFHE.getInstance().generate_key_pair(Config.get_default_crypto_params_file(FHELibrary.HELIB), Config.get_default_public_key_file(), Config.get_default_secret_key_file());
-
+      
+        // Encrypting the literal 1, and decrypting it to verify the keys' accuracy.
         String inputNumber="1";
         String ctxt_string = SparkFHE.getInstance().encrypt(inputNumber);
         String ptxt_string = SparkFHE.getInstance().decrypt(ctxt_string);
+
+        // Printing out the result
         System.out.println("InputNumber="+inputNumber + ", result of dec(enc(InputNumber))="+ptxt_string);
     }
 
