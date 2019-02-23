@@ -50,8 +50,8 @@ public class BasicOPsTest {
 
         SparkFHE.init(FHELibrary.HELIB,  Config.DEFAULT_PUBLIC_KEY_FILE, Config.DEFAULT_SECRET_KEY_FILE);
 
-        CTXT_0_FILE = Config.DEFAULT_RECORDS_DIRECTORY+"/ptxt_long_0_"+ SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json";
-        CTXT_1_FILE = Config.DEFAULT_RECORDS_DIRECTORY+"/ptxt_long_1_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json";
+        CTXT_0_FILE = Config.get_records_directory()+"/ptxt_long_0_"+ SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json";
+        CTXT_1_FILE = Config.get_records_directory()+"/ptxt_long_1_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json";
     }
 
     @BeforeEach

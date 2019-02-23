@@ -1,11 +1,7 @@
 package spiritlab.sparkfhe.example.basic;
 
-//import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.spiritlab.sparkfhe.SparkFHESetup;
-import org.apache.spark.sql.SparkSession;
 import spiritlab.sparkfhe.api.SparkFHE;
-
 import org.apache.spark.SparkConf;
 
 /**
