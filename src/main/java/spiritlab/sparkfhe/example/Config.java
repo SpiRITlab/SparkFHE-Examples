@@ -21,9 +21,9 @@ public class Config {
     public static final String CTXT_LABEL="ctxt";
     public static int NUM_OF_VECTOR_ELEMENTS = 5;
 
-    public static final String HDFS_PREFIX = "hdfs:/"
-    public static enum ExecutionEnvironment = {LOCAL, CLUSTER};
-    private static ExecutionEnvironment currentExecutionEnvironment = ExecutionEnvironment.LOCAL;
+    public static final String HDFS_PREFIX = "hdfs:/";
+    public static enum ExecutionEnvironment {LOCAL, CLUSTER;}
+    public static ExecutionEnvironment currentExecutionEnvironment = ExecutionEnvironment.LOCAL;
 
     public static void setExecutionEnvironment(String environment) {
         if ("local".equalsIgnoreCase(environment)) {
