@@ -20,12 +20,19 @@ public class KeyGenExample {
         SparkConf sparkConf = new SparkConf();
         sparkConf.setAppName("KeyGenExample");
 
-        if ( "local".equalsIgnoreCase(args[0]) ) {
-            sparkConf.setMaster("local");
-        } else {
-            slices=Integer.parseInt(args[0]);
-            Config.update_current_directory(sparkConf.get("spark.mesos.executor.home"));
-            System.out.println("CURRENT_DIRECTORY = "+Config.get_current_directory());
+        Config.setExecutionEnvironment(args[0]);
+
+        switch (Config.currentExecutionEnvironment) {
+            case CLUSTER:
+                slices = Integer.parseInt(args[0]);
+                break;
+            case LOCAL:
+                sparkConf.setMaster("local");
+                Config.update_current_directory(sparkConf.get("spark.mesos.executor.home"));
+                System.out.println("CURRENT_DIRECTORY = "+Config.get_current_directory());
+                break;
+            default:
+                break;
         }
 
         // Load C++ shared library

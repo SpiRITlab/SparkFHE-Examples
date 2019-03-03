@@ -21,6 +21,21 @@ public class Config {
     public static final String CTXT_LABEL="ctxt";
     public static int NUM_OF_VECTOR_ELEMENTS = 5;
 
+    public static final String HDFS_PREFIX = "hdfs:/"
+    public static enum ExecutionEnvironment = {LOCAL, CLUSTER};
+    private static ExecutionEnvironment currentExecutionEnvironment = ExecutionEnvironment.LOCAL;
+
+    public static void setExecutionEnvironment(String environment) {
+        if ("local".equalsIgnoreCase(environment)) {
+            currentExecutionEnvironment = ExecutionEnvironment.LOCAL;
+        } else {
+            currentExecutionEnvironment = ExecutionEnvironment.CLUSTER;
+        }
+    }
+
+    public static ExecutionEnvironment getExecutionEnvironment() {
+        return currentExecutionEnvironment;
+    }
 
     public static void update_current_directory(String CurrentDir) {
         Current_Directory=CurrentDir;
@@ -30,24 +45,34 @@ public class Config {
         return Current_Directory;
     }
 
+    public static String get_prefix_path() {
+        switch(currentExecutionEnvironment) {
+            case CLUSTER:
+                return HDFS_PREFIX;
+            case LOCAL:
+            default:
+                return Current_Directory;
+        }
+    }
+
     public static String get_keys_directory() {
-        return Current_Directory + DEFAULT_KEY_DIRECTORY;
+        return get_prefix_path() + DEFAULT_KEY_DIRECTORY;
     }
 
     public static String get_default_public_key_file() {
-        return Current_Directory + DEFAULT_KEY_DIRECTORY + "/" + DEFAULT_PUBLIC_KEY_FILE;
+        return get_prefix_path() + DEFAULT_KEY_DIRECTORY + "/" + DEFAULT_PUBLIC_KEY_FILE;
     }
 
     public static String get_default_secret_key_file() {
-        return Current_Directory + DEFAULT_KEY_DIRECTORY + "/" + DEFAULT_SECRET_KEY_FILE;
+        return get_prefix_path() + DEFAULT_KEY_DIRECTORY + "/" + DEFAULT_SECRET_KEY_FILE;
     }
 
     public static String get_records_directory() {
-        return Current_Directory + DEFAULT_RECORDS_DIRECTORY;
+        return get_prefix_path() + DEFAULT_RECORDS_DIRECTORY;
     }
 
     public static String get_crypto_param_directory() {
-        return Current_Directory + DEFAULT_CRYPTO_PARAMS_DIRECTORY;
+        return get_prefix_path() + DEFAULT_CRYPTO_PARAMS_DIRECTORY;
     }
 
     public static String get_default_crypto_params_file(String lib_name) {
@@ -59,7 +84,7 @@ public class Config {
         } else if (lib_name.equalsIgnoreCase(FHELibrary.PALISADE)) {
             crypto_param_file = DEFAULT_PALISADE_CRYPTO_PARAMS_FILENAME;
         }
-        return Current_Directory + DEFAULT_CRYPTO_PARAMS_DIRECTORY + "/" + crypto_param_file;
+        return get_prefix_path() + DEFAULT_CRYPTO_PARAMS_DIRECTORY + "/" + crypto_param_file;
     }
 
 
