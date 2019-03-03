@@ -42,13 +42,9 @@ public class Config {
     }
 
     public static String get_current_directory() {
-        return Current_Directory;
-    }
-
-    public static String get_prefix_path() {
         switch(currentExecutionEnvironment) {
             case CLUSTER:
-                return HDFS_PREFIX;
+                return HDFS_PREFIX + Current_Directory;
             case LOCAL:
             default:
                 return Current_Directory;
@@ -56,23 +52,24 @@ public class Config {
     }
 
     public static String get_keys_directory() {
-        return get_prefix_path() + DEFAULT_KEY_DIRECTORY;
+        return get_current_directory() + DEFAULT_KEY_DIRECTORY;
     }
 
     public static String get_default_public_key_file() {
-        return get_prefix_path() + DEFAULT_KEY_DIRECTORY + "/" + DEFAULT_PUBLIC_KEY_FILE;
+        return get_current_directory() + DEFAULT_KEY_DIRECTORY + "/" + DEFAULT_PUBLIC_KEY_FILE;
     }
 
     public static String get_default_secret_key_file() {
-        return get_prefix_path() + DEFAULT_KEY_DIRECTORY + "/" + DEFAULT_SECRET_KEY_FILE;
+        return get_current_directory() + DEFAULT_KEY_DIRECTORY + "/" +
+                DEFAULT_SECRET_KEY_FILE;
     }
 
     public static String get_records_directory() {
-        return get_prefix_path() + DEFAULT_RECORDS_DIRECTORY;
+        return get_current_directory() + DEFAULT_RECORDS_DIRECTORY;
     }
 
     public static String get_crypto_param_directory() {
-        return get_prefix_path() + DEFAULT_CRYPTO_PARAMS_DIRECTORY;
+        return get_current_directory() + DEFAULT_CRYPTO_PARAMS_DIRECTORY;
     }
 
     public static String get_default_crypto_params_file(String lib_name) {
@@ -84,7 +81,7 @@ public class Config {
         } else if (lib_name.equalsIgnoreCase(FHELibrary.PALISADE)) {
             crypto_param_file = DEFAULT_PALISADE_CRYPTO_PARAMS_FILENAME;
         }
-        return get_prefix_path() + DEFAULT_CRYPTO_PARAMS_DIRECTORY + "/" + crypto_param_file;
+        return get_current_directory() + DEFAULT_CRYPTO_PARAMS_DIRECTORY + "/" + crypto_param_file;
     }
 
 
