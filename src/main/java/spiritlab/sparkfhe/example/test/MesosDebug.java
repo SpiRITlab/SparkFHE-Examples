@@ -1,3 +1,8 @@
+//
+// Copyright SpiRITlab - The SparkFHE project.
+// https://github.com/SpiRITlab
+//
+
 package spiritlab.sparkfhe.example.test;
 
 import spiritlab.sparkfhe.example.Config;

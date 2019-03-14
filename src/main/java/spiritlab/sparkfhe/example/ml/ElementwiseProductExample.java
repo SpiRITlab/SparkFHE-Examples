@@ -1,3 +1,8 @@
+//
+// Copyright SpiRITlab - The SparkFHE project.
+// https://github.com/SpiRITlab
+//
+
 //https://github.com/apache/spark/blob/master/examples/src/main/java/org/apache/spark/examples/ml/JavaElementwiseProductExample.java
 
 package spiritlab.sparkfhe.example.ml;

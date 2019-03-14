@@ -1,3 +1,8 @@
+//
+// Copyright SpiRITlab - The SparkFHE project.
+// https://github.com/SpiRITlab
+//
+
 package spiritlab.sparkfhe.example.basic;
 
 import org.apache.spark.SparkConf;
@@ -184,8 +189,7 @@ public class DotProductExample {
         });
 
         // reset the collection and display the output
-        collection.cache();
-        System.out.println("collection.count() = " + collection.count());
+        //collection.cache();
 
         // sum up the results from the previous operation and display
         String res = collection.reduce((x, y) -> {
@@ -276,10 +280,10 @@ public class DotProductExample {
         }, Encoders.STRING());
 
         // reset the collection and display the output
-        collection.cache();
+        //collection.cache();
 
-        System.out.println("collection.count() = " + collection.count());
-        collection.printSchema();
+//        System.out.println("collection.count() = " + collection.count());
+//        collection.printSchema();
 
         // sum up the results from the previous operation
         String res = collection.reduce((ReduceFunction<String>) (x, y) -> {
