@@ -107,11 +107,11 @@ public class DotProductExample {
         JavaPairRDD<String, String> combined_ctxt_rdd = ctxt_a_rdd2.zip(ctxt_b_rdd2);
 
         // perform the multiply operator on each of the pairs
-        JavaRDD<String> result_rdd = combined_ctxt_rdd.map(tuple -> {
+        JavaRDD<Ciphertext> result_rdd = combined_ctxt_rdd.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHESetup.setup();
             SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
-            return SparkFHE.getInstance().do_FHE_basic_op(tuple._1(), tuple._2(), SparkFHE.FHE_MULTIPLY);
+            return SparkFHE.getInstance().do_FHE_basic_op(new Ciphertext(tuple._1()), new Ciphertext(tuple._2()), SparkFHE.FHE_MULTIPLY);
         });
 
         // sum up the results from the previous operation and display
@@ -154,14 +154,14 @@ public class DotProductExample {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHESetup.setup();
             SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
-            System.out.println(SparkFHE.getInstance().decrypt(data));
+            System.out.println(SparkFHE.getInstance().decrypt(new Ciphertext(data)));
         });
         System.out.println("ctxt_b_rdd.count() = " + ctxt_b_rdd.count());
         ctxt_b_rdd.foreach(data -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHESetup.setup();
             SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
-            System.out.println(SparkFHE.getInstance().decrypt(data));
+            System.out.println(SparkFHE.getInstance().decrypt(new Ciphertext(data)));
         });
 
         // combine both rdds as a pair
@@ -170,20 +170,20 @@ public class DotProductExample {
         System.out.println("combined_ctxt_rdd.count() = " + combined_ctxt_rdd.count());
 
         // call homomorphic doc product operators on the rdds
-        JavaRDD<String> collection = combined_ctxt_rdd.mapPartitions(records -> {
+        JavaRDD<Ciphertext> collection = combined_ctxt_rdd.mapPartitions(records -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHESetup.setup();
             SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
 
             LinkedList v = new LinkedList<String>();
-            StringVector a = new StringVector();
-            StringVector b = new StringVector();
+            CiphertextVector a = new CiphertextVector();
+            CiphertextVector b = new CiphertextVector();
             while (records.hasNext()) {
                 Tuple2<String, String> rec = records.next();
-                a.add(rec._1);
-                b.add(rec._2);
+                a.add(new Ciphertext(rec._1));
+                b.add(new Ciphertext(rec._2));
             }
-            String r = SparkFHE.getInstance().do_FHE_dot_product(a, b);
+            Ciphertext r = SparkFHE.getInstance().do_FHE_dot_product(a, b);
             v.add(r);
             return v.iterator();
         });
@@ -192,7 +192,7 @@ public class DotProductExample {
         //collection.cache();
 
         // sum up the results from the previous operation and display
-        String res = collection.reduce((x, y) -> {
+        Ciphertext res = collection.reduce((x, y) -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHESetup.setup();
             SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
@@ -265,16 +265,16 @@ public class DotProductExample {
             SparkFHESetup.setup();
             SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
 
-            LinkedList v = new LinkedList<String>();
-            StringVector a = new StringVector();
-            StringVector b = new StringVector();
+            LinkedList<String> v = new LinkedList<String>();
+            CiphertextVector a = new CiphertextVector();
+            CiphertextVector b = new CiphertextVector();
             while (iter.hasNext()) {
                 Row row = iter.next();
-                a.add(row.getAs("ctxt"));
-                b.add(row.getAs("ctxt2"));
+                a.add(new Ciphertext((String)row.getAs("ctxt")));
+                b.add(new Ciphertext((String)row.getAs("ctxt")));
             }
-            String r = SparkFHE.getInstance().do_FHE_dot_product(a, b);
-            v.add(r);
+            Ciphertext r = SparkFHE.getInstance().do_FHE_dot_product(a, b);
+            v.add(r.serializeToString());
             return v.iterator();
 
         }, Encoders.STRING());
@@ -290,11 +290,11 @@ public class DotProductExample {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHESetup.setup();
             SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
-            return SparkFHE.getInstance().do_FHE_basic_op(x, y, SparkFHE.FHE_ADD);
+            return SparkFHE.getInstance().do_FHE_basic_op(new Ciphertext(x), new Ciphertext(y), SparkFHE.FHE_ADD).serializeToString();
         });
 
         // decrypt the result to verify it
-        System.out.println("Dot product: " + SparkFHE.getInstance().decrypt(res));
+        System.out.println("Dot product: " + SparkFHE.getInstance().decrypt(new Ciphertext(res)));
     }
 
 

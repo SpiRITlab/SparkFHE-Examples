@@ -19,10 +19,7 @@ import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructType;
 import org.junit.jupiter.api.*;
 import scala.Tuple2;
-import spiritlab.sparkfhe.api.FHELibrary;
-import spiritlab.sparkfhe.api.SparkFHE;
-import spiritlab.sparkfhe.api.StringVector;
-import spiritlab.sparkfhe.api.CtxtString;
+import spiritlab.sparkfhe.api.*;
 import spiritlab.sparkfhe.example.Config;
 
 import java.util.Arrays;
@@ -113,8 +110,8 @@ public class DotProductTest {
         JavaRDD<String> ctxt_b_rdd2 = ctxt_b_rdd.repartition(slices);
         JavaPairRDD<String, String> combined_ctxt_rdd = ctxt_a_rdd2.zip(ctxt_b_rdd2);
 
-        JavaRDD<String> result_rdd = combined_ctxt_rdd.map(tuple -> {
-            return SparkFHE.getInstance().do_FHE_basic_op(tuple._1(), tuple._2(), SparkFHE.FHE_MULTIPLY);
+        JavaRDD<Ciphertext> result_rdd = combined_ctxt_rdd.map(tuple -> {
+            return SparkFHE.getInstance().do_FHE_basic_op(new Ciphertext(tuple._1()), new Ciphertext(tuple._2()), SparkFHE.FHE_MULTIPLY);
         });
 
         assertEquals(String.valueOf(10), SparkFHE.getInstance().decrypt(result_rdd.reduce((x, y) -> {
@@ -139,34 +136,34 @@ public class DotProductTest {
 
         assertEquals(5, ctxt_a_rdd.count());
         ctxt_a_rdd.foreach(data -> {
-            System.out.println(SparkFHE.getInstance().decrypt(data));
+            System.out.println(SparkFHE.getInstance().decrypt(new Ciphertext(data)));
         });
         assertEquals(5, ctxt_b_rdd.count());
         ctxt_b_rdd.foreach(data -> {
-            System.out.println(SparkFHE.getInstance().decrypt(data));
+            System.out.println(SparkFHE.getInstance().decrypt(new Ciphertext(data)));
         });
 
         JavaPairRDD<String, String> combined_ctxt_rdd = ctxt_a_rdd.zip(ctxt_b_rdd);
         combined_ctxt_rdd.repartition(slices);
         assertEquals(5, combined_ctxt_rdd.count());
 
-        JavaRDD<String> collection = combined_ctxt_rdd.mapPartitions(records -> {
-            LinkedList v = new LinkedList<String>();
-            StringVector a = new StringVector();
-            StringVector b = new StringVector();
+        JavaRDD<Ciphertext> collection = combined_ctxt_rdd.mapPartitions(records -> {
+            LinkedList<Ciphertext> v = new LinkedList<Ciphertext>();
+            CiphertextVector a = new CiphertextVector();
+            CiphertextVector b = new CiphertextVector();
             while (records.hasNext()) {
                 Tuple2<String, String> rec = records.next();
-                a.add(rec._1);
-                b.add(rec._2);
+                a.add(new Ciphertext(rec._1));
+                b.add(new Ciphertext(rec._2));
             }
-            String r = SparkFHE.getInstance().do_FHE_dot_product(a, b);
+            Ciphertext r = SparkFHE.getInstance().do_FHE_dot_product(a, b);
             v.add(r);
             return v.iterator();
         });
 
         collection.cache();
 
-        String res = collection.reduce((x, y) -> {
+        Ciphertext res = collection.reduce((x, y) -> {
             return SparkFHE.getInstance().do_FHE_basic_op(x, y, SparkFHE.FHE_ADD);
         });
 
@@ -206,16 +203,16 @@ public class DotProductTest {
         ExpressionEncoder<Row> encoder2 = RowEncoder.apply(structType);
 
         Dataset<String> collection = fin.mapPartitions((MapPartitionsFunction<Row, String>)  iter -> {
-            LinkedList v = new LinkedList<String>();
-            StringVector a = new StringVector();
-            StringVector b = new StringVector();
+            LinkedList<String> v = new LinkedList<String>();
+            CiphertextVector a = new CiphertextVector();
+            CiphertextVector b = new CiphertextVector();
             while (iter.hasNext()) {
                 Row row = iter.next();
                 a.add(row.getAs("ctxt"));
                 b.add(row.getAs("ctxt2"));
             }
-            String r = SparkFHE.getInstance().do_FHE_dot_product(a, b);
-            v.add(r);
+            Ciphertext r = SparkFHE.getInstance().do_FHE_dot_product(a, b);
+            v.add(r.serializeToString());
             return v.iterator();
 
         }, Encoders.STRING());
@@ -224,10 +221,10 @@ public class DotProductTest {
         collection.printSchema();
 
         String res = collection.reduce((ReduceFunction<String>) (x, y) -> {
-            return SparkFHE.getInstance().do_FHE_basic_op(x, y, SparkFHE.FHE_ADD);
+            return SparkFHE.getInstance().do_FHE_basic_op(new Ciphertext(x), new Ciphertext(y), SparkFHE.FHE_ADD).serializeToString();
         });
 
-        assertEquals(String.valueOf(10), SparkFHE.getInstance().decrypt(res));
+        assertEquals(String.valueOf(10), SparkFHE.getInstance().decrypt(new Ciphertext(res)));
     }
 
 

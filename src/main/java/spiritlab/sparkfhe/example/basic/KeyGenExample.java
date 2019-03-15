@@ -9,7 +9,9 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.spiritlab.sparkfhe.SparkFHESetup;
 import org.apache.spark.sql.SparkSession;
+import spiritlab.sparkfhe.api.Ciphertext;
 import spiritlab.sparkfhe.api.FHELibrary;
+import spiritlab.sparkfhe.api.Plaintext;
 import spiritlab.sparkfhe.api.SparkFHE;
 import spiritlab.sparkfhe.example.Config;
 
@@ -45,12 +47,14 @@ public class KeyGenExample {
         SparkFHE.getInstance().generate_key_pair(Config.get_default_crypto_params_file(FHELibrary.HELIB), Config.get_default_public_key_file(), Config.get_default_secret_key_file());
       
         // Encrypting the literal 1, and decrypting it to verify the keys' accuracy.
-        String inputNumber="1";
-        String ctxt_string = SparkFHE.getInstance().encrypt(inputNumber);
-        String ptxt_string = SparkFHE.getInstance().decrypt(ctxt_string);
+        String inputNumberString="1";
+        Plaintext inputNumberPtxt = new Plaintext(inputNumberString);
+
+        Ciphertext ctxt = SparkFHE.getInstance().encrypt(inputNumberPtxt);
+        Plaintext ptxt = SparkFHE.getInstance().decrypt(ctxt);
 
         // Printing out the result
-        System.out.println("InputNumber="+inputNumber + ", result of dec(enc(InputNumber))="+ptxt_string);
+        System.out.println("InputNumber="+inputNumberString + ", result of dec(enc(InputNumber))="+ptxt.toString());
     }
 
 
