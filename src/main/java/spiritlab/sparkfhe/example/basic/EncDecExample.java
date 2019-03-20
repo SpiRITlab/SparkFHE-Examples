@@ -54,7 +54,7 @@ public class EncDecExample {
         Plaintext inputNumberPtxt = new Plaintext(inputNumberString);
         Ciphertext inputNumberCtxt = SparkFHE.getInstance().encrypt(inputNumberPtxt);
         Plaintext inputNumberPtxt_returned = SparkFHE.getInstance().decrypt(inputNumberCtxt);
-        System.out.println("InputNumber="+inputNumberString + ", result of dec(enc(InputNumber))="+inputNumberPtxt_returned);
+        System.out.println("InputNumber="+inputNumberString + ", result of dec(enc(InputNumber))="+inputNumberPtxt_returned.toString());
 
 
         // store the cipher text to the pre-defined file location
@@ -73,7 +73,7 @@ public class EncDecExample {
         // perform homomorphic addition on the cipertext
         ctxtresult = SparkFHE.getInstance().do_FHE_basic_op(new Ciphertext(ctxt_0_string), new Ciphertext(ctxt_1_string), SparkFHE.FHE_ADD);
         // decrypt the result and display it
-        System.out.println("0+1="+SparkFHE.getInstance().decrypt(ctxtresult));
+        System.out.println("0+1="+SparkFHE.getInstance().decrypt(ctxtresult).toString());
 
 
         /* generating vectors of ctxt */
@@ -93,11 +93,11 @@ public class EncDecExample {
 
         // encrypt them and store to pre-defined location
         vec_ctxt_1=SparkFHE.getInstance().encrypt(vec_ptxt_1);
-        SparkFHE.getInstance().store_ciphertexts_to_file(Config.CTXT_LABEL, vec_ctxt_1, Config.get_records_directory()+"/vec_a_"+String.valueOf(Config.NUM_OF_VECTOR_ELEMENTS)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json");
+        SparkFHE.getInstance().store_ciphertexts_to_file(DataSourceHandler.Ciphertext_Label, vec_ctxt_1, Config.get_records_directory()+"/vec_a_"+String.valueOf(Config.NUM_OF_VECTOR_ELEMENTS)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json");
 
         // encrypt them and store to pre-defined location
         vec_ctxt_2=SparkFHE.getInstance().encrypt(vec_ptxt_2);
-        SparkFHE.getInstance().store_ciphertexts_to_file(Config.CTXT_LABEL, vec_ctxt_2, Config.get_records_directory()+"/vec_b_"+String.valueOf(Config.NUM_OF_VECTOR_ELEMENTS)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json");
+        SparkFHE.getInstance().store_ciphertexts_to_file(DataSourceHandler.Ciphertext_Label, vec_ctxt_2, Config.get_records_directory()+"/vec_b_"+String.valueOf(Config.NUM_OF_VECTOR_ELEMENTS)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json");
 
     }
 

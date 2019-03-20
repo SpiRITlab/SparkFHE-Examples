@@ -16,8 +16,8 @@ import org.apache.spark.sql.SparkSession;
 import org.junit.jupiter.api.*;
 import spiritlab.sparkfhe.api.Ciphertext;
 import spiritlab.sparkfhe.api.FHELibrary;
+import spiritlab.sparkfhe.api.SerializedCiphertextObject;
 import spiritlab.sparkfhe.api.SparkFHE;
-import spiritlab.sparkfhe.api.CtxtString;
 import spiritlab.sparkfhe.example.Config;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -54,10 +54,11 @@ public class BasicOPsTest {
         spark = SparkSession.builder().config(sparkConf).getOrCreate();
         jsc = new JavaSparkContext(spark.sparkContext());
 
-        SparkFHE.init(FHELibrary.HELIB,  Config.DEFAULT_PUBLIC_KEY_FILE, Config.DEFAULT_SECRET_KEY_FILE);
+        SparkFHE.init(FHELibrary.HELIB,  Config.get_default_public_key_file(), Config.get_default_secret_key_file());
 
         CTXT_0_FILE = Config.get_records_directory()+"/ptxt_long_0_"+ SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json";
         CTXT_1_FILE = Config.get_records_directory()+"/ptxt_long_1_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json";
+        System.out.println("Opening ciphertext files "+CTXT_0_FILE+ " and "+ CTXT_1_FILE);
     }
 
     @BeforeEach
@@ -78,34 +79,41 @@ public class BasicOPsTest {
     public void test_FHE_basic_op() {
         assertNotNull(spark);
         // Encoders are created for Java beans
-        Encoder<CtxtString> ctxtJSONEncoder = Encoders.bean(CtxtString.class);
+        Encoder<SerializedCiphertextObject> ctxtJSONEncoder = Encoders.bean(SerializedCiphertextObject.class);
 
         // https://spark.apache.org/docs/latest/sql-programming-guide.html#untyped-dataset-operations-aka-dataframe-operations
         // READ as a dataset
-        Dataset<CtxtString> ctxt_zero_ds = spark.read().json(CTXT_0_FILE).as(ctxtJSONEncoder);
-        assertEquals("0", SparkFHE.getInstance().decrypt(new Ciphertext(ctxt_zero_ds.first().getCtxt())));
-        Dataset<CtxtString> ctxt_one_ds = spark.read().json(CTXT_1_FILE).as(ctxtJSONEncoder);
-        assertEquals("1", SparkFHE.getInstance().decrypt(new Ciphertext(ctxt_one_ds.first().getCtxt())));
+        Dataset<SerializedCiphertextObject> serialized_ctxt_zero_ds= spark.read().json(CTXT_0_FILE).as(ctxtJSONEncoder);
+        JavaRDD<SerializedCiphertextObject> serialized_ctxt_zero_rdd  = serialized_ctxt_zero_ds.javaRDD();
+        JavaRDD<Ciphertext> ctxt_zero_rdd = serialized_ctxt_zero_rdd.map(x -> {
+            Ciphertext ctxt = new Ciphertext(x.getCtxt());
+            return ctxt;
+        });
+        assertEquals("0", SparkFHE.getInstance().decrypt(ctxt_zero_rdd.first()).toString());
 
-        JavaRDD<CtxtString> ctxt_zero_rdd = ctxt_zero_ds.javaRDD();
-        JavaRDD<CtxtString> ctxt_one_rdd = ctxt_one_ds.javaRDD();
+        Dataset<SerializedCiphertextObject> serialized_ctxt_one_ds = spark.read().json(CTXT_1_FILE).as(ctxtJSONEncoder);
+        JavaRDD<SerializedCiphertextObject> serialized_ctxt_one_rdd  = serialized_ctxt_one_ds.javaRDD();
+        JavaRDD<Ciphertext> ctxt_one_rdd = serialized_ctxt_one_rdd.map(x -> {
+            return new Ciphertext(x.getCtxt());
+        });
+        assertEquals("1", SparkFHE.getInstance().decrypt(ctxt_one_rdd.first()).toString());
 
-        JavaPairRDD<CtxtString, CtxtString> Combined_ctxt_RDD = ctxt_one_rdd.zip(ctxt_zero_rdd);
+        JavaPairRDD<Ciphertext, Ciphertext> Combined_ctxt_RDD = ctxt_one_rdd.zip(ctxt_zero_rdd);
 
         JavaRDD<Ciphertext> Addition_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
-            return SparkFHE.getInstance().do_FHE_basic_op(new Ciphertext(tuple._1().getCtxt()), new Ciphertext(tuple._2().getCtxt()), SparkFHE.FHE_ADD);
+            return SparkFHE.getInstance().do_FHE_basic_op(tuple._1(), tuple._2(), SparkFHE.FHE_ADD);
         });
-        assertEquals("1", SparkFHE.getInstance().decrypt(Addition_ctxt_RDD.collect().get(0)));
+        assertEquals("1", SparkFHE.getInstance().decrypt(Addition_ctxt_RDD.collect().get(0)).toString());
 
         JavaRDD<Ciphertext> Multiplication_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
-            return SparkFHE.getInstance().do_FHE_basic_op(new Ciphertext(tuple._1().getCtxt()), new Ciphertext(tuple._2().getCtxt()), SparkFHE.FHE_MULTIPLY);
+            return SparkFHE.getInstance().do_FHE_basic_op(tuple._1(), tuple._2(), SparkFHE.FHE_MULTIPLY);
         });
-        assertEquals("0", SparkFHE.getInstance().decrypt(Multiplication_ctxt_RDD.collect().get(0)));
+        assertEquals("0", SparkFHE.getInstance().decrypt(Multiplication_ctxt_RDD.collect().get(0)).toString());
 
         JavaRDD<Ciphertext> Subtraction_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
-            return SparkFHE.getInstance().do_FHE_basic_op(new Ciphertext(tuple._1().getCtxt()), new Ciphertext(tuple._2().getCtxt()), SparkFHE.FHE_SUBTRACT);
+            return SparkFHE.getInstance().do_FHE_basic_op(tuple._1(), tuple._2(), SparkFHE.FHE_SUBTRACT);
         });
-        assertEquals("1", SparkFHE.getInstance().decrypt(Subtraction_ctxt_RDD.collect().get(0)));
+        assertEquals("1", SparkFHE.getInstance().decrypt(Subtraction_ctxt_RDD.collect().get(0)).toString());
     }
 
     @AfterEach

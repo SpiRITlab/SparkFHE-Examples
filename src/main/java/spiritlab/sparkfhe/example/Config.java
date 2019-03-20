@@ -22,8 +22,6 @@ public class Config {
     public static final String DEFAULT_SECRET_KEY_FILE="my_secret_key.txt";
 
     private static final String DEFAULT_RECORDS_DIRECTORY="/gen/records";
-
-    public static final String CTXT_LABEL="ctxt";
     public static int NUM_OF_VECTOR_ELEMENTS = 5;
 
 

@@ -37,22 +37,22 @@ public class BasicOPsExample {
     public static void test_FHE_basic_op(SparkSession spark, int slices, Broadcast<String> pk_b, Broadcast<String> sk_b) {
         /* Spark example for FHE calculations */
         // Encoders are created for Java beans
-        Encoder<CtxtString> ctxtJSONEncoder = Encoders.bean(CtxtString.class);
+        Encoder<SerializedCiphertextObject> ctxtJSONEncoder = Encoders.bean(SerializedCiphertextObject.class);
 
         // https://spark.apache.org/docs/latest/sql-programming-guide.html#untyped-dataset-operations-aka-dataframe-operations
         // Create dataset with json file.
         // if CtxtString a row? Dataset<Row> is the Dataframe in Java
-        Dataset<CtxtString> ctxt_zero_ds = spark.read().json(CTXT_0_FILE).as(ctxtJSONEncoder); // json is okay, but the best, vector cannot handle// ParK
-        System.out.println("Ciphertext Zero:"+SparkFHE.getInstance().decrypt(new Ciphertext(ctxt_zero_ds.first().getCtxt())));
-        Dataset<CtxtString> ctxt_one_ds = spark.read().json(CTXT_1_FILE).as(ctxtJSONEncoder);
-        System.out.println("Ciphertext One:"+SparkFHE.getInstance().decrypt(new Ciphertext(ctxt_one_ds.first().getCtxt())));
+        Dataset<SerializedCiphertextObject> ctxt_zero_ds = spark.read().json(CTXT_0_FILE).as(ctxtJSONEncoder); // json is okay, but the best, vector cannot handle// ParK
+        System.out.println("Ciphertext Zero:"+SparkFHE.getInstance().decrypt(new Ciphertext(ctxt_zero_ds.first().getCtxt())).toString());
+        Dataset<SerializedCiphertextObject> ctxt_one_ds = spark.read().json(CTXT_1_FILE).as(ctxtJSONEncoder);
+        System.out.println("Ciphertext One:"+SparkFHE.getInstance().decrypt(new Ciphertext(ctxt_one_ds.first().getCtxt())).toString());
 
         // Represents the content of the DataFrame as an RDD of Rows
-        JavaRDD<CtxtString> ctxt_zero_rdd = ctxt_zero_ds.javaRDD();
-        JavaRDD<CtxtString> ctxt_one_rdd = ctxt_one_ds.javaRDD();
+        JavaRDD<SerializedCiphertextObject> ctxt_zero_rdd = ctxt_zero_ds.javaRDD();
+        JavaRDD<SerializedCiphertextObject> ctxt_one_rdd = ctxt_one_ds.javaRDD();
 
         // combine both rdds as a pair
-        JavaPairRDD<CtxtString, CtxtString> Combined_ctxt_RDD = ctxt_one_rdd.zip(ctxt_zero_rdd);
+        JavaPairRDD<SerializedCiphertextObject, SerializedCiphertextObject> Combined_ctxt_RDD = ctxt_one_rdd.zip(ctxt_zero_rdd);
 
         // call homomorphic addition operators on the rdds
         JavaRDD<Ciphertext> Addition_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
@@ -61,7 +61,7 @@ public class BasicOPsExample {
             SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
             return SparkFHE.getInstance().do_FHE_basic_op(new Ciphertext(tuple._1().getCtxt()), new Ciphertext(tuple._2().getCtxt()), SparkFHE.FHE_ADD);
         });
-        System.out.println("Homomorphic Addition:"+ SparkFHE.getInstance().decrypt(Addition_ctxt_RDD.collect().get(0)));
+        System.out.println("Homomorphic Addition:"+ SparkFHE.getInstance().decrypt(Addition_ctxt_RDD.collect().get(0)).toString());
 
 
         // call homomorphic multiply operators on the rdds
