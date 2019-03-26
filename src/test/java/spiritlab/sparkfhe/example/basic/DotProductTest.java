@@ -24,6 +24,8 @@ import spiritlab.sparkfhe.example.Config;
 
 import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.List;
+
 import static org.apache.spark.sql.functions.col;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -34,7 +36,6 @@ public class DotProductTest {
     private static String vec_a_ctxt;
     private static String vec_b_ctxt;
     private static final int slices = 2;
-    private static final int plaintext_module=71;
 
     private static SparkConf sparkConf;
     private static SparkSession spark;
@@ -54,10 +55,19 @@ public class DotProductTest {
         System.out.println("Loaded native code library. \n");
 
         sparkConf = new SparkConf().setAppName("DotProductTest").setMaster("local");
+        // set a fast serializer
+        sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
+        List<Class<?>> classes = Arrays.<Class<?>>asList(
+                Ciphertext.class,
+                Plaintext.class
+        );
+        sparkConf.registerKryoClasses((Class<?>[]) classes.toArray());
+        sparkConf.set("spark.executor.memory", "1g");
+        sparkConf.set("spark.driver.memory", "4g");
         spark = SparkSession.builder().config(sparkConf).getOrCreate();
         jsc = new JavaSparkContext(spark.sparkContext());
 
-        SparkFHE.init(FHELibrary.HELIB, Config.DEFAULT_PUBLIC_KEY_FILE, Config.DEFAULT_SECRET_KEY_FILE);
+        SparkFHE.init(FHELibrary.HELIB, Config.get_default_public_key_file(), Config.get_default_secret_key_file());
 
         vec_a_ctxt = Config.get_records_directory()+"/vec_a_"+String.valueOf(Config.NUM_OF_VECTOR_ELEMENTS)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+".json";
         vec_b_ctxt = Config.get_records_directory()+"/vec_b_"+String.valueOf(Config.NUM_OF_VECTOR_ELEMENTS)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+".json";
@@ -104,19 +114,19 @@ public class DotProductTest {
         Dataset<SerializedCiphertextObject> ctxt_a_ds = spark.read().json(vec_a_ctxt).as(ctxtJSONEncoder);
         Dataset<SerializedCiphertextObject> ctxt_b_ds = spark.read().json(vec_b_ctxt).as(ctxtJSONEncoder);
 
-        JavaRDD<String> ctxt_a_rdd = ctxt_a_ds.select(org.apache.spark.sql.functions.explode(ctxt_a_ds.col("ctxt")).alias("ctxt")).as(Encoders.STRING()).javaRDD();
-        JavaRDD<String> ctxt_b_rdd = ctxt_b_ds.select(org.apache.spark.sql.functions.explode(ctxt_b_ds.col("ctxt")).alias("ctxt")).as(Encoders.STRING()).javaRDD();
-        JavaRDD<String> ctxt_a_rdd2 = ctxt_a_rdd.repartition(slices);
-        JavaRDD<String> ctxt_b_rdd2 = ctxt_b_rdd.repartition(slices);
-        JavaPairRDD<String, String> combined_ctxt_rdd = ctxt_a_rdd2.zip(ctxt_b_rdd2);
+        JavaRDD<SerializedCiphertextObject> ctxt_a_rdd = ctxt_a_ds.select(org.apache.spark.sql.functions.explode(ctxt_a_ds.col("ctxt"))).as(Encoders.STRING()).javaRDD().map(x -> new SerializedCiphertextObject(x));;
+        JavaRDD<SerializedCiphertextObject> ctxt_b_rdd = ctxt_b_ds.select(org.apache.spark.sql.functions.explode(ctxt_b_ds.col("ctxt"))).as(Encoders.STRING()).javaRDD().map(x -> new SerializedCiphertextObject(x));;
+        JavaRDD<SerializedCiphertextObject> ctxt_a_rdd2 = ctxt_a_rdd.repartition(slices);
+        JavaRDD<SerializedCiphertextObject> ctxt_b_rdd2 = ctxt_b_rdd.repartition(slices);
+        JavaPairRDD<SerializedCiphertextObject, SerializedCiphertextObject> combined_ctxt_rdd = ctxt_a_rdd2.zip(ctxt_b_rdd2);
 
-        JavaRDD<Ciphertext> result_rdd = combined_ctxt_rdd.map(tuple -> {
-            return SparkFHE.getInstance().do_FHE_basic_op(new Ciphertext(tuple._1()), new Ciphertext(tuple._2()), SparkFHE.FHE_MULTIPLY);
+        JavaRDD<SerializedCiphertextObject> result_rdd = combined_ctxt_rdd.map(tuple -> {
+            return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(tuple._1().getCtxt(), tuple._2().getCtxt(), SparkFHE.FHE_MULTIPLY));
         });
 
         assertEquals(String.valueOf(10), SparkFHE.getInstance().decrypt(result_rdd.reduce((x, y) -> {
-            return SparkFHE.getInstance().do_FHE_basic_op(x, y, SparkFHE.FHE_ADD);
-        })).toString());
+            return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(x.getCtxt(), y.getCtxt(), SparkFHE.FHE_ADD));
+        }).getCtxt()));
     }
 
     @Test
@@ -131,43 +141,42 @@ public class DotProductTest {
         Dataset<SerializedCiphertextObject> ctxt_a_ds = spark.read().json(vec_a_ctxt).as(ctxtJSONEncoder);
         Dataset<SerializedCiphertextObject> ctxt_b_ds = spark.read().json(vec_b_ctxt).as(ctxtJSONEncoder);
 
-        JavaRDD<String> ctxt_a_rdd = ctxt_a_ds.select(org.apache.spark.sql.functions.explode(ctxt_a_ds.col("ctxt")).alias("ctxt")).as(Encoders.STRING()).javaRDD();
-        JavaRDD<String> ctxt_b_rdd = ctxt_b_ds.select(org.apache.spark.sql.functions.explode(ctxt_b_ds.col("ctxt")).alias("ctxt")).as(Encoders.STRING()).javaRDD();
+        JavaRDD<SerializedCiphertextObject> ctxt_a_rdd = ctxt_a_ds.select(org.apache.spark.sql.functions.explode(ctxt_a_ds.col("ctxt"))).as(Encoders.STRING()).javaRDD().map(x -> new SerializedCiphertextObject(x));
+        JavaRDD<SerializedCiphertextObject> ctxt_b_rdd = ctxt_b_ds.select(org.apache.spark.sql.functions.explode(ctxt_b_ds.col("ctxt"))).as(Encoders.STRING()).javaRDD().map(x -> new SerializedCiphertextObject(x));
 
         assertEquals(5, ctxt_a_rdd.count());
         ctxt_a_rdd.foreach(data -> {
-            System.out.println(SparkFHE.getInstance().decrypt(new Ciphertext(data)));
+            System.out.println(SparkFHE.getInstance().decrypt(data.getCtxt()));
         });
         assertEquals(5, ctxt_b_rdd.count());
         ctxt_b_rdd.foreach(data -> {
-            System.out.println(SparkFHE.getInstance().decrypt(new Ciphertext(data)));
+            System.out.println(SparkFHE.getInstance().decrypt(data.getCtxt()));
         });
 
-        JavaPairRDD<String, String> combined_ctxt_rdd = ctxt_a_rdd.zip(ctxt_b_rdd);
+        JavaPairRDD<SerializedCiphertextObject, SerializedCiphertextObject> combined_ctxt_rdd = ctxt_a_rdd.zip(ctxt_b_rdd);
         combined_ctxt_rdd.repartition(slices);
         assertEquals(5, combined_ctxt_rdd.count());
 
-        JavaRDD<Ciphertext> collection = combined_ctxt_rdd.mapPartitions(records -> {
-            LinkedList<Ciphertext> v = new LinkedList<Ciphertext>();
-            CiphertextVector a = new CiphertextVector();
-            CiphertextVector b = new CiphertextVector();
+        JavaRDD<SerializedCiphertextObject> collection = combined_ctxt_rdd.mapPartitions(records -> {
+            LinkedList<SerializedCiphertextObject> v = new LinkedList<SerializedCiphertextObject>();
+            StringVector a = new StringVector();
+            StringVector b = new StringVector();
             while (records.hasNext()) {
-                Tuple2<String, String> rec = records.next();
-                a.add(new Ciphertext(rec._1));
-                b.add(new Ciphertext(rec._2));
+                Tuple2<SerializedCiphertextObject, SerializedCiphertextObject> rec = records.next();
+                a.add(rec._1.getCtxt());
+                b.add(rec._2.getCtxt());
             }
-            Ciphertext r = SparkFHE.getInstance().do_FHE_dot_product(a, b);
-            v.add(r);
+            v.add(new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_dot_product(a, b)));
             return v.iterator();
         });
 
         collection.cache();
 
-        Ciphertext res = collection.reduce((x, y) -> {
-            return SparkFHE.getInstance().do_FHE_basic_op(x, y, SparkFHE.FHE_ADD);
+        SerializedCiphertextObject res = collection.reduce((x, y) -> {
+            return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(x.getCtxt(), y.getCtxt(), SparkFHE.FHE_ADD));
         });
 
-        assertEquals(String.valueOf(10), SparkFHE.getInstance().decrypt(res).toString());
+        assertEquals(String.valueOf(10), SparkFHE.getInstance().decrypt(res.getCtxt()));
     }
 
     @Test
@@ -202,29 +211,28 @@ public class DotProductTest {
         ExpressionEncoder<Row> encoder = RowEncoder.apply(structType);
         ExpressionEncoder<Row> encoder2 = RowEncoder.apply(structType);
 
-        Dataset<String> collection = fin.mapPartitions((MapPartitionsFunction<Row, String>)  iter -> {
-            LinkedList<String> v = new LinkedList<String>();
-            CiphertextVector a = new CiphertextVector();
-            CiphertextVector b = new CiphertextVector();
+        Dataset<SerializedCiphertextObject> collection = fin.mapPartitions((MapPartitionsFunction<Row, SerializedCiphertextObject>)  iter -> {
+            LinkedList<SerializedCiphertextObject> v = new LinkedList<SerializedCiphertextObject>();
+            StringVector a = new StringVector();
+            StringVector b = new StringVector();
             while (iter.hasNext()) {
                 Row row = iter.next();
                 a.add(row.getAs("ctxt"));
                 b.add(row.getAs("ctxt2"));
             }
-            Ciphertext r = SparkFHE.getInstance().do_FHE_dot_product(a, b);
-            v.add(r.toString());
+            v.add(new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_dot_product(a, b)));
             return v.iterator();
 
-        }, Encoders.STRING());
+        }, Encoders.kryo(SerializedCiphertextObject.class));
 
         collection.cache();
         collection.printSchema();
 
-        String res = collection.reduce((ReduceFunction<String>) (x, y) -> {
-            return SparkFHE.getInstance().do_FHE_basic_op(new Ciphertext(x), new Ciphertext(y), SparkFHE.FHE_ADD).toString();
+        SerializedCiphertextObject res = collection.reduce((ReduceFunction<SerializedCiphertextObject>) (x, y) -> {
+            return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(x.getCtxt(), y.getCtxt(), SparkFHE.FHE_ADD));
         });
 
-        assertEquals(String.valueOf(10), SparkFHE.getInstance().decrypt(new Ciphertext(res)).toString());
+        assertEquals(String.valueOf(10), SparkFHE.getInstance().decrypt(res.getCtxt()));
     }
 
 

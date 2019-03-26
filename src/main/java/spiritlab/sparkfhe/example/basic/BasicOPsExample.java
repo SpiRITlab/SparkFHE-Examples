@@ -15,6 +15,9 @@ import org.apache.spark.spiritlab.sparkfhe.SparkFHESetup;
 import spiritlab.sparkfhe.api.*;
 import spiritlab.sparkfhe.example.Config;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * This is an example for SparkFHE project. Created to test the functionality
  * of the underlying C++ APIs. A few simple functions are invoked via lambda.
@@ -42,46 +45,43 @@ public class BasicOPsExample {
         // https://spark.apache.org/docs/latest/sql-programming-guide.html#untyped-dataset-operations-aka-dataframe-operations
         // Create dataset with json file.
         // if CtxtString a row? Dataset<Row> is the Dataframe in Java
-        Dataset<SerializedCiphertextObject> ctxt_zero_ds = spark.read().json(CTXT_0_FILE).as(ctxtJSONEncoder); // json is okay, but the best, vector cannot handle// ParK
-        System.out.println("Ciphertext Zero:"+SparkFHE.getInstance().decrypt(new Ciphertext(ctxt_zero_ds.first().getCtxt())).toString());
-        Dataset<SerializedCiphertextObject> ctxt_one_ds = spark.read().json(CTXT_1_FILE).as(ctxtJSONEncoder);
-        System.out.println("Ciphertext One:"+SparkFHE.getInstance().decrypt(new Ciphertext(ctxt_one_ds.first().getCtxt())).toString());
+        Dataset<SerializedCiphertextObject> serialized_ctxt_zero_ds = spark.read().json(CTXT_0_FILE).as(ctxtJSONEncoder);
+        System.out.println("Ciphertext Zero:"+SparkFHE.getInstance().decrypt(serialized_ctxt_zero_ds.javaRDD().first().getCtxt()));
 
-        // Represents the content of the DataFrame as an RDD of Rows
-        JavaRDD<SerializedCiphertextObject> ctxt_zero_rdd = ctxt_zero_ds.javaRDD();
-        JavaRDD<SerializedCiphertextObject> ctxt_one_rdd = ctxt_one_ds.javaRDD();
+        Dataset<SerializedCiphertextObject> serialized_ctxt_one_ds = spark.read().json(CTXT_1_FILE).as(ctxtJSONEncoder);
+        System.out.println("Ciphertext One:"+SparkFHE.getInstance().decrypt(serialized_ctxt_one_ds.javaRDD().first().getCtxt()));
 
         // combine both rdds as a pair
-        JavaPairRDD<SerializedCiphertextObject, SerializedCiphertextObject> Combined_ctxt_RDD = ctxt_one_rdd.zip(ctxt_zero_rdd);
+        JavaPairRDD<SerializedCiphertextObject, SerializedCiphertextObject> Combined_ctxt_RDD = serialized_ctxt_one_ds.javaRDD().zip(serialized_ctxt_zero_ds.javaRDD()).cache();
 
         // call homomorphic addition operators on the rdds
-        JavaRDD<Ciphertext> Addition_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
+        JavaRDD<SerializedCiphertextObject> Addition_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHESetup.setup();
             SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
-            return SparkFHE.getInstance().do_FHE_basic_op(new Ciphertext(tuple._1().getCtxt()), new Ciphertext(tuple._2().getCtxt()), SparkFHE.FHE_ADD);
+            return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(tuple._1().getCtxt(), tuple._2().getCtxt(), SparkFHE.FHE_ADD));
         });
-        System.out.println("Homomorphic Addition:"+ SparkFHE.getInstance().decrypt(Addition_ctxt_RDD.collect().get(0)).toString());
+        System.out.println("Homomorphic Addition:"+ SparkFHE.getInstance().decrypt(Addition_ctxt_RDD.first().getCtxt()));
 
 
         // call homomorphic multiply operators on the rdds
-        JavaRDD<Ciphertext> Multiplication_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
+        JavaRDD<SerializedCiphertextObject> Multiplication_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHESetup.setup();
             SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
-            return SparkFHE.getInstance().do_FHE_basic_op(new Ciphertext(tuple._1().getCtxt()), new Ciphertext(tuple._2().getCtxt()), SparkFHE.FHE_MULTIPLY);
+            return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(tuple._1().getCtxt(), tuple._2().getCtxt(), SparkFHE.FHE_MULTIPLY));
         });
-        System.out.println("Homomorphic Multiplication:"+ SparkFHE.getInstance().decrypt(Multiplication_ctxt_RDD.collect().get(0)));
+        System.out.println("Homomorphic Multiplication:"+ SparkFHE.getInstance().decrypt(Multiplication_ctxt_RDD.first().getCtxt()));
 
 
         // call homomorphic subtraction operators on the rdds
-        JavaRDD<Ciphertext> Subtraction_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
+        JavaRDD<SerializedCiphertextObject> Subtraction_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHESetup.setup();
             SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
-            return SparkFHE.getInstance().do_FHE_basic_op(new Ciphertext(tuple._1().getCtxt()), new Ciphertext(tuple._2().getCtxt()), SparkFHE.FHE_SUBTRACT);
+            return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(tuple._1().getCtxt(), tuple._2().getCtxt(), SparkFHE.FHE_SUBTRACT));
         });
-        System.out.println("Homomorphic Subtraction:"+SparkFHE.getInstance().decrypt(Subtraction_ctxt_RDD.collect().get(0)));
+        System.out.println("Homomorphic Subtraction:"+SparkFHE.getInstance().decrypt(Subtraction_ctxt_RDD.first().getCtxt()));
     }
 
 
@@ -104,6 +104,16 @@ public class BasicOPsExample {
             Config.update_current_directory(sparkConf.get("spark.mesos.executor.home"));
             System.out.println("CURRENT_DIRECTORY = "+Config.get_current_directory());
         }
+
+        // set a fast serializer
+        sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
+        List<Class<?>> classes = Arrays.<Class<?>>asList(
+                Ciphertext.class,
+                Plaintext.class
+        );
+        sparkConf.registerKryoClasses((Class<?>[]) classes.toArray());
+        sparkConf.set("spark.executor.memory", "1g");
+        sparkConf.set("spark.driver.memory", "4g");
 
         // Creating a session to Spark. The session allows the creation of the
         // various data abstractions such as RDDs, DataFrame, and more.

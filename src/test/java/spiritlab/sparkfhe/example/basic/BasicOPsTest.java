@@ -16,6 +16,7 @@ import org.apache.spark.sql.Encoder;
 import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.SparkSession;
 import org.junit.jupiter.api.*;
+import scala.collection.Seq;
 import spiritlab.sparkfhe.api.*;
 import spiritlab.sparkfhe.example.Config;
 
@@ -51,35 +52,18 @@ public class BasicOPsTest {
             System.exit(1);
         }
         System.out.println("Loaded native code library. \n");
-        System.setProperty("spark.serializer", "spark.KryoSerializer");
+
+
         sparkConf = new SparkConf().setAppName("BasicOPsTest").setMaster("local");
-        // Now it's 32 Mb of buffer by default instead of 0.064 Mb
-        //sparkConf.set("spark.kryoserializer.buffer", "32");
-        // http://www.trongkhoanguyen.com/2015/04/understand-shuffle-component-in-spark.html
-        //spark.shuffle.file.buffer	32k	Size of the in-memory buffer for each
-        //                                      shuffle file output stream. These buffers
-        //                                      reduce the number of disk seeks and system
-        //                                      calls made in creating intermediate shuffle files.
-        //
-//        sparkConf.set("spark.shuffle.file.buffer", "64");
         // set a fast serializer
-       sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
-        // This setting configures the serializer used for not only shuffling data
-        // between worker nodes but also when serializing RDDs to disk. Another
-        // requirement for Kryo serializer is to register the classes in advance
-        // for best performance. If the classes are not registered, then the kryo
-        // would store the full class name with each object (instead of mapping
-        // with an ID), which can lead to wasted resource.
-//        sparkConf.set("spark.kryo.registrator", "spiritlab.sparkfhe.example.basic.myKryoReg");
+        sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
         List<Class<?>> classes = Arrays.<Class<?>>asList(
                 Ciphertext.class,
-                Plaintext.class,
-                SerializedCiphertextObject.class,
-                SWIGTYPE_p_std__variantT_std__string_Ctxt_seal__Ciphertext_t.class,
-                SWIGTYPE_p_Ctxt.class,
-                SWIGTYPE_p_seal__Ciphertext.class
+                Plaintext.class
                 );
         sparkConf.registerKryoClasses((Class<?>[]) classes.toArray());
+        sparkConf.set("spark.executor.memory", "1g");
+        sparkConf.set("spark.driver.memory", "4g");
         spark = SparkSession.builder().config(sparkConf).getOrCreate();
         jsc = new JavaSparkContext(spark.sparkContext());
 
@@ -113,75 +97,32 @@ public class BasicOPsTest {
         // https://spark.apache.org/docs/latest/sql-programming-guide.html#untyped-dataset-operations-aka-dataframe-operations
         // READ as a dataset
         Dataset<SerializedCiphertextObject> serialized_ctxt_zero_ds= spark.read().json(CTXT_0_FILE).as(ctxtJSONEncoder);
-        assertEquals("0", SparkFHE.getInstance().decrypt(new Ciphertext(serialized_ctxt_zero_ds.javaRDD().first().getCtxt())).toString());
-
-
-        JavaRDD<String> testRDD0 = serialized_ctxt_zero_ds.javaRDD().map(x -> {
-            return "hello0";
-        });
-        System.out.println("testing0: " + testRDD0.first());
-
-
-        JavaRDD<String> testRDD1 = serialized_ctxt_zero_ds.javaRDD().map(x -> {
-               return "hello1";
-        });
-        System.out.println("testing1: " + testRDD1.first());
-
-        JavaRDD<SerializedCiphertextObject> testRDD2 = serialized_ctxt_zero_ds.javaRDD().map(x -> {
-                SerializedCiphertextObject tmp = new SerializedCiphertextObject();
-                tmp.setCtxt("hello");
-                return tmp;
-        });
-        System.out.println("testing2: " + testRDD2.first().getCtxt());
-
-
-//        JavaRDD<SCOWrapper> testRDD = serialized_ctxt_zero_ds.javaRDD().map(x -> {
-//            SCOWrapper usw = new SCOWrapper() {
-//                public SerializedCiphertextObject create() {
-//                    SerializedCiphertextObject tmp = new SerializedCiphertextObject();
-//                    tmp.setCtxt("SCO hello");
-//                    return tmp;
-//                }
-//            };
-//
-//            return usw;
-//        });
-//        System.out.println("new testing " + testRDD.first().create().getCtxt());
-
-
-        JavaRDD<Ciphertext> ctxt_zero_rdd = serialized_ctxt_zero_ds.javaRDD().map(x -> {
-            return new Ciphertext("1");
-        });
-        System.out.println("testing ciphertext: " + ctxt_zero_rdd.first().toString());
-
-
+        JavaRDD<SerializedCiphertextObject> ctxt_zero_rdd = serialized_ctxt_zero_ds.javaRDD();
+        assertEquals("0", SparkFHE.getInstance().decrypt(ctxt_zero_rdd.first().getCtxt()));
 
         Dataset<SerializedCiphertextObject> serialized_ctxt_one_ds = spark.read().json(CTXT_1_FILE).as(ctxtJSONEncoder);
-        assertEquals("1", SparkFHE.getInstance().decrypt(new Ciphertext(serialized_ctxt_one_ds.javaRDD().first().getCtxt())).toString());
+        JavaRDD<SerializedCiphertextObject> ctxt_one_rdd = serialized_ctxt_one_ds.javaRDD();
+        assertEquals("1", SparkFHE.getInstance().decrypt(ctxt_one_rdd.first().getCtxt()));
 
-        JavaPairRDD<SerializedCiphertextObject, SerializedCiphertextObject> Combined_ctxt_RDD = serialized_ctxt_one_ds.javaRDD().zip(serialized_ctxt_zero_ds.javaRDD());
 
+        // cached here because of reuse later
+        JavaPairRDD<SerializedCiphertextObject, SerializedCiphertextObject> Combined_ctxt_RDD = ctxt_one_rdd.zip(ctxt_zero_rdd).cache();
 
         JavaRDD<SerializedCiphertextObject> Addition_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
-            SerializedCiphertextObject sco = new SerializedCiphertextObject();
-            sco.setCtxt(SparkFHE.getInstance().do_FHE_basic_op(new Ciphertext(tuple._1().getCtxt()), new Ciphertext(tuple._2().getCtxt()), SparkFHE.FHE_ADD).toString());
-            return sco;
+            return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(tuple._1().getCtxt(), tuple._2().getCtxt(), SparkFHE.FHE_ADD));
         });
-        assertEquals("1", SparkFHE.getInstance().decrypt(new Ciphertext(Addition_ctxt_RDD.collect().get(0).getCtxt())).toString());
+        assertEquals("1", SparkFHE.getInstance().decrypt(Addition_ctxt_RDD.first().getCtxt()));
 
         JavaRDD<SerializedCiphertextObject> Multiplication_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
-            SerializedCiphertextObject sco = new SerializedCiphertextObject();
-            sco.setCtxt(SparkFHE.getInstance().do_FHE_basic_op(new Ciphertext(tuple._1().getCtxt()), new Ciphertext(tuple._2().getCtxt()), SparkFHE.FHE_MULTIPLY).toString());
-            return sco;
+            return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(tuple._1().getCtxt(), tuple._2().getCtxt(), SparkFHE.FHE_MULTIPLY));
         });
-        assertEquals("0", SparkFHE.getInstance().decrypt(new Ciphertext(Multiplication_ctxt_RDD.collect().get(0).getCtxt())).toString());
+        assertEquals("0", SparkFHE.getInstance().decrypt(Multiplication_ctxt_RDD.first().getCtxt()));
 
         JavaRDD<SerializedCiphertextObject> Subtraction_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
-            SerializedCiphertextObject sco = new SerializedCiphertextObject();
-            sco.setCtxt(SparkFHE.getInstance().do_FHE_basic_op(new Ciphertext(tuple._1().getCtxt()), new Ciphertext(tuple._2().getCtxt()), SparkFHE.FHE_SUBTRACT).toString());
-            return sco;
+            return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(tuple._1().getCtxt(), tuple._2().getCtxt(), SparkFHE.FHE_SUBTRACT));
         });
-        assertEquals("1", SparkFHE.getInstance().decrypt(new Ciphertext(Subtraction_ctxt_RDD.collect().get(0).getCtxt())).toString());
+        assertEquals("1", SparkFHE.getInstance().decrypt(Subtraction_ctxt_RDD.first().getCtxt()));
+
     }
 
     @AfterEach

@@ -71,7 +71,7 @@ public class EncDecExample {
 
         Ciphertext ctxtresult;
         // perform homomorphic addition on the cipertext
-        ctxtresult = SparkFHE.getInstance().do_FHE_basic_op(new Ciphertext(ctxt_0_string), new Ciphertext(ctxt_1_string), SparkFHE.FHE_ADD);
+        ctxtresult = new Ciphertext(SparkFHE.getInstance().do_FHE_basic_op(ctxt_0_string, ctxt_1_string, SparkFHE.FHE_ADD));
         // decrypt the result and display it
         System.out.println("0+1="+SparkFHE.getInstance().decrypt(ctxtresult).toString());
 
