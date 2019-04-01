@@ -273,8 +273,19 @@ public class DotProductExample {
             return v.iterator();
         }, Encoders.kryo(SerializedCiphertextObject.class));
 
+        // reset the collection and display the output
+        collection.cache();
+
+        // sum up the results from the previous operation and display
+        SerializedCiphertextObject res = collection.javaRDD().reduce((x, y) -> {
+            // we need to load the shared library and init a copy of SparkFHE on the executor
+            SparkFHESetup.setup();
+            SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
+            return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(x.getCtxt(), y.getCtxt(), SparkFHE.FHE_ADD));
+        });
+
         // decrypt the result to verify it
-        System.out.println("Dot product: " + SparkFHE.getInstance().decrypt(collection.javaRDD().first().getCtxt()));
+        System.out.println("Dot product: " + SparkFHE.getInstance().decrypt(res.getCtxt()));
     }
 
 
