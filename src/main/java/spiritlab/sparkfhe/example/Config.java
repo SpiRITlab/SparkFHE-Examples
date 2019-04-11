@@ -25,6 +25,7 @@ public class Config {
     public static int NUM_OF_VECTOR_ELEMENTS = 5;
 
 
+
     public static void update_current_directory(String CurrentDir) {
         Current_Directory=CurrentDir;
     }
@@ -63,6 +64,12 @@ public class Config {
             crypto_param_file = DEFAULT_PALISADE_CRYPTO_PARAMS_FILENAME;
         }
         return Current_Directory + DEFAULT_CRYPTO_PARAMS_DIRECTORY + "/" + crypto_param_file;
+    }
+
+    public static String get_local_HDFS_path(String filename) {
+        final String localhost_HDFS_URL = "hdfs://localhost:0";
+        final String remote_hdfs_path = "/tmp/SparkFHE/HDFSFolder/";
+        return localhost_HDFS_URL + remote_hdfs_path + filename;
     }
 
 
