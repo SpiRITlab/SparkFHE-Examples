@@ -27,13 +27,27 @@ public class KeyGenExample {
         SparkConf sparkConf = new SparkConf();
         sparkConf.setAppName("KeyGenExample");
 
-        if ( "local".equalsIgnoreCase(args[0]) ) {
-            sparkConf.setMaster("local");
-        } else {
-            slices=Integer.parseInt(args[0]);
-            Config.update_current_directory(sparkConf.get("spark.mesos.executor.home"));
-            System.out.println("CURRENT_DIRECTORY = "+Config.get_current_directory());
+        Config.setExecutionEnvironment(args[0]);
+
+        switch (Config.currentExecutionEnvironment) {
+            case CLUSTER:
+                slices = Integer.parseInt(args[0]);
+                Config.set_HDFS_NAME_NODE(args[1]);
+                break;
+            case LOCAL:
+                sparkConf.setMaster("local");
+                Config.update_current_directory(sparkConf.get("spark.mesos.executor.home"));
+                System.out.println("CURRENT_DIRECTORY = "+Config.get_current_directory());
+                break;
+            default:
+                break;
         }
+        // Creating a session to Spark. The session allows the creation of the
+        // various data abstractions such as RDDs, DataFrame, and more.
+        SparkSession spark = SparkSession.builder().config(sparkConf).getOrCreate();
+
+        // Creating spark context which allows the communication with worker nodes
+        JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());
 
         // Load C++ shared library
         SparkFHESetup.setup();
@@ -42,9 +56,13 @@ public class KeyGenExample {
 
         // Creates the directory named by the pathname - current_directiory/gen/keys,
         // and including any necessary parent directories.
-        new File(Config.get_keys_directory()).mkdirs();
+        // new File(Config.get_keys_directory()).mkdirs();
+
         // Using the object created to call the C++ function to generate the keys.
-        SparkFHE.getInstance().generate_key_pair(Config.get_default_crypto_params_file(FHELibrary.HELIB), Config.get_default_public_key_file(), Config.get_default_secret_key_file());
+        SparkFHE.getInstance().generate_key_pair(
+                Config.get_default_crypto_params_file(FHELibrary.HELIB),
+                Config.get_default_public_key_file(),
+                Config.get_default_secret_key_file());
       
         // Encrypting the literal 1, and decrypting it to verify the keys' accuracy.
         String inputNumberString="1";

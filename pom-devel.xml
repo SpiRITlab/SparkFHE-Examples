@@ -61,6 +61,10 @@
     <id>sparkfhe-remote</id>
     <url>https://github.com/SpiRITlab/SparkFHE-Maven-Repo/raw/${sparkfhe.lib.rev}</url>
     </repository>
+    <repository>
+    <id>sparkfhe-local</id>
+    <url>${sparkfhe.maven.repo}</url>
+    </repository>
   </repositories>
 
   <dependencies>

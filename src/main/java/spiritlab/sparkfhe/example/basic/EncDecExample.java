@@ -28,24 +28,31 @@ public class EncDecExample {
         SparkConf sparkConf = new SparkConf();
         sparkConf.setAppName("EncDecExample");
 
-        if ( "local".equalsIgnoreCase(args[0]) ) {
-            sparkConf.setMaster("local");
-        } else {
-            slices=Integer.parseInt(args[0]);
-            Config.update_current_directory(sparkConf.get("spark.mesos.executor.home"));
-            System.out.println("CURRENT_DIRECTORY = "+Config.get_current_directory());
+        Config.setExecutionEnvironment(args[0]);
 
+        switch (Config.currentExecutionEnvironment) {
+            case CLUSTER:
+                slices = Integer.parseInt(args[0]);
+                Config.set_HDFS_NAME_NODE(args[1]);
+                break;
+            case LOCAL:
+                sparkConf.setMaster("local");
+                Config.update_current_directory(sparkConf.get("spark.mesos.executor.home"));
+                System.out.println("CURRENT_DIRECTORY = "+Config.get_current_directory());
+                break;
+            default:
+                break;
         }
       
-        String pk = args[1];
-        String sk = args[2];
+        String pk = args[2];
+        String sk = args[3];
 
         // required to load our shared library
         SparkFHESetup.setup();
         // create SparkFHE object
         SparkFHE.init(FHELibrary.HELIB, pk, sk);
 
-        new File(Config.get_records_directory()).mkdirs();
+        // new File(Config.get_records_directory()).mkdirs();
         String CTXT_0_FILE = Config.get_records_directory() + "/ptxt_long_0_"+ SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json";
         String CTXT_1_FILE = Config.get_records_directory() +"/ptxt_long_1_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json";
 
@@ -55,19 +62,21 @@ public class EncDecExample {
         Ciphertext inputNumberCtxt = SparkFHE.getInstance().encrypt(inputNumberPtxt);
         Plaintext inputNumberPtxt_returned = SparkFHE.getInstance().decrypt(inputNumberCtxt);
         System.out.println("InputNumber="+inputNumberString + ", result of dec(enc(InputNumber))="+inputNumberPtxt_returned.toString());
-
-
-        // store the cipher text to the pre-defined file location
+	
+	// store the cipher text to the pre-defined file location
         for (int l=0;l<2;l++) {
-            System.out.println("Storing ciphertext to "+Config.get_records_directory()+"/ptxt_long_"+String.valueOf(l)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json");
-            DataSourceHandler.storeCtxt(SparkFHE.getInstance().encrypt(new Plaintext(l)).toString(), Config.get_records_directory()+"/ptxt_long_"+String.valueOf(l)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json");
+            System.out.println("Storing ciphertext to "+Config.get_local_HDFS_path("/ptxt_long_"+String.valueOf(l)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json"));
+            SparkFHE.getInstance().store_ciphertext_to_file(
+                    DataSourceHandler.Ciphertext_Label,
+                    SparkFHE.getInstance().encrypt(new Plaintext(l)).toString(),
+                    Config.get_records_directory()+"/ptxt_long_"+String.valueOf(l)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json");
         }
 
         String ctxt_0_string, ctxt_1_string;
 
         // read in the cipher text from file and store them as Strings
-        ctxt_0_string = DataSourceHandler.loadCtxt(CTXT_0_FILE);
-        ctxt_1_string = DataSourceHandler.loadCtxt(CTXT_1_FILE);
+        ctxt_0_string = SparkFHE.getInstance().read_ciphertext_from_file_as_string(DataSourceHandler.Ciphertext_Label, CTXT_0_FILE);
+        ctxt_1_string = SparkFHE.getInstance().read_ciphertext_from_file_as_string(DataSourceHandler.Ciphertext_Label, CTXT_1_FILE);
 
         Ciphertext ctxtresult;
         // perform homomorphic addition on the cipertext
