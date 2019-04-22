@@ -32,6 +32,7 @@ import scala.runtime.BoxedUnit;
 import static spiritlab.sparkfhe.api.Ciphertext.*;
 
 import spiritlab.sparkfhe.api.*;
+import spiritlab.sparkfhe.example.Config;
 // $example off$
 
 public class ElementwiseProductExample {
@@ -95,8 +96,8 @@ public class ElementwiseProductExample {
 
     public static void RunCtxtExample(SparkSession spark, String zero_ctxt_path, String one_ctxt_path) {
         // Create some vector data; also works for sparse vectors
-        String zero_ctxt = DataSourceHandler.loadCtxt(zero_ctxt_path);
-        String one_ctxt = DataSourceHandler.loadCtxt(one_ctxt_path);
+        String zero_ctxt = SparkFHE.getInstance().read_ciphertext_from_file_as_string(Config.Ciphertext_Label, zero_ctxt_path);
+        String one_ctxt = SparkFHE.getInstance().read_ciphertext_from_file_as_string(Config.Ciphertext_Label,one_ctxt_path);
         List<Row> data = Arrays.asList(
                 RowFactory.create("a", org.apache.spark.ml_fhe.linalg.CtxtVectors.dense(one_ctxt, zero_ctxt, one_ctxt)),
                 RowFactory.create("b", org.apache.spark.ml_fhe.linalg.CtxtVectors.dense(zero_ctxt, one_ctxt, one_ctxt))
@@ -134,8 +135,8 @@ public class ElementwiseProductExample {
     }
 
     public static void RunCtxtRDDExample(JavaSparkContext jsc, String zero_ctxt_path, String one_ctxt_path) {
-        String zero_ctxt = DataSourceHandler.loadCtxt(zero_ctxt_path);
-        String one_ctxt = DataSourceHandler.loadCtxt(one_ctxt_path);
+        String zero_ctxt = SparkFHE.getInstance().read_ciphertext_from_file_as_string(Config.Ciphertext_Label, zero_ctxt_path);
+        String one_ctxt = SparkFHE.getInstance().read_ciphertext_from_file_as_string(Config.Ciphertext_Label,one_ctxt_path);
         JavaRDD<CtxtVector> data = jsc.parallelize(Arrays.asList(
                 CtxtVectors.dense(one_ctxt, zero_ctxt, one_ctxt), CtxtVectors.dense(zero_ctxt, one_ctxt, one_ctxt)));
         CtxtVector transformingVector = CtxtVectors.dense(zero_ctxt, one_ctxt, zero_ctxt);

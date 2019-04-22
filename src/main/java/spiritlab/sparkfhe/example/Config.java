@@ -16,13 +16,14 @@ public class Config {
     private static final String DEFAULT_SEAL_CRYPTO_PARAMS_FILENAME="CRYPTO_PARAMS_SEAL_TEMPLATE.json";
     private static final String DEFAULT_PALISADE_CRYPTO_PARAMS_FILENAME="CRYPTO_PARAMS_PALISADE_TEMPLATE.json";
 
-
     private static final String DEFAULT_KEY_DIRECTORY="/gen/keys";
     public static final String DEFAULT_PUBLIC_KEY_FILE="my_public_key.txt";
     public static final String DEFAULT_SECRET_KEY_FILE="my_secret_key.txt";
 
     private static final String DEFAULT_RECORDS_DIRECTORY="/gen/records";
     public static int NUM_OF_VECTOR_ELEMENTS = 5;
+
+    public static final String Ciphertext_Label = "ctxt";
 
     public static enum ExecutionEnvironment {LOCAL, CLUSTER;}
     public static ExecutionEnvironment currentExecutionEnvironment = ExecutionEnvironment.LOCAL;
