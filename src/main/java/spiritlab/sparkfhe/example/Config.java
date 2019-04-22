@@ -31,6 +31,7 @@ public class Config {
     private static String HDFS_NAME_NODE = "hdfs://localhost:0";
     private static String HDFS_CURRENT_DIRECTORY = "/SparkFHE/HDFSFolder";
 
+
     public static void setExecutionEnvironment(String environment) {
         if ("local".equalsIgnoreCase(environment)) {
             currentExecutionEnvironment = ExecutionEnvironment.LOCAL;
@@ -55,6 +56,28 @@ public class Config {
             default:
                 return Current_Directory;
         }
+    }
+
+    public static void set_HDFS_NAME_NODE(String hdfsURL) {
+        HDFS_NAME_NODE = hdfsURL;
+    }
+
+    public static void set_HDFS_CURRENT_DIRECTORY(String hdfsRemotePath) {
+        HDFS_CURRENT_DIRECTORY = hdfsRemotePath + "/";
+    }
+
+    public static String get_HDFS_path() {
+        return HDFS_NAME_NODE + HDFS_CURRENT_DIRECTORY;
+    }
+
+    public static String get_HDFS_path(String filename) {
+        return HDFS_NAME_NODE + HDFS_CURRENT_DIRECTORY + filename;
+    }
+
+    public static String get_local_HDFS_path(String filename) {
+        final String localhost_HDFS_URL = "hdfs://localhost:0";
+        final String remote_hdfs_path = "/tmp/SparkFHE/HDFSFolder/";
+        return localhost_HDFS_URL + remote_hdfs_path + filename;
     }
 
     public static String get_keys_directory() {
@@ -86,7 +109,8 @@ public class Config {
         } else if (lib_name.equalsIgnoreCase(FHELibrary.PALISADE)) {
             crypto_param_file = DEFAULT_PALISADE_CRYPTO_PARAMS_FILENAME;
         }
-	switch (currentExecutionEnvironment) {
+
+        switch (currentExecutionEnvironment) {
             case CLUSTER:
                 return get_HDFS_path() +
                         DEFAULT_CRYPTO_PARAMS_DIRECTORY + "/" +
@@ -98,25 +122,4 @@ public class Config {
         }
     }
 
-    public static void set_HDFS_NAME_NODE(String hdfsURL) {
-        HDFS_NAME_NODE = hdfsURL;
-    }
-
-    public static void set_HDFS_CURRENT_DIRECTORY(String hdfsRemotePath) {
-        HDFS_CURRENT_DIRECTORY = hdfsRemotePath + "/";
-    }
-
-    public static String get_HDFS_path() {
-        return HDFS_NAME_NODE + HDFS_CURRENT_DIRECTORY;
-    }
-
-    public static String get_HDFS_path(String filename) {
-        return HDFS_NAME_NODE + HDFS_CURRENT_DIRECTORY + filename;
-    }
-
-    public static String get_local_HDFS_path(String filename) {
-        final String localhost_HDFS_URL = "hdfs://localhost:0";
-        final String remote_hdfs_path = "/tmp/SparkFHE/HDFSFolder/";
-        return localhost_HDFS_URL + remote_hdfs_path + filename;
-    }
 }

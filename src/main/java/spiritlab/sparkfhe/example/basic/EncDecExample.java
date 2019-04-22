@@ -65,7 +65,7 @@ public class EncDecExample {
 	
 	// store the cipher text to the pre-defined file location
         for (int l=0;l<2;l++) {
-            System.out.println("Storing ciphertext to "+Config.get_local_HDFS_path("/ptxt_long_"+String.valueOf(l)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json"));
+            System.out.println("Storing ciphertext to "+Config.get_records_directory()+"/ptxt_long_"+String.valueOf(l)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json");
             SparkFHE.getInstance().store_ciphertext_to_file(
                     Config.Ciphertext_Label,
                     SparkFHE.getInstance().encrypt(new Plaintext(l)).toString(),
