@@ -6,9 +6,7 @@
 package spiritlab.sparkfhe.example.basic;
 
 import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.spiritlab.sparkfhe.SparkFHESetup;
-import org.apache.spark.sql.SparkSession;
+import org.apache.spark.spiritlab.sparkfhe.SparkFHEPlugin;
 import spiritlab.sparkfhe.api.*;
 import spiritlab.sparkfhe.example.Config;
 
@@ -24,6 +22,8 @@ public class EncDecExample {
 
 
     public static void main(String args[]) {
+        String pk="", sk="";
+
         int slices = 2;
         SparkConf sparkConf = new SparkConf();
         sparkConf.setAppName("EncDecExample");
@@ -34,27 +34,27 @@ public class EncDecExample {
             case CLUSTER:
                 slices = Integer.parseInt(args[0]);
                 Config.set_HDFS_NAME_NODE(args[1]);
+                pk = args[2];
+                sk = args[3];
                 break;
             case LOCAL:
                 sparkConf.setMaster("local");
-                Config.update_current_directory(sparkConf.get("spark.mesos.executor.home"));
-                System.out.println("CURRENT_DIRECTORY = "+Config.get_current_directory());
+                pk = args[1];
+                sk = args[2];
                 break;
             default:
                 break;
         }
-      
-        String pk = args[2];
-        String sk = args[3];
+        System.out.println("CURRENT_DIRECTORY = "+Config.get_current_directory());
 
         // required to load our shared library
-        SparkFHESetup.setup();
+        SparkFHEPlugin.setup();
         // create SparkFHE object
         SparkFHE.init(FHELibrary.HELIB, pk, sk);
 
-        // new File(Config.get_records_directory()).mkdirs();
-        String CTXT_0_FILE = Config.get_records_directory() + "/ptxt_long_0_"+ SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json";
-        String CTXT_1_FILE = Config.get_records_directory() +"/ptxt_long_1_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json";
+        new File(Config.get_records_directory()).mkdirs();
+        String CTXT_0_FILE = Config.get_records_directory() + "/ptxt_long_0_"+ SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";
+        String CTXT_1_FILE = Config.get_records_directory() +"/ptxt_long_1_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";
 
         // initialize a literal 1, encrypt it and decrypted it to verify the cryptography functions
         String inputNumberString="1";
@@ -65,11 +65,11 @@ public class EncDecExample {
 	
 	// store the cipher text to the pre-defined file location
         for (int l=0;l<2;l++) {
-            System.out.println("Storing ciphertext to "+Config.get_records_directory()+"/ptxt_long_"+String.valueOf(l)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json");
+            System.out.println("Storing ciphertext to "+Config.get_records_directory()+"/ptxt_long_"+String.valueOf(l)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl");
             SparkFHE.getInstance().store_ciphertext_to_file(
                     Config.Ciphertext_Label,
                     SparkFHE.getInstance().encrypt(new Plaintext(l)).toString(),
-                    Config.get_records_directory()+"/ptxt_long_"+String.valueOf(l)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json");
+                    Config.get_records_directory()+"/ptxt_long_"+String.valueOf(l)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl");
         }
 
         String ctxt_0_string, ctxt_1_string;
@@ -102,11 +102,11 @@ public class EncDecExample {
 
         // encrypt them and store to pre-defined location
         vec_ctxt_1=SparkFHE.getInstance().encrypt(vec_ptxt_1);
-        SparkFHE.getInstance().store_ciphertexts_to_file(Config.Ciphertext_Label, vec_ctxt_1, Config.get_records_directory()+"/vec_a_"+String.valueOf(Config.NUM_OF_VECTOR_ELEMENTS)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json");
+        SparkFHE.getInstance().store_ciphertexts_to_file(Config.Ciphertext_Label, vec_ctxt_1, Config.get_records_directory()+"/vec_a_"+String.valueOf(Config.NUM_OF_VECTOR_ELEMENTS)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl");
 
         // encrypt them and store to pre-defined location
         vec_ctxt_2=SparkFHE.getInstance().encrypt(vec_ptxt_2);
-        SparkFHE.getInstance().store_ciphertexts_to_file(Config.Ciphertext_Label, vec_ctxt_2, Config.get_records_directory()+"/vec_b_"+String.valueOf(Config.NUM_OF_VECTOR_ELEMENTS)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json");
+        SparkFHE.getInstance().store_ciphertexts_to_file(Config.Ciphertext_Label, vec_ctxt_2, Config.get_records_directory()+"/vec_b_"+String.valueOf(Config.NUM_OF_VECTOR_ELEMENTS)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl");
 
     }
 

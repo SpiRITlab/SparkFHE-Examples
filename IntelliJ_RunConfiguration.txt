@@ -1,0 +1,23 @@
+To run these examples (except junit tests), you need to configure your run environment with the following.
+
+* VM Option
+-Djava.library.path=libSparkFHE/lib
+
+
+
+* Program arguments (different for each example)
+
+KeyGenExamples:
+local
+
+
+EncDecExample:
+local gen/keys/my_public_key.txt gen/keys/my_secret_key.txt
+
+
+BasicOPsExample
+local gen/keys/my_public_key.txt gen/keys/my_secret_key.txt
+
+
+DotProductExample
+local gen/keys/my_public_key.txt gen/keys/my_secret_key.txt

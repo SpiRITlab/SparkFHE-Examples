@@ -7,7 +7,7 @@ package spiritlab.sparkfhe.example.basic;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.spiritlab.sparkfhe.SparkFHESetup;
+import org.apache.spark.spiritlab.sparkfhe.SparkFHEPlugin;
 import org.apache.spark.sql.SparkSession;
 import spiritlab.sparkfhe.api.Ciphertext;
 import spiritlab.sparkfhe.api.FHELibrary;
@@ -16,6 +16,7 @@ import spiritlab.sparkfhe.api.SparkFHE;
 import spiritlab.sparkfhe.example.Config;
 
 import java.io.File;
+
 
 /**
  * This is an example for SparkFHE project. Created to test the cryto-libraries basic function - generating a key.
@@ -36,7 +37,7 @@ public class KeyGenExample {
                 break;
             case LOCAL:
                 sparkConf.setMaster("local");
-                Config.update_current_directory(sparkConf.get("spark.mesos.executor.home"));
+                Config.update_current_directory(System.getProperty("user.dir"));
                 System.out.println("CURRENT_DIRECTORY = "+Config.get_current_directory());
                 break;
             default:
@@ -50,13 +51,13 @@ public class KeyGenExample {
         JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());
 
         // Load C++ shared library
-        SparkFHESetup.setup();
+        SparkFHEPlugin.setup();
         // Create SparkFHE object with HElib, a library that implements homomorphic encryption
         SparkFHE.init(FHELibrary.HELIB);
 
         // Creates the directory named by the pathname - current_directiory/gen/keys,
         // and including any necessary parent directories.
-        // new File(Config.get_keys_directory()).mkdirs();
+         new File(Config.get_keys_directory()).mkdirs();
 
         // Using the object created to call the C++ function to generate the keys.
         SparkFHE.getInstance().generate_key_pair(
@@ -73,6 +74,10 @@ public class KeyGenExample {
 
         // Printing out the result
         System.out.println("InputNumber="+inputNumberString + ", result of dec(enc(InputNumber))="+ptxt.toString());
+
+        jsc.close();
+        spark.close();
+
     }
 
 

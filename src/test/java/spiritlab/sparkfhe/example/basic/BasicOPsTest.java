@@ -69,8 +69,8 @@ public class BasicOPsTest {
 
         SparkFHE.init(FHELibrary.HELIB,  Config.get_default_public_key_file(), Config.get_default_secret_key_file());
 
-        CTXT_0_FILE = Config.get_records_directory()+"/ptxt_long_0_"+ SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json";
-        CTXT_1_FILE = Config.get_records_directory()+"/ptxt_long_1_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json";
+        CTXT_0_FILE = Config.get_records_directory()+"/ptxt_long_0_"+ SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";
+        CTXT_1_FILE = Config.get_records_directory()+"/ptxt_long_1_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";
         System.out.println("Opening ciphertext files "+CTXT_0_FILE+ " and "+ CTXT_1_FILE);
     }
 

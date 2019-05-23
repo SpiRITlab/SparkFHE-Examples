@@ -10,13 +10,10 @@ import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.broadcast.Broadcast;
+import org.apache.spark.spiritlab.sparkfhe.SparkFHEPlugin;
 import org.apache.spark.sql.*;
-import org.apache.spark.spiritlab.sparkfhe.SparkFHESetup;
 import spiritlab.sparkfhe.api.*;
 import spiritlab.sparkfhe.example.Config;
-
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * This is an example for SparkFHE project. Created to test the functionality
@@ -57,7 +54,7 @@ public class BasicOPsExample {
         // call homomorphic addition operators on the rdds
         JavaRDD<SerializedCiphertextObject> Addition_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
-            SparkFHESetup.setup();
+            SparkFHEPlugin.setup();
             SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
             return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(tuple._1().getCtxt(), tuple._2().getCtxt(), SparkFHE.FHE_ADD));
         });
@@ -67,7 +64,7 @@ public class BasicOPsExample {
         // call homomorphic multiply operators on the rdds
         JavaRDD<SerializedCiphertextObject> Multiplication_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
-            SparkFHESetup.setup();
+            SparkFHEPlugin.setup();
             SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
             return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(tuple._1().getCtxt(), tuple._2().getCtxt(), SparkFHE.FHE_MULTIPLY));
         });
@@ -77,7 +74,7 @@ public class BasicOPsExample {
         // call homomorphic subtraction operators on the rdds
         JavaRDD<SerializedCiphertextObject> Subtraction_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
-            SparkFHESetup.setup();
+            SparkFHEPlugin.setup();
             SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
             return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(tuple._1().getCtxt(), tuple._2().getCtxt(), SparkFHE.FHE_SUBTRACT));
         });
@@ -86,6 +83,7 @@ public class BasicOPsExample {
 
 
     public static void main(String[] args) {
+        String pk="", sk="";
 
         // The variable slices represent the number of time a task is split up
         int slices = 2;
@@ -100,15 +98,18 @@ public class BasicOPsExample {
             case CLUSTER:
                 slices = Integer.parseInt(args[0]);
                 Config.set_HDFS_NAME_NODE(args[1]);
+                pk = args[2];
+                sk = args[3];
                 break;
             case LOCAL:
                 sparkConf.setMaster("local");
-                Config.update_current_directory(sparkConf.get("spark.mesos.executor.home"));
-                System.out.println("CURRENT_DIRECTORY = "+Config.get_current_directory());
+                pk = args[1];
+                sk = args[2];
                 break;
             default:
                 break;
         }
+        System.out.println("CURRENT_DIRECTORY = "+Config.get_current_directory());
 
         // set a fast serializer
         sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
@@ -127,19 +128,14 @@ public class BasicOPsExample {
         // Creating spark context which allows the communication with worker nodes
         JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());
 
-        // read in the public and secret key and their associated files from terminal arguments
-        String pk = args[2];
-        String sk = args[3];
-
         // Note, the following loading of shared library and init are done on driver only. We need to do the same on the executors.
         // Load C++ shared library
-        SparkFHESetup.setup();
-
+        SparkFHEPlugin.setup();
         // Create SparkFHE object with HElib, a library that implements homomorphic encryption
         SparkFHE.init(FHELibrary.HELIB,  pk, sk);
 
-        CTXT_0_FILE = Config.get_records_directory() + "/ptxt_long_0_"+ SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json";
-        CTXT_1_FILE = Config.get_records_directory() +"/ptxt_long_1_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json";
+        CTXT_0_FILE = Config.get_records_directory() + "/ptxt_long_0_"+ SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";
+        CTXT_1_FILE = Config.get_records_directory() +"/ptxt_long_1_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";
 
         Broadcast<String> pk_b = jsc.broadcast(pk);
         Broadcast<String> sk_b = jsc.broadcast(sk);

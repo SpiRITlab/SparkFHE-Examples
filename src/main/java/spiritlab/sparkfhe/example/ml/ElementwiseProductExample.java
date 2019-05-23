@@ -9,10 +9,9 @@ package spiritlab.sparkfhe.example.ml;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.spiritlab.sparkfhe.SparkFHEPlugin;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.SparkSession;
-
-import org.apache.spark.spiritlab.sparkfhe.SparkFHESetup;
 
 // $example on$
 import java.util.ArrayList;
@@ -174,7 +173,7 @@ public class ElementwiseProductExample {
     }
 
     public static void main(String[] args) {
-        SparkFHESetup.setup();
+        SparkFHEPlugin.setup();
 
         int slices = (args.length == 5) ? Integer.parseInt(args[4]) : 2;
 

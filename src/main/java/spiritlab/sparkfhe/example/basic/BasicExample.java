@@ -5,9 +5,8 @@
 
 package spiritlab.sparkfhe.example.basic;
 
-import org.apache.spark.spiritlab.sparkfhe.SparkFHESetup;
+import org.apache.spark.spiritlab.sparkfhe.SparkFHEPlugin;
 import spiritlab.sparkfhe.api.SparkFHE;
-import org.apache.spark.SparkConf;
 
 /**
  * This is an example for SparkFHE project. Created to confirm the smooth communication between Java and C++ codes.
@@ -32,7 +31,7 @@ public class BasicExample {
 
     public static void main(String[] args) {
         // Loading up the necessary libraries for Java and C++ interaction
-        SparkFHESetup.setup();
+        SparkFHEPlugin.setup();
         // Calling the test_basic_op method
         test_basic_op();
     }
