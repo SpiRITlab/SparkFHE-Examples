@@ -94,25 +94,30 @@ public class BasicOPsExample {
         //Provides the Spark driver application a name for easy identification in the Spark or Yarn UI
         sparkConf.setAppName("BasicOPsExample");
 
-	// Decide whether to run the task locally or on the clusters
-        if ( "local".equalsIgnoreCase(args[0]) ) {
-            //Provides the Spark driver application a name for easy identification in the Spark or Yarn UI
-            //Setting the master URL, in this case its local with 1 thread
-            sparkConf.setMaster("local");
-        } else {
-            slices=Integer.parseInt(args[0]);
-            Config.update_current_directory(sparkConf.get("spark.mesos.executor.home"));
-            System.out.println("CURRENT_DIRECTORY = "+Config.get_current_directory());
-	}
+	    // Decide whether to run the task locally or on the clusters
+        Config.setExecutionEnvironment(args[0]);
+        switch (Config.currentExecutionEnvironment) {
+            case CLUSTER:
+                slices = Integer.parseInt(args[0]);
+                Config.set_HDFS_NAME_NODE(args[1]);
+                break;
+            case LOCAL:
+                sparkConf.setMaster("local");
+                Config.update_current_directory(sparkConf.get("spark.mesos.executor.home"));
+                System.out.println("CURRENT_DIRECTORY = "+Config.get_current_directory());
+                break;
+            default:
+                break;
+        }
 
         // set a fast serializer
         sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
-        List<Class<?>> classes = Arrays.<Class<?>>asList(
-                Ciphertext.class,
-                Plaintext.class
-        );
-        sparkConf.registerKryoClasses((Class<?>[]) classes.toArray());
-        sparkConf.set("spark.executor.memory", "1g");
+//        List<Class<?>> classes = Arrays.<Class<?>>asList(
+//                Ciphertext.class,
+//                Plaintext.class
+//        );
+//        sparkConf.registerKryoClasses((Class<?>[]) classes.toArray());
+        sparkConf.set("spark.executor.memory", "4g");
         sparkConf.set("spark.driver.memory", "4g");
 
         // Creating a session to Spark. The session allows the creation of the
@@ -123,18 +128,18 @@ public class BasicOPsExample {
         JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());
 
         // read in the public and secret key and their associated files from terminal arguments
-        String pk = args[1];
-        String sk = args[2];
-        CTXT_0_FILE = args[3];
-        CTXT_1_FILE = args[4];
-
+        String pk = args[2];
+        String sk = args[3];
 
         // Note, the following loading of shared library and init are done on driver only. We need to do the same on the executors.
         // Load C++ shared library
         SparkFHESetup.setup();
-    
+
         // Create SparkFHE object with HElib, a library that implements homomorphic encryption
         SparkFHE.init(FHELibrary.HELIB,  pk, sk);
+
+        CTXT_0_FILE = Config.get_records_directory() + "/ptxt_long_0_"+ SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json";
+        CTXT_1_FILE = Config.get_records_directory() +"/ptxt_long_1_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json";
 
         Broadcast<String> pk_b = jsc.broadcast(pk);
         Broadcast<String> sk_b = jsc.broadcast(sk);

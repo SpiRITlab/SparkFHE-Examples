@@ -300,25 +300,30 @@ public class DotProductExample {
         sparkConf.setAppName("DotProductExample");
 
         // Decide whether to run the task locally or on the clusters
-        if( "local".equalsIgnoreCase(argv[0]) ) {
-            //Provides the Spark driver application a name for easy identification in the Spark or Yarn UI
-            //Setting the master URL, in this case its local with 1 thread
-            sparkConf.setMaster("local");
-        } else {
-            slices=Integer.parseInt(argv[0]);
-            Config.update_current_directory(sparkConf.get("spark.mesos.executor.home"));
-            System.out.println("CURRENT_DIRECTORY = "+Config.get_current_directory());
+        Config.setExecutionEnvironment(argv[0]);
+        switch (Config.currentExecutionEnvironment) {
+            case CLUSTER:
+                slices = Integer.parseInt(argv[0]);
+                Config.set_HDFS_NAME_NODE(argv[1]);
+                break;
+            case LOCAL:
+                sparkConf.setMaster("local");
+                Config.update_current_directory(sparkConf.get("spark.mesos.executor.home"));
+                System.out.println("CURRENT_DIRECTORY = "+Config.get_current_directory());
+                break;
+            default:
+                break;
         }
 
         // set a fast serializer
         sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
-        List<Class<?>> classes = Arrays.<Class<?>>asList(
-                Ciphertext.class,
-                Plaintext.class
-        );
-        sparkConf.registerKryoClasses((Class<?>[]) classes.toArray());
-        sparkConf.set("spark.executor.memory", "1g");
-        sparkConf.set("spark.driver.memory", "4g");
+//        List<Class<?>> classes = Arrays.<Class<?>>asList(
+//                Ciphertext.class,
+//                Plaintext.class
+//        );
+//        sparkConf.registerKryoClasses((Class<?>[]) classes.toArray());
+        sparkConf.set("spark.executor.memory", "16g");
+        sparkConf.set("spark.driver.memory", "16g");
 
         // Creating a session to Spark. The session allows the creation of the
         // various data abstractions such as RDDs, DataFrame, and more.
@@ -328,16 +333,16 @@ public class DotProductExample {
         JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());
 
         // read in the public and secret key and their associated files from terminal arguments
-        String pk = argv[1];
-        String sk = argv[2];
-
-        vec_a_ctxt = argv[3];
-        vec_b_ctxt = argv[4];
+        String pk = argv[2];
+        String sk = argv[3];
 
         // required to load our shared library
         SparkFHESetup.setup();
         // create SparkFHE object
         SparkFHE.init(FHELibrary.HELIB, pk, sk);
+
+        vec_a_ctxt = Config.get_records_directory()+"/vec_a_"+String.valueOf(Config.NUM_OF_VECTOR_ELEMENTS)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json";
+        vec_b_ctxt = Config.get_records_directory()+"/vec_b_"+String.valueOf(Config.NUM_OF_VECTOR_ELEMENTS)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".json";
 
         Broadcast<String> pk_b = jsc.broadcast(pk);
         Broadcast<String> sk_b = jsc.broadcast(sk);
