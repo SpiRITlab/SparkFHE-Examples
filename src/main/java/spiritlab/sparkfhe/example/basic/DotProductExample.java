@@ -46,8 +46,8 @@ public class DotProductExample {
         System.out.println("test_basic_dot_product");
 
         // distribute a local Scala collection (lists in this case) to form 2 RDDs
-        JavaRDD A = jsc.parallelize(Arrays.asList(1,2,3,4,5,6,7,8,9), slices);
-        JavaRDD B = jsc.parallelize(Arrays.asList(9,8,7,6,5,4,3,2,1), slices);
+        JavaRDD A = jsc.parallelize(Arrays.asList(0,1,2,3,4), slices);
+        JavaRDD B = jsc.parallelize(Arrays.asList(4,3,2,1,0), slices);
 
         // combine both RDDs as pairs
         JavaPairRDD<Integer, Integer> Combined_RDD = A.zip(B);

@@ -82,14 +82,14 @@ public class DotProductTest {
     @Test
     @DisplayName("Calculate dot product on plaintext")
     public void test_basic_dot_product() {
-        JavaRDD A = jsc.parallelize(Arrays.asList(1,2,3,4,5,6,7,8,9), slices);
-        JavaRDD B = jsc.parallelize(Arrays.asList(9,8,7,6,5,4,3,2,1), slices);
+        JavaRDD A = jsc.parallelize(Arrays.asList(0,1,2,3,4), slices);
+        JavaRDD B = jsc.parallelize(Arrays.asList(4,3,2,1,0), slices);
 
         JavaPairRDD<Integer, Integer> Combined_RDD = A.zip(B);
 
         /* print values */
         Combined_RDD.foreach(data -> {
-            assertEquals(10, data._1+data._2);
+            assertEquals(4, data._1+data._2);
         });
 
         JavaRDD<Integer> Result_RDD = Combined_RDD.map(tuple -> {
@@ -97,7 +97,7 @@ public class DotProductTest {
         });
 
         // TODO need to use plaintext module
-        assertEquals(165, (int)Result_RDD.reduce((x, y) -> {
+        assertEquals(10, (int)Result_RDD.reduce((x, y) -> {
             return SparkFHE.do_basic_op(x, y, SparkFHE.ADD);
         }));
     }
