@@ -24,7 +24,7 @@
     <scala.binary.version>2.12</scala.binary.version>
     <spark.version>3.0.0-SNAPSHOT</spark.version>
     <scala.version>2.12.7</scala.version>
-    <fasterxml.jackson.version>2.9.8</fasterxml.jackson.version>
+    <fasterxml.jackson.version>[2.9.9,)</fasterxml.jackson.version>
   </properties>
 
   <scm>
