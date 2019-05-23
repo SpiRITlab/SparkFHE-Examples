@@ -86,41 +86,40 @@ public class DotProductExample {
 
         /* Spark example for FHE calculations */
         // Encoders are created for Java beans
-        Encoder<CtxtString> ctxtJSONEncoder = Encoders.bean(CtxtString.class);
+        Encoder<SerializedCiphertextObject> ctxtJSONEncoder = Encoders.bean(SerializedCiphertextObject.class);
 
         // https://spark.apache.org/docs/latest/sql-programming-guide.html#untyped-dataset-operations-aka-dataframe-operations
         // Create dataset with json file.
         // if CtxtString a row? Dataset<Row> is the Dataframe in Java
-        Dataset<CtxtString> ctxt_a_ds = spark.read().json(vec_a_ctxt).as(ctxtJSONEncoder);
-        Dataset<CtxtString> ctxt_b_ds = spark.read().json(vec_b_ctxt).as(ctxtJSONEncoder);
-
-        // Represents the content of the DataFrame as an RDD of Rows
-        JavaRDD<String> ctxt_a_rdd = ctxt_a_ds.select(org.apache.spark.sql.functions.explode(ctxt_a_ds.col("ctxt")).alias("ctxt")).as(Encoders.STRING()).javaRDD();
-        JavaRDD<String> ctxt_b_rdd = ctxt_b_ds.select(org.apache.spark.sql.functions.explode(ctxt_b_ds.col("ctxt")).alias("ctxt")).as(Encoders.STRING()).javaRDD();
+        Dataset<SerializedCiphertextObject> serialized_ctxt_a_ds = spark.read().json(vec_a_ctxt).as(ctxtJSONEncoder);
+        JavaRDD<String> ctxt_a_rdd = serialized_ctxt_a_ds.select(org.apache.spark.sql.functions.explode(serialized_ctxt_a_ds.col("ctxt")).alias("ctxt")).as(Encoders.STRING()).javaRDD();
+        Dataset<SerializedCiphertextObject> serialized_ctxt_b_ds = spark.read().json(vec_b_ctxt).as(ctxtJSONEncoder);
+        JavaRDD<String> ctxt_b_rdd = serialized_ctxt_b_ds.select(org.apache.spark.sql.functions.explode(serialized_ctxt_b_ds.col("ctxt")).alias("ctxt")).as(Encoders.STRING()).javaRDD();
 
         // causes n = slice tasks to be started using NODE_LOCAL data locality.
-        JavaRDD<String> ctxt_a_rdd2 = ctxt_a_rdd.repartition(slices);
-        JavaRDD<String> ctxt_b_rdd2 = ctxt_b_rdd.repartition(slices);
+        JavaRDD<SerializedCiphertextObject> ctxt_a_rdd2 = ctxt_a_rdd.repartition(slices).map(x -> new SerializedCiphertextObject(x));
+        JavaRDD<SerializedCiphertextObject> ctxt_b_rdd2 = ctxt_b_rdd.repartition(slices).map(x -> new SerializedCiphertextObject(x));
         System.out.println("Partitions:"+ctxt_a_rdd2.partitions().size());
 
         // combine both RDDs as pairs
-        JavaPairRDD<String, String> combined_ctxt_rdd = ctxt_a_rdd2.zip(ctxt_b_rdd2);
+        JavaPairRDD<SerializedCiphertextObject, SerializedCiphertextObject> combined_ctxt_rdd = ctxt_a_rdd2.zip(ctxt_b_rdd2);
 
         // perform the multiply operator on each of the pairs
-        JavaRDD<String> result_rdd = combined_ctxt_rdd.map(tuple -> {
+        JavaRDD<SerializedCiphertextObject> result_rdd = combined_ctxt_rdd.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHESetup.setup();
             SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
-            return SparkFHE.getInstance().do_FHE_basic_op(tuple._1(), tuple._2(), SparkFHE.FHE_MULTIPLY);
+            return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(tuple._1().getCtxt(), tuple._2().getCtxt(), SparkFHE.FHE_MULTIPLY));
         });
 
+        System.out.println("testing");
         // sum up the results from the previous operation and display
         System.out.println("Dot product: " + SparkFHE.getInstance().decrypt(result_rdd.reduce((x, y) -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHESetup.setup();
             SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
-            return SparkFHE.getInstance().do_FHE_basic_op(x, y, SparkFHE.FHE_ADD);
-        })));
+            return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(x.getCtxt(), y.getCtxt(), SparkFHE.FHE_ADD));
+        }).getCtxt()));
     }
 
 
@@ -136,17 +135,15 @@ public class DotProductExample {
         System.out.println("test_FHE_dot_product_via_native_code");
         /* Spark example for FHE calculations */
         // Encoders are created for Java beans
-        Encoder<CtxtString> ctxtJSONEncoder = Encoders.bean(CtxtString.class);
+        Encoder<SerializedCiphertextObject> ctxtJSONEncoder = Encoders.bean(SerializedCiphertextObject.class);
 
         // https://spark.apache.org/docs/latest/sql-programming-guide.html#untyped-dataset-operations-aka-dataframe-operations
         // Create dataset with json file.
-        // if CtxtString a row? Dataset<Row> is the Dataframe in Java
-        Dataset<CtxtString> ctxt_a_ds = spark.read().json(vec_a_ctxt).as(ctxtJSONEncoder);
-        Dataset<CtxtString> ctxt_b_ds = spark.read().json(vec_b_ctxt).as(ctxtJSONEncoder);
-
-        // Represents the content of the DataFrame as an RDD of Rows
-        JavaRDD<String> ctxt_a_rdd = ctxt_a_ds.select(org.apache.spark.sql.functions.explode(ctxt_a_ds.col("ctxt")).alias("ctxt")).as(Encoders.STRING()).javaRDD();
-        JavaRDD<String> ctxt_b_rdd = ctxt_b_ds.select(org.apache.spark.sql.functions.explode(ctxt_b_ds.col("ctxt")).alias("ctxt")).as(Encoders.STRING()).javaRDD();
+        // if SerializedCiphertextObject a row? Dataset<Row> is the Dataframe in Java
+        Dataset<SerializedCiphertextObject> serialized_ctxt_a_ds = spark.read().json(vec_a_ctxt).as(ctxtJSONEncoder);
+        JavaRDD<SerializedCiphertextObject> ctxt_a_rdd = serialized_ctxt_a_ds.select(org.apache.spark.sql.functions.explode(serialized_ctxt_a_ds.col("ctxt")).alias("ctxt")).as(Encoders.STRING()).javaRDD().map(x -> new SerializedCiphertextObject(x));
+        Dataset<SerializedCiphertextObject> serialized_ctxt_b_ds = spark.read().json(vec_b_ctxt).as(ctxtJSONEncoder);
+        JavaRDD<SerializedCiphertextObject> ctxt_b_rdd = serialized_ctxt_b_ds.select(org.apache.spark.sql.functions.explode(serialized_ctxt_b_ds.col("ctxt")).alias("ctxt")).as(Encoders.STRING()).javaRDD().map(x -> new SerializedCiphertextObject(x));
 
         // print out the cipher text vectors after decryption for verification purposes
         System.out.println("ctxt_a_rdd.count() = " + ctxt_a_rdd.count());
@@ -154,53 +151,52 @@ public class DotProductExample {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHESetup.setup();
             SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
-            System.out.println(SparkFHE.getInstance().decrypt(data));
+            System.out.println(SparkFHE.getInstance().decrypt(data.getCtxt()));
         });
         System.out.println("ctxt_b_rdd.count() = " + ctxt_b_rdd.count());
         ctxt_b_rdd.foreach(data -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHESetup.setup();
             SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
-            System.out.println(SparkFHE.getInstance().decrypt(data));
+            System.out.println(SparkFHE.getInstance().decrypt(data.getCtxt()));
         });
 
         // combine both rdds as a pair
-        JavaPairRDD<String, String> combined_ctxt_rdd = ctxt_a_rdd.zip(ctxt_b_rdd);
+        JavaPairRDD<SerializedCiphertextObject, SerializedCiphertextObject> combined_ctxt_rdd = ctxt_a_rdd.zip(ctxt_b_rdd);
         combined_ctxt_rdd.repartition(slices);
         System.out.println("combined_ctxt_rdd.count() = " + combined_ctxt_rdd.count());
 
         // call homomorphic doc product operators on the rdds
-        JavaRDD<String> collection = combined_ctxt_rdd.mapPartitions(records -> {
+        JavaRDD<SerializedCiphertextObject> collection = combined_ctxt_rdd.mapPartitions(records -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHESetup.setup();
             SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
 
-            LinkedList v = new LinkedList<String>();
+            LinkedList<SerializedCiphertextObject> v = new LinkedList<SerializedCiphertextObject>();
             StringVector a = new StringVector();
             StringVector b = new StringVector();
             while (records.hasNext()) {
-                Tuple2<String, String> rec = records.next();
-                a.add(rec._1);
-                b.add(rec._2);
+                Tuple2<SerializedCiphertextObject, SerializedCiphertextObject> rec = records.next();
+                a.add(rec._1.getCtxt());
+                b.add(rec._2.getCtxt());
             }
-            String r = SparkFHE.getInstance().do_FHE_dot_product(a, b);
-            v.add(r);
+            v.add(new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_dot_product(a, b)));
             return v.iterator();
         });
 
         // reset the collection and display the output
-        //collection.cache();
+        collection.cache();
 
         // sum up the results from the previous operation and display
-        String res = collection.reduce((x, y) -> {
+        SerializedCiphertextObject res = collection.reduce((x, y) -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHESetup.setup();
             SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
-            return SparkFHE.getInstance().do_FHE_basic_op(x, y, SparkFHE.FHE_ADD);
+            return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(x.getCtxt(), y.getCtxt(), SparkFHE.FHE_ADD));
         });
 
         // decrypt the result and verify it
-        System.out.println("Dot product: " + SparkFHE.getInstance().decrypt(res));
+        System.out.println("Dot product: " + SparkFHE.getInstance().decrypt(res.getCtxt()));
     }
 
 
@@ -216,11 +212,11 @@ public class DotProductExample {
         System.out.println("test_FHE_dot_product_via_sql");
         /* Spark example for FHE calculations */
         // Encoders are created for Java beans
-        Encoder<CtxtString> ctxtJSONEncoder = Encoders.bean(CtxtString.class);
+        Encoder<SerializedCiphertextObject> ctxtJSONEncoder = Encoders.bean(SerializedCiphertextObject.class);
         // https://spark.apache.org/docs/latest/sql-programming-guide.html#untyped-dataset-operations-aka-dataframe-operations\
         // READ as a dataset
-        Dataset<CtxtString> ctxt_a_ds = spark.read().json(vec_a_ctxt).as(ctxtJSONEncoder);
-        Dataset<CtxtString> ctxt_b_ds = spark.read().json(vec_b_ctxt).as(ctxtJSONEncoder);
+        Dataset<SerializedCiphertextObject> ctxt_a_ds = spark.read().json(vec_a_ctxt).as(ctxtJSONEncoder);
+        Dataset<SerializedCiphertextObject> ctxt_b_ds = spark.read().json(vec_b_ctxt).as(ctxtJSONEncoder);
 
         // col - Returns a Column based on the given column name, ctxt.
         // explode - Creates a new row for each element in the given array or map column
@@ -259,42 +255,37 @@ public class DotProductExample {
         ExpressionEncoder<Row> encoder2 = RowEncoder.apply(structType);
 
         // mapPartition - converts each partition of the source RDD into multiple elements of the result
-        // perform dot product on each pair (StringVector) of the dataFrame, and saving the results to a LinkedList
-        Dataset<String> collection = fin.mapPartitions((MapPartitionsFunction<Row, String>)  iter -> {
+        // perform dot product on each pair (StringVector) of the dataFrame, and saving the rcesults to a LinkedList
+        Dataset<SerializedCiphertextObject> collection = fin.mapPartitions((MapPartitionsFunction<Row, SerializedCiphertextObject>)  iter -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHESetup.setup();
             SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
 
-            LinkedList v = new LinkedList<String>();
+            LinkedList<SerializedCiphertextObject> v = new LinkedList<SerializedCiphertextObject>();
             StringVector a = new StringVector();
             StringVector b = new StringVector();
             while (iter.hasNext()) {
                 Row row = iter.next();
-                a.add(row.getAs("ctxt"));
-                b.add(row.getAs("ctxt2"));
+                a.add((String)row.getAs("ctxt"));
+                b.add((String)row.getAs("ctxt2"));
             }
-            String r = SparkFHE.getInstance().do_FHE_dot_product(a, b);
-            v.add(r);
+            v.add(new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_dot_product(a, b)));
             return v.iterator();
-
-        }, Encoders.STRING());
+        }, Encoders.kryo(SerializedCiphertextObject.class));
 
         // reset the collection and display the output
-        //collection.cache();
+        collection.cache();
 
-//        System.out.println("collection.count() = " + collection.count());
-//        collection.printSchema();
-
-        // sum up the results from the previous operation
-        String res = collection.reduce((ReduceFunction<String>) (x, y) -> {
+        // sum up the results from the previous operation and display
+        SerializedCiphertextObject res = collection.javaRDD().reduce((x, y) -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHESetup.setup();
             SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
-            return SparkFHE.getInstance().do_FHE_basic_op(x, y, SparkFHE.FHE_ADD);
+            return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(x.getCtxt(), y.getCtxt(), SparkFHE.FHE_ADD));
         });
 
         // decrypt the result to verify it
-        System.out.println("Dot product: " + SparkFHE.getInstance().decrypt(res));
+        System.out.println("Dot product: " + SparkFHE.getInstance().decrypt(res.getCtxt()));
     }
 
 
@@ -318,6 +309,16 @@ public class DotProductExample {
             Config.update_current_directory(sparkConf.get("spark.mesos.executor.home"));
             System.out.println("CURRENT_DIRECTORY = "+Config.get_current_directory());
         }
+
+        // set a fast serializer
+        sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
+        List<Class<?>> classes = Arrays.<Class<?>>asList(
+                Ciphertext.class,
+                Plaintext.class
+        );
+        sparkConf.registerKryoClasses((Class<?>[]) classes.toArray());
+        sparkConf.set("spark.executor.memory", "1g");
+        sparkConf.set("spark.driver.memory", "4g");
 
         // Creating a session to Spark. The session allows the creation of the
         // various data abstractions such as RDDs, DataFrame, and more.

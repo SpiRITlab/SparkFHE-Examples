@@ -31,9 +31,8 @@ import scala.runtime.AbstractFunction2;
 import scala.runtime.BoxedUnit;
 import static spiritlab.sparkfhe.api.Ciphertext.*;
 
-import spiritlab.sparkfhe.api.FHE;
-import spiritlab.sparkfhe.api.FHELibrary;
-import spiritlab.sparkfhe.api.SparkFHE;
+import spiritlab.sparkfhe.api.*;
+import spiritlab.sparkfhe.example.Config;
 // $example off$
 
 public class ElementwiseProductExample {
@@ -97,8 +96,8 @@ public class ElementwiseProductExample {
 
     public static void RunCtxtExample(SparkSession spark, String zero_ctxt_path, String one_ctxt_path) {
         // Create some vector data; also works for sparse vectors
-        String zero_ctxt = loadCtxt(zero_ctxt_path);
-        String one_ctxt = loadCtxt(one_ctxt_path);
+        String zero_ctxt = SparkFHE.getInstance().read_ciphertext_from_file_as_string(Config.Ciphertext_Label, zero_ctxt_path);
+        String one_ctxt = SparkFHE.getInstance().read_ciphertext_from_file_as_string(Config.Ciphertext_Label,one_ctxt_path);
         List<Row> data = Arrays.asList(
                 RowFactory.create("a", org.apache.spark.ml_fhe.linalg.CtxtVectors.dense(one_ctxt, zero_ctxt, one_ctxt)),
                 RowFactory.create("b", org.apache.spark.ml_fhe.linalg.CtxtVectors.dense(zero_ctxt, one_ctxt, one_ctxt))
@@ -127,7 +126,7 @@ public class ElementwiseProductExample {
             org.apache.spark.ml_fhe.linalg.CtxtVector v = row.getAs("transformedVector");
             AbstractFunction2<Object, String, BoxedUnit> f = new AbstractFunction2<Object, String, BoxedUnit>() {
                 public BoxedUnit apply(Object t1, String t2) {
-                    System.out.println("Index:" + t1 + "      Value:" + SparkFHE.getInstance().decrypt((String)t2));
+                    System.out.println("Index:" + t1 + "      Value:" + SparkFHE.getInstance().decrypt(new Ciphertext((String)t2)));
                     return BoxedUnit.UNIT;
                 }
             };
@@ -136,8 +135,8 @@ public class ElementwiseProductExample {
     }
 
     public static void RunCtxtRDDExample(JavaSparkContext jsc, String zero_ctxt_path, String one_ctxt_path) {
-        String zero_ctxt = loadCtxt(zero_ctxt_path);
-        String one_ctxt = loadCtxt(one_ctxt_path);
+        String zero_ctxt = SparkFHE.getInstance().read_ciphertext_from_file_as_string(Config.Ciphertext_Label, zero_ctxt_path);
+        String one_ctxt = SparkFHE.getInstance().read_ciphertext_from_file_as_string(Config.Ciphertext_Label,one_ctxt_path);
         JavaRDD<CtxtVector> data = jsc.parallelize(Arrays.asList(
                 CtxtVectors.dense(one_ctxt, zero_ctxt, one_ctxt), CtxtVectors.dense(zero_ctxt, one_ctxt, one_ctxt)));
         CtxtVector transformingVector = CtxtVectors.dense(zero_ctxt, one_ctxt, zero_ctxt);
@@ -155,7 +154,7 @@ public class ElementwiseProductExample {
         transformedData.foreach(x -> {
             AbstractFunction2<Object, String, BoxedUnit> f = new AbstractFunction2<Object, String, BoxedUnit>() {
                 public BoxedUnit apply(Object t1, String t2) {
-                    System.out.println("Index:" + t1 + "      Value:" + SparkFHE.getInstance().decrypt((String)t2));
+                    System.out.println("Index:" + t1 + "      Value:" + SparkFHE.getInstance().decrypt(new Ciphertext((String)t2)));
                     return BoxedUnit.UNIT;
                 }
             };
@@ -166,7 +165,7 @@ public class ElementwiseProductExample {
         transformedData2.foreach(x -> {
             AbstractFunction2<Object, String, BoxedUnit> f = new AbstractFunction2<Object, String, BoxedUnit>() {
                 public BoxedUnit apply(Object t1, String t2) {
-                    System.out.println("Index:" + t1 + "      Value:" + SparkFHE.getInstance().decrypt((String)t2));
+                    System.out.println("Index:" + t1 + "      Value:" + SparkFHE.getInstance().decrypt(new Ciphertext((String)t2)));
                     return BoxedUnit.UNIT;
                 }
             };
