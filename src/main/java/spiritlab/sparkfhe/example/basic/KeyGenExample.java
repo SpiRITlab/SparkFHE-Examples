@@ -37,12 +37,12 @@ public class KeyGenExample {
                 break;
             case LOCAL:
                 sparkConf.setMaster("local");
-                Config.update_current_directory(System.getProperty("user.dir"));
-                System.out.println("CURRENT_DIRECTORY = "+Config.get_current_directory());
                 break;
             default:
                 break;
         }
+        System.out.println("CURRENT_DIRECTORY = "+Config.get_current_directory());
+
         // Creating a session to Spark. The session allows the creation of the
         // various data abstractions such as RDDs, DataFrame, and more.
         SparkSession spark = SparkSession.builder().config(sparkConf).getOrCreate();
