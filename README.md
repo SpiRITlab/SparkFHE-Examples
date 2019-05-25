@@ -51,10 +51,10 @@ OR run it step-by-step
 ### Step 2. Run examples: Test different FHE operations on example ciphertexts and vectors of ciphertexts
 ```bash
 # this will perform some basic FHE operations
-./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.BasicOPsExample -Dexec.args="local  gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/records/ptxt_long_0_PlaintextModule73CiphertextModule9791MultiplicativeDepth10SecurityParameter80.json gen/records/ptxt_long_1_PlaintextModule73CiphertextModule9791MultiplicativeDepth10SecurityParameter80.json"
+./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.BasicOPsExample -Dexec.args="local  gen/keys/my_public_key.txt gen/keys/my_secret_key.txt"
 
 # this will perform dot product calculation on vectors of encrypted numbers 
-./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.DotProductExample -Dexec.args="local gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/records/vec_a_5_PlaintextModule73CiphertextModule9791MultiplicativeDepth10SecurityParameter80.json gen/records/vec_b_5_PlaintextModule73CiphertextModule9791MultiplicativeDepth10SecurityParameter80.json"
+./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.DotProductExample -Dexec.args="local gen/keys/my_public_key.txt gen/keys/my_secret_key.txt"
 ```
 
 
