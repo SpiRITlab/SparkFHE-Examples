@@ -46,7 +46,7 @@ OR run it step-by-step
 ./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.KeyGenExample -Dexec.args="local" 
 
 # this will generate some ciphertexts
-./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.EncDecExample -Dexec.args="local"      
+./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.EncDecExample -Dexec.args="local gen/keys/my_public_key.txt gen/keys/my_secret_key.txt"      
 ```
 ### Step 2. Run examples: Test different FHE operations on example ciphertexts and vectors of ciphertexts
 ```bash
