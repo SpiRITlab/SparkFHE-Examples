@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 # set java library path
-export LD_LIBRARY_PATH=$(pwd)/libSparkFHE/lib:$LD_LIBRARY_PATH
-export DYLD_LIBRARY_PATH=$(pwd)/libSparkFHE/lib:$DYLD_LIBRARY_PATH
-export MAVEN_OPTS=-Djava.library.path="libSparkFHE/lib"
+export LD_LIBRARY_PATH=$(pwd)/libSparkFHE/lib:$(pwd)/libSparkFHE/lib/native:$LD_LIBRARY_PATH
+export DYLD_LIBRARY_PATH=$(pwd)/libSparkFHE/lib:$(pwd)/libSparkFHE/lib/native:$DYLD_LIBRARY_PATH
+export MAVEN_OPTS=-Djava.library.path="libSparkFHE/lib:libSparkFHE/lib/native"
 
 mvn "$@"
