@@ -87,17 +87,16 @@ public class EncDecExample {
 
         /* generating vectors of ctxt */
         int ptxtMod_half = 10;
-        PlaintextVector vec_ptxt_1 = new PlaintextVector();
-        PlaintextVector vec_ptxt_2 = new PlaintextVector();
-        CiphertextVector vec_ctxt_1 = new CiphertextVector();
-        CiphertextVector vec_ctxt_2 = new CiphertextVector();
+        StringVector vec_ptxt_1 = new StringVector();
+        StringVector vec_ptxt_2 = new StringVector();
+        StringVector vec_ctxt_1 = new StringVector();
+        StringVector vec_ctxt_2 = new StringVector();
 
         // create 2 StringVectors
         for (int i = 0; i < Config.NUM_OF_VECTOR_ELEMENTS; ++i) {
-            vec_ptxt_1.add(new Plaintext(i%ptxtMod_half));
-            vec_ptxt_2.add(new Plaintext((Config.NUM_OF_VECTOR_ELEMENTS-1-i)%ptxtMod_half));
+            vec_ptxt_1.add(String.valueOf(i%ptxtMod_half));
+            vec_ptxt_2.add(String.valueOf((Config.NUM_OF_VECTOR_ELEMENTS-1-i)%ptxtMod_half));
         }
-
 
 
         // encrypt them and store to pre-defined location
@@ -107,6 +106,7 @@ public class EncDecExample {
         // encrypt them and store to pre-defined location
         vec_ctxt_2=SparkFHE.getInstance().encrypt(vec_ptxt_2);
         SparkFHE.getInstance().store_ciphertexts_to_file(Config.Ciphertext_Label, vec_ctxt_2, Config.get_records_directory()+"/vec_b_"+String.valueOf(Config.NUM_OF_VECTOR_ELEMENTS)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl");
+
 
     }
 
