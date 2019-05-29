@@ -58,15 +58,15 @@ public class DotProductExample {
         Dataset<Row> dataFrame = spark.createDataFrame(data, schema);
         dataFrame.printSchema();
 
-        org.apache.spark.ml_fhe.linalg.CtxtVector transformingVector = org.apache.spark.ml_fhe.linalg.CtxtVectors.dense(one_ctxt, one_ctxt, one_ctxt);
+        org.apache.spark.ml_fhe.linalg.CtxtVector inputVector = org.apache.spark.ml_fhe.linalg.CtxtVectors.dense(one_ctxt, one_ctxt, one_ctxt);
 
-        org.apache.spark.ml_fhe.feature.DotProduct transformer = new org.apache.spark.ml_fhe.feature.DotProduct()
-                .setScalingVec(transformingVector)
+        org.apache.spark.ml_fhe.feature.DotProduct dp = new org.apache.spark.ml_fhe.feature.DotProduct()
+                .setScalingVec(inputVector)
                 .setInputCol("vector")
                 .setOutputCol("transformedVector");
 
         // Batch transform the vectors to create new column:
-        Dataset<Row> tr = transformer.transform(dataFrame);
+        Dataset<Row> tr = dp.transform(dataFrame);
         tr.show();
 
         tr.foreach(row -> {
@@ -91,13 +91,13 @@ public class DotProductExample {
         JavaRDD<CtxtVector> data = jsc.parallelize(Arrays.asList(
                 CtxtVectors.dense(one_ctxt, one_ctxt, one_ctxt)
         ));
-        CtxtVector transformingVector = CtxtVectors.dense(one_ctxt, one_ctxt, one_ctxt);
+        CtxtVector inputVector = CtxtVectors.dense(one_ctxt, one_ctxt, one_ctxt);
 
-        org.apache.spark.mllib_fhe.feature.DotProduct transformer = new org.apache.spark.mllib_fhe.feature.DotProduct(transformingVector);
+        org.apache.spark.mllib_fhe.feature.DotProduct dp = new org.apache.spark.mllib_fhe.feature.DotProduct(inputVector);
 
         // Batch transform and per-row transform give the same results:
-        JavaRDD<CtxtVector> transformedData = transformer.transform(data);
-        JavaRDD<CtxtVector> transformedData2 = data.map(transformer::transform);
+        JavaRDD<CtxtVector> transformedData = dp.transform(data);
+        JavaRDD<CtxtVector> transformedData2 = data.map(dp::transform);
 
         transformedData.cache();
         transformedData2.cache();
