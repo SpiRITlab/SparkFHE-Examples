@@ -24,21 +24,14 @@ public class EncDecExample {
     public static void main(String args[]) {
         String pk="", sk="";
 
-        int slices = 2;
-        SparkConf sparkConf = new SparkConf();
-        sparkConf.setAppName("EncDecExample");
-
         Config.setExecutionEnvironment(args[0]);
-
         switch (Config.currentExecutionEnvironment) {
             case CLUSTER:
-                slices = Integer.parseInt(args[0]);
                 Config.set_HDFS_NAME_NODE(args[1]);
                 pk = args[2];
                 sk = args[3];
                 break;
             case LOCAL:
-                sparkConf.setMaster("local");
                 pk = args[1];
                 sk = args[2];
                 break;
@@ -98,7 +91,6 @@ public class EncDecExample {
             vec_ptxt_2.add(String.valueOf((Config.NUM_OF_VECTOR_ELEMENTS-1-i)%ptxtMod_half));
         }
 
-
         // encrypt them and store to pre-defined location
         vec_ctxt_1=SparkFHE.getInstance().encrypt(vec_ptxt_1);
         SparkFHE.getInstance().store_ciphertexts_to_file(Config.Ciphertext_Label, vec_ctxt_1, Config.get_records_directory()+"/vec_a_"+String.valueOf(Config.NUM_OF_VECTOR_ELEMENTS)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl");
@@ -106,7 +98,6 @@ public class EncDecExample {
         // encrypt them and store to pre-defined location
         vec_ctxt_2=SparkFHE.getInstance().encrypt(vec_ptxt_2);
         SparkFHE.getInstance().store_ciphertexts_to_file(Config.Ciphertext_Label, vec_ctxt_2, Config.get_records_directory()+"/vec_b_"+String.valueOf(Config.NUM_OF_VECTOR_ELEMENTS)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl");
-
 
     }
 
