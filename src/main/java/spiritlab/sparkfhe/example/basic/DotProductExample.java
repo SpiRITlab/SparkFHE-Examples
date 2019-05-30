@@ -307,16 +307,6 @@ public class DotProductExample {
         }
         System.out.println("CURRENT_DIRECTORY = "+Config.get_current_directory());
 
-        // set a fast serializer
-        sparkConf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer");
-//        List<Class<?>> classes = Arrays.<Class<?>>asList(
-//                Ciphertext.class,
-//                Plaintext.class
-//        );
-//        sparkConf.registerKryoClasses((Class<?>[]) classes.toArray());
-        sparkConf.set("spark.executor.memory", "16g");
-        sparkConf.set("spark.driver.memory", "16g");
-
         // Creating a session to Spark. The session allows the creation of the
         // various data abstractions such as RDDs, DataFrame, and more.
         SparkSession spark = SparkSession.builder().config(sparkConf).getOrCreate();
