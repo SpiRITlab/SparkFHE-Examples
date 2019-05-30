@@ -160,7 +160,6 @@ public class DotProductExample {
 
         // combine both rdds as a pair
         JavaPairRDD<SerializedCiphertextObject, SerializedCiphertextObject> combined_ctxt_rdd = ctxt_a_rdd.zip(ctxt_b_rdd);
-        combined_ctxt_rdd.repartition(slices);
         System.out.println("combined_ctxt_rdd.count() = " + combined_ctxt_rdd.count());
 
         // call homomorphic doc product operators on the rdds
@@ -180,9 +179,6 @@ public class DotProductExample {
             v.add(new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_dot_product(a, b)));
             return v.iterator();
         });
-
-        // cache the collection and display the output
-        collection.cache();
 
         // sum up the results from the previous operation and display
         SerializedCiphertextObject res = collection.reduce((x, y) -> {
@@ -236,7 +232,6 @@ public class DotProductExample {
         // equalTo - A filter that evaluates to true iff the attribute evaluates to a value equal to value.
         Dataset<Row> joined = ctxt_a_ds3.join(ctxt_b_ds3, ctxt_a_ds3.col("id").equalTo(ctxt_b_ds3.col("id")));
         Dataset<Row> fin = joined.select(col("ctxt_a"), col("ctxt_b"));
-        fin.repartition(slices);
 
         fin.printSchema();
 
@@ -269,9 +264,6 @@ public class DotProductExample {
             v.add(new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_dot_product(a, b)));
             return v.iterator();
         }, Encoders.kryo(SerializedCiphertextObject.class));
-
-        // cache the collection and display the output
-        collection.cache();
 
         // sum up the results from the previous operation and display
         SerializedCiphertextObject res = collection.javaRDD().reduce((x, y) -> {
