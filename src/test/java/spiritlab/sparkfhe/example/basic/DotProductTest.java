@@ -116,9 +116,7 @@ public class DotProductTest {
 
         JavaRDD<SerializedCiphertextObject> ctxt_a_rdd = ctxt_a_ds.select(ctxt_a_ds.col("ctxt")).as(Encoders.STRING()).javaRDD().map(x -> new SerializedCiphertextObject(x));;
         JavaRDD<SerializedCiphertextObject> ctxt_b_rdd = ctxt_b_ds.select(ctxt_b_ds.col("ctxt")).as(Encoders.STRING()).javaRDD().map(x -> new SerializedCiphertextObject(x));;
-        JavaRDD<SerializedCiphertextObject> ctxt_a_rdd2 = ctxt_a_rdd.repartition(slices);
-        JavaRDD<SerializedCiphertextObject> ctxt_b_rdd2 = ctxt_b_rdd.repartition(slices);
-        JavaPairRDD<SerializedCiphertextObject, SerializedCiphertextObject> combined_ctxt_rdd = ctxt_a_rdd2.zip(ctxt_b_rdd2);
+        JavaPairRDD<SerializedCiphertextObject, SerializedCiphertextObject> combined_ctxt_rdd = ctxt_a_rdd.zip(ctxt_b_rdd);
 
         JavaRDD<SerializedCiphertextObject> result_rdd = combined_ctxt_rdd.map(tuple -> {
             return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(tuple._1().getCtxt(), tuple._2().getCtxt(), SparkFHE.FHE_MULTIPLY));
@@ -154,7 +152,6 @@ public class DotProductTest {
         });
 
         JavaPairRDD<SerializedCiphertextObject, SerializedCiphertextObject> combined_ctxt_rdd = ctxt_a_rdd.zip(ctxt_b_rdd);
-        combined_ctxt_rdd.repartition(slices);
         assertEquals(5, combined_ctxt_rdd.count());
 
         JavaRDD<SerializedCiphertextObject> collection = combined_ctxt_rdd.mapPartitions(records -> {
@@ -200,7 +197,6 @@ public class DotProductTest {
 
         Dataset<Row> joined = ctxt_a_ds3.join(ctxt_b_ds3, ctxt_a_ds3.col("id").equalTo(ctxt_b_ds3.col("id")));
         Dataset<Row> fin = joined.select(col("ctxt_a"), col("ctxt_b"));
-        fin.repartition(slices);
 
         fin.printSchema();
 
