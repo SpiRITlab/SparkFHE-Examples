@@ -39,10 +39,8 @@ public class DotProductExample {
      * This method performs the dot product operation on plaintext vectors and print out the results
      * @param jsc spark context which allows the communication with worker nodes
      * @param slices the number of time a task is split up
-     * @param pk_b broadcast variable for public key
-     * @param sk_b broadcast variable for secret key
      */
-    public static void test_basic_dot_product(JavaSparkContext jsc, int slices, Broadcast<String> pk_b, Broadcast<String> sk_b) {
+    public static void test_basic_dot_product(JavaSparkContext jsc, int slices) {
         System.out.println("test_basic_dot_product");
 
         // distribute a local Scala collection (lists in this case) to form 2 RDDs
@@ -80,7 +78,7 @@ public class DotProductExample {
      * @param pk_b broadcast variable for public key
      * @param sk_b broadcast variable for secret key
      */
-    public static void test_FHE_dot_product_via_lambda(SparkSession spark, int slices, Broadcast<String> pk_b, Broadcast<String> sk_b) {
+    public static void test_FHE_dot_product_via_lambda(SparkSession spark, int slices, Broadcast<String> crypto_params_b,  Broadcast<String> pk_b, Broadcast<String> sk_b) {
         System.out.println("test_FHE_dot_product_via_lambda");
 
         /* Spark example for FHE calculations */
@@ -107,7 +105,12 @@ public class DotProductExample {
         JavaRDD<SerializedCiphertextObject> result_rdd = combined_ctxt_rdd.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
-            SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
+            System.out.println("crypto_params_b.value(): "+ crypto_params_b.value());
+            System.out.println("pk_b.value(): " + pk_b.value().length());
+            System.out.println("sk_b.value(): " + sk_b.value().length());
+
+            SparkFHE.init(FHELibrary.HELIB);
+            SparkFHE.getInstance().load_key_pair(crypto_params_b.value(), pk_b.value(), sk_b.value());
             return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(tuple._1().getCtxt(), tuple._2().getCtxt(), SparkFHE.FHE_MULTIPLY));
         });
 
@@ -129,7 +132,7 @@ public class DotProductExample {
      * @param pk_b broadcast variable for public key
      * @param sk_b broadcast variable for secret key
      */
-    public static void test_FHE_dot_product_via_native_code(SparkSession spark, int slices, Broadcast<String> pk_b, Broadcast<String> sk_b) {
+    public static void test_FHE_dot_product_via_native_code(SparkSession spark, int slices, Broadcast<String> crypto_params_b, Broadcast<String> pk_b, Broadcast<String> sk_b) {
         System.out.println("test_FHE_dot_product_via_native_code");
         /* Spark example for FHE calculations */
         // Encoders are created for Java beans
@@ -201,7 +204,7 @@ public class DotProductExample {
      * @param pk_b broadcast variable for public key
      * @param sk_b broadcast variable for secret key
      */
-    public static void test_FHE_dot_product_via_sql(SparkSession spark, int slices, Broadcast<String> pk_b, Broadcast<String> sk_b) {
+    public static void test_FHE_dot_product_via_sql(SparkSession spark, int slices, Broadcast<String> crypto_params_b, Broadcast<String> pk_b, Broadcast<String> sk_b) {
         System.out.println("test_FHE_dot_product_via_sql");
         /* Spark example for FHE calculations */
         // Encoders are created for Java beans
@@ -317,21 +320,31 @@ public class DotProductExample {
         // required to load our shared library
         SparkFHEPlugin.setup();
         // create SparkFHE object
-        SparkFHE.init(FHELibrary.HELIB, pk, sk);
+        SparkFHE.init(FHELibrary.HELIB);
+
+        String crypto_params_string = SparkFHE.getInstance().read_crypto_params(pk);
+        String pk_string = SparkFHE.getInstance().read_crypto_key(pk);
+        String sk_string = SparkFHE.getInstance().read_crypto_key(sk);
+        SparkFHE.getInstance().load_key_pair(crypto_params_string, pk_string, sk_string);
+
+        System.out.println("crypto_params_b.value(): " + crypto_params_string);
+        System.out.println("pk_b.value(): " + pk_string.length());
+        System.out.println("sk_b.value(): " + sk_string.length());
+
+        Broadcast<String> crypto_params_b = jsc.broadcast(crypto_params_string);
+        Broadcast<String> pk_b = jsc.broadcast(pk_string);
+        Broadcast<String> sk_b = jsc.broadcast(sk_string);
 
         vec_a_ctxt = Config.get_records_directory()+"/vec_a_"+String.valueOf(Config.NUM_OF_VECTOR_ELEMENTS)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";
         vec_b_ctxt = Config.get_records_directory()+"/vec_b_"+String.valueOf(Config.NUM_OF_VECTOR_ELEMENTS)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";
 
-        Broadcast<String> pk_b = jsc.broadcast(pk);
-        Broadcast<String> sk_b = jsc.broadcast(sk);
-
         // testing the dot product operation in Helib on plaintext vector.
-        test_basic_dot_product(jsc, slices, pk_b, sk_b);
+        test_basic_dot_product(jsc, slices);
       
          // testing the dot product operation in Helib on cipher text vector.
-        test_FHE_dot_product_via_lambda(spark, slices, pk_b, sk_b);
-        test_FHE_dot_product_via_native_code(spark, slices, pk_b, sk_b);
-        test_FHE_dot_product_via_sql(spark, slices, pk_b, sk_b);
+        test_FHE_dot_product_via_lambda(spark, slices, crypto_params_b, pk_b, sk_b);
+        test_FHE_dot_product_via_native_code(spark, slices, crypto_params_b, pk_b, sk_b);
+        test_FHE_dot_product_via_sql(spark, slices, crypto_params_b, pk_b, sk_b);
 
         // Stop existing spark context
         jsc.close();
