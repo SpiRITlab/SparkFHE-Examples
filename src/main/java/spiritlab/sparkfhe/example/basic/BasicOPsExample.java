@@ -55,7 +55,7 @@ public class BasicOPsExample {
         JavaRDD<SerializedCiphertextObject> Addition_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
-            SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
+            SparkFHE.init(FHELibrary.SEAL,  pk_b.getValue(), sk_b.getValue());
             return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(tuple._1().getCtxt(), tuple._2().getCtxt(), SparkFHE.FHE_ADD));
         });
         System.out.println("Homomorphic Addition:"+ SparkFHE.getInstance().decrypt(Addition_ctxt_RDD.first().getCtxt()));
@@ -65,7 +65,7 @@ public class BasicOPsExample {
         JavaRDD<SerializedCiphertextObject> Multiplication_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
-            SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
+            SparkFHE.init(FHELibrary.SEAL,  pk_b.getValue(), sk_b.getValue());
             return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(tuple._1().getCtxt(), tuple._2().getCtxt(), SparkFHE.FHE_MULTIPLY));
         });
         System.out.println("Homomorphic Multiplication:"+ SparkFHE.getInstance().decrypt(Multiplication_ctxt_RDD.first().getCtxt()));
@@ -75,7 +75,7 @@ public class BasicOPsExample {
         JavaRDD<SerializedCiphertextObject> Subtraction_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
-            SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
+            SparkFHE.init(FHELibrary.SEAL,  pk_b.getValue(), sk_b.getValue());
             return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(tuple._1().getCtxt(), tuple._2().getCtxt(), SparkFHE.FHE_SUBTRACT));
         });
         System.out.println("Homomorphic Subtraction:"+SparkFHE.getInstance().decrypt(Subtraction_ctxt_RDD.first().getCtxt()));
@@ -121,8 +121,8 @@ public class BasicOPsExample {
         // Note, the following loading of shared library and init are done on driver only. We need to do the same on the executors.
         // Load C++ shared library
         SparkFHEPlugin.setup();
-        // Create SparkFHE object with HElib, a library that implements homomorphic encryption
-        SparkFHE.init(FHELibrary.HELIB,  pk, sk);
+        // Create SparkFHE object with SEAL, a library that implements homomorphic encryption
+        SparkFHE.init(FHELibrary.SEAL,  pk, sk);
 
         CTXT_0_FILE = Config.get_records_directory() + "/ptxt_long_0_"+ SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";
         CTXT_1_FILE = Config.get_records_directory() +"/ptxt_long_1_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";

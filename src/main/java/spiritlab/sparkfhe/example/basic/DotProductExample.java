@@ -107,7 +107,7 @@ public class DotProductExample {
         JavaRDD<SerializedCiphertextObject> result_rdd = combined_ctxt_rdd.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
-            SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
+            SparkFHE.init(FHELibrary.SEAL,  pk_b.getValue(), sk_b.getValue());
             return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(tuple._1().getCtxt(), tuple._2().getCtxt(), SparkFHE.FHE_MULTIPLY));
         });
 
@@ -115,7 +115,7 @@ public class DotProductExample {
         System.out.println("Dot product: " + SparkFHE.getInstance().decrypt(result_rdd.reduce((x, y) -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
-            SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
+            SparkFHE.init(FHELibrary.SEAL,  pk_b.getValue(), sk_b.getValue());
             return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(x.getCtxt(), y.getCtxt(), SparkFHE.FHE_ADD));
         }).getCtxt()));
     }
@@ -147,14 +147,14 @@ public class DotProductExample {
         ctxt_a_rdd.foreach(data -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
-            SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
+            SparkFHE.init(FHELibrary.SEAL,  pk_b.getValue(), sk_b.getValue());
             System.out.println(SparkFHE.getInstance().decrypt(data.getCtxt()));
         });
         System.out.println("ctxt_b_rdd.count() = " + ctxt_b_rdd.count());
         ctxt_b_rdd.foreach(data -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
-            SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
+            SparkFHE.init(FHELibrary.SEAL,  pk_b.getValue(), sk_b.getValue());
             System.out.println(SparkFHE.getInstance().decrypt(data.getCtxt()));
         });
 
@@ -166,7 +166,7 @@ public class DotProductExample {
         JavaRDD<SerializedCiphertextObject> collection = combined_ctxt_rdd.mapPartitions(records -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
-            SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
+            SparkFHE.init(FHELibrary.SEAL,  pk_b.getValue(), sk_b.getValue());
 
             LinkedList<SerializedCiphertextObject> v = new LinkedList<SerializedCiphertextObject>();
             StringVector a = new StringVector();
@@ -184,7 +184,7 @@ public class DotProductExample {
         SerializedCiphertextObject res = collection.reduce((x, y) -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
-            SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
+            SparkFHE.init(FHELibrary.SEAL,  pk_b.getValue(), sk_b.getValue());
             return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(x.getCtxt(), y.getCtxt(), SparkFHE.FHE_ADD));
         });
 
@@ -251,7 +251,7 @@ public class DotProductExample {
         Dataset<SerializedCiphertextObject> collection = fin.mapPartitions((MapPartitionsFunction<Row, SerializedCiphertextObject>)  iter -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
-            SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
+            SparkFHE.init(FHELibrary.SEAL,  pk_b.getValue(), sk_b.getValue());
 
             LinkedList<SerializedCiphertextObject> v = new LinkedList<SerializedCiphertextObject>();
             StringVector a = new StringVector();
@@ -269,7 +269,7 @@ public class DotProductExample {
         SerializedCiphertextObject res = collection.javaRDD().reduce((x, y) -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
-            SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
+            SparkFHE.init(FHELibrary.SEAL,  pk_b.getValue(), sk_b.getValue());
             return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(x.getCtxt(), y.getCtxt(), SparkFHE.FHE_ADD));
         });
 
@@ -317,7 +317,7 @@ public class DotProductExample {
         // required to load our shared library
         SparkFHEPlugin.setup();
         // create SparkFHE object
-        SparkFHE.init(FHELibrary.HELIB, pk, sk);
+        SparkFHE.init(FHELibrary.SEAL, pk, sk);
 
         vec_a_ctxt = Config.get_records_directory()+"/vec_a_"+String.valueOf(Config.NUM_OF_VECTOR_ELEMENTS)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";
         vec_b_ctxt = Config.get_records_directory()+"/vec_b_"+String.valueOf(Config.NUM_OF_VECTOR_ELEMENTS)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";

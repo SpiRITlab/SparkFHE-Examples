@@ -164,7 +164,6 @@
       <scope>compile</scope>
     </dependency>
 
-
     <dependency>
       <groupId>spiritlab.sparkfhe</groupId>
       <artifactId>spark-fhe_${scala.binary.version}</artifactId>
@@ -292,6 +291,7 @@
             </execution>
           </executions>
         </plugin>
+
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>

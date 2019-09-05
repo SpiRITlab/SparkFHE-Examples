@@ -39,8 +39,8 @@ public class KeyGenExample {
 
         // Load C++ shared library
         SparkFHEPlugin.setup();
-        // Create SparkFHE object with HElib, a library that implements homomorphic encryption
-        SparkFHE.init(FHELibrary.HELIB);
+        // Create SparkFHE object with SEAL, a library that implements homomorphic encryption
+        SparkFHE.init(FHELibrary.SEAL);
 
         // Creates the directory named by the pathname - current_directiory/gen/keys,
         // and including any necessary parent directories.
@@ -48,7 +48,7 @@ public class KeyGenExample {
 
         // Using the object created to call the C++ function to generate the keys.
         SparkFHE.getInstance().generate_key_pair(
-                Config.get_default_crypto_params_file(FHELibrary.HELIB),
+                Config.get_default_crypto_params_file(FHELibrary.SEAL),
                 Config.get_default_public_key_file(),
                 Config.get_default_secret_key_file());
       

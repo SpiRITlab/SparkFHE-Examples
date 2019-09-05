@@ -16,6 +16,7 @@ import spiritlab.sparkfhe.example.Config;
  */
 
 import java.io.File;
+import java.math.BigInteger;
 import java.util.Vector;
 
 public class EncDecExample {
@@ -43,7 +44,7 @@ public class EncDecExample {
         // required to load our shared library
         SparkFHEPlugin.setup();
         // create SparkFHE object
-        SparkFHE.init(FHELibrary.HELIB, pk, sk);
+        SparkFHE.init(FHELibrary.SEAL, pk, sk);
 
         new File(Config.get_records_directory()).mkdirs();
         String CTXT_0_FILE = Config.get_records_directory() + "/ptxt_long_0_"+ SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";
@@ -99,6 +100,17 @@ public class EncDecExample {
         vec_ctxt_2=SparkFHE.getInstance().encrypt(vec_ptxt_2);
         SparkFHE.getInstance().store_ciphertexts_to_file(Config.Ciphertext_Label, vec_ctxt_2, Config.get_records_directory()+"/vec_b_"+String.valueOf(Config.NUM_OF_VECTOR_ELEMENTS)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl");
 
+
+        // Generate a vector of million elements (for total sum)
+
+        StringVector ptxt_vec = new StringVector();
+        StringVector ctxt_vec = new StringVector();
+        for (int i = 0; i < 10; i++){
+            ptxt_vec.add(String.valueOf(i));
+        }
+
+        ctxt_vec = SparkFHE.getInstance().encrypt(ptxt_vec);
+        SparkFHE.getInstance().store_ciphertexts_to_file(Config.Ciphertext_Label, ctxt_vec, Config.get_records_directory()+"/vec_ctxt_"+String.valueOf(10)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+".jsonl");
     }
 
 
