@@ -24,7 +24,7 @@
     <scala.binary.version>2.12</scala.binary.version>
     <spark.version>3.0.0-SNAPSHOT</spark.version>
     <scala.version>2.12.7</scala.version>
-    <fasterxml.jackson.version>[2.9.9,)</fasterxml.jackson.version>
+    <fasterxml.jackson.version>2.10.0</fasterxml.jackson.version>
   </properties>
 
   <scm>
@@ -91,6 +91,10 @@
 
   <repositories>
     <repository>
+      <id>sparkfhe-local</id>
+      <url>${sparkfhe.maven.repo}</url>
+    </repository>
+    <repository>
       <id>apache.snapshots</id>
       <name>Apache Development Snapshot Repository</name>
       <url>https://repository.apache.org/content/repositories/snapshots/</url>
@@ -105,10 +109,6 @@
     <id>sparkfhe-remote</id>
     <url>https://github.com/SpiRITlab/SparkFHE-Maven-Repo/raw/${sparkfhe.lib.rev}</url>
     </repository>
-    <repository>
-          <id>sparkfhe-local</id>
-          <url>${sparkfhe.maven.repo}</url>
-      </repository>
   </repositories>
 
   <dependencies>
@@ -254,20 +254,20 @@
             <!-- DONT DO PARALLEL TESTS -->
           </configuration>
         </plugin>
-        <!--<plugin>-->
-          <!--<groupId>org.codehaus.mojo</groupId>-->
-          <!--<artifactId>exec-maven-plugin</artifactId>-->
-          <!--<version>1.6.0</version>-->
-          <!--&lt;!&ndash;<configuration>&ndash;&gt;-->
-            <!--&lt;!&ndash;<executable>java</executable>&ndash;&gt;-->
-            <!--&lt;!&ndash;<arguments>&ndash;&gt;-->
-              <!--&lt;!&ndash;<argument>-Djava.library.path=${downloaded.sparkfhe.lib.path}</argument>&ndash;&gt;-->
-              <!--&lt;!&ndash;<argument>-classpath</argument>&ndash;&gt;-->
-              <!--&lt;!&ndash;<classpath />&ndash;&gt;-->
-              <!--&lt;!&ndash;<argument>spiritlab.sparkfhe.example.basic.BasicOPsExample</argument>&ndash;&gt;-->
-            <!--&lt;!&ndash;</arguments>&ndash;&gt;-->
-          <!--&lt;!&ndash;</configuration>&ndash;&gt;-->
-        <!--</plugin>-->
+<!--        <plugin>-->
+<!--          <groupId>org.codehaus.mojo</groupId>-->
+<!--          <artifactId>exec-maven-plugin</artifactId>-->
+<!--          <version>1.6.0</version>-->
+<!--          &lt;!&ndash;<configuration>&ndash;&gt;-->
+<!--            &lt;!&ndash;<executable>java</executable>&ndash;&gt;-->
+<!--            &lt;!&ndash;<arguments>&ndash;&gt;-->
+<!--              &lt;!&ndash;<argument>-Djava.library.path=${downloaded.sparkfhe.lib.path}</argument>&ndash;&gt;-->
+<!--              &lt;!&ndash;<argument>-classpath</argument>&ndash;&gt;-->
+<!--              &lt;!&ndash;<classpath />&ndash;&gt;-->
+<!--              &lt;!&ndash;<argument>spiritlab.sparkfhe.example.basic.BasicOPsExample</argument>&ndash;&gt;-->
+<!--            &lt;!&ndash;</arguments>&ndash;&gt;-->
+<!--          &lt;!&ndash;</configuration>&ndash;&gt;-->
+<!--        </plugin>-->
         <plugin>
           <artifactId>maven-jar-plugin</artifactId>
           <version>3.1.0</version>
