@@ -3,6 +3,6 @@
 # set java library path
 export LD_LIBRARY_PATH=$(pwd)/deps/lib:$(pwd)/deps/lib/native:$LD_LIBRARY_PATH
 export DYLD_LIBRARY_PATH=$(pwd)/deps/lib:$(pwd)/deps/lib/native:$DYLD_LIBRARY_PATH
-export MAVEN_OPTS=-Djava.library.path="libSparkFHE/lib:deps/lib/native"
+export MAVEN_OPTS=-Djava.library.path="deps/lib:deps/lib/native"
 
 mvn "$@"
