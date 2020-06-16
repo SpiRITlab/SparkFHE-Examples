@@ -22,6 +22,7 @@ import scala.Tuple2;
 import spiritlab.sparkfhe.api.*;
 import spiritlab.sparkfhe.example.Config;
 
+import java.io.IOException;
 import java.util.*;
 import static org.apache.spark.sql.functions.col;
 
@@ -88,34 +89,35 @@ public class DotProductExample {
         Encoder<SerializedCiphertextObject> ctxtJSONEncoder = Encoders.bean(SerializedCiphertextObject.class);
 
         // https://spark.apache.org/docs/latest/sql-programming-guide.html#untyped-dataset-operations-aka-dataframe-operations
-        // Create dataset with json line file. See http://jsonlines.org
+        // Create dataset from json line file. See http://jsonlines.org
         Dataset<SerializedCiphertextObject> serialized_ctxt_a_ds = spark.read().json(vec_a_ctxt).as(ctxtJSONEncoder);
         serialized_ctxt_a_ds.printSchema();
         JavaRDD<String> ctxt_a_rdd = serialized_ctxt_a_ds.select(serialized_ctxt_a_ds.col("ctxt")).as(Encoders.STRING()).javaRDD();
         Dataset<SerializedCiphertextObject> serialized_ctxt_b_ds = spark.read().json(vec_b_ctxt).as(ctxtJSONEncoder);
         JavaRDD<String> ctxt_b_rdd = serialized_ctxt_b_ds.select(serialized_ctxt_b_ds.col("ctxt")).as(Encoders.STRING()).javaRDD();
 
-        // causes n = slice tasks to be started using NODE_LOCAL data locality.
+        // convert ciphertext from String type to SerializedCiphertextObject type
         JavaRDD<SerializedCiphertextObject> ctxt_a_rdd2 = ctxt_a_rdd.map(x -> new SerializedCiphertextObject(x));
         JavaRDD<SerializedCiphertextObject> ctxt_b_rdd2 = ctxt_b_rdd.map(x -> new SerializedCiphertextObject(x));
-        System.out.println("Partitions:"+ctxt_a_rdd2.partitions().size());
 
         // combine both RDDs as pairs
         JavaPairRDD<SerializedCiphertextObject, SerializedCiphertextObject> combined_ctxt_rdd = ctxt_a_rdd2.zip(ctxt_b_rdd2);
+        System.out.println("Partitions:"+combined_ctxt_rdd.partitions().size());
 
         // perform the multiply operator on each of the pairs
         JavaRDD<SerializedCiphertextObject> result_rdd = combined_ctxt_rdd.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
-            SparkFHEPlugin.setup();
-            SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
+//            SparkFHEPlugin.setup();
+//            SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
+            //System.out.println("Tuple1:" + SparkFHE.getInstance().decrypt(tuple._1().getCtxt()) + " Tuple2:"+ SparkFHE.getInstance().decrypt(tuple._2().getCtxt()));
             return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(tuple._1().getCtxt(), tuple._2().getCtxt(), SparkFHE.FHE_MULTIPLY));
         });
 
         // sum up the results from the previous operation and display
         System.out.println("Dot product: " + SparkFHE.getInstance().decrypt(result_rdd.reduce((x, y) -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
-            SparkFHEPlugin.setup();
-            SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
+//            SparkFHEPlugin.setup();
+//            SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
             return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(x.getCtxt(), y.getCtxt(), SparkFHE.FHE_ADD));
         }).getCtxt()));
     }
@@ -282,7 +284,7 @@ public class DotProductExample {
         String pk="", sk="";
         // The variable slices represent the number of time a task is split up
         int slices=2;
-          
+
         // Create a SparkConf that loads defaults from system properties and the classpath
         SparkConf sparkConf = new SparkConf();
         //Provides the Spark driver application a name for easy identification in the Spark or Yarn UI
@@ -298,7 +300,7 @@ public class DotProductExample {
                 sk = args[3];
                 break;
             case LOCAL:
-                sparkConf.setMaster("local");
+                sparkConf.setMaster("local[8]");
                 pk = args[1];
                 sk = args[2];
                 break;
@@ -309,7 +311,10 @@ public class DotProductExample {
 
         // Creating a session to Spark. The session allows the creation of the
         // various data abstractions such as RDDs, DataFrame, and more.
-        SparkSession spark = SparkSession.builder().config(sparkConf).getOrCreate();
+        SparkSession spark = SparkSession.builder()
+                .config(sparkConf)
+                .config("spark.eventlog.enabled", "true")
+                .getOrCreate();
 
         // Creating spark context which allows the communication with worker nodes
         JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());
@@ -326,12 +331,20 @@ public class DotProductExample {
         Broadcast<String> sk_b = jsc.broadcast(sk);
 
         // testing the dot product operation in Helib on plaintext vector.
-        test_basic_dot_product(jsc, slices, pk_b, sk_b);
-      
+//        test_basic_dot_product(jsc, slices, pk_b, sk_b);
+
          // testing the dot product operation in Helib on cipher text vector.
         test_FHE_dot_product_via_lambda(spark, slices, pk_b, sk_b);
-        test_FHE_dot_product_via_native_code(spark, slices, pk_b, sk_b);
-        test_FHE_dot_product_via_sql(spark, slices, pk_b, sk_b);
+//        test_FHE_dot_product_via_native_code(spark, slices, pk_b, sk_b);
+//        test_FHE_dot_product_via_sql(spark, slices, pk_b, sk_b);
+
+
+        try {
+            System.out.println("Paused to allow checking the Spark server log, press enter to continue.");
+            System.in.read();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         // Stop existing spark context
         jsc.close();
