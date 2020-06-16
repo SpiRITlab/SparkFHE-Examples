@@ -17,9 +17,8 @@
     <junit.jupiter.version>5.3.2</junit.jupiter.version>
     <sparkfhe.maven.repo>file://${project.basedir}/../SparkFHE-Maven-Repo</sparkfhe.maven.repo>
 
-    <sparkfhe.lib.rev>master</sparkfhe.lib.rev>
-    <sparkfhe.lib.url.base>https://github.com/SpiRITlab/SparkFHE-Maven-Repo/raw/${sparkfhe.lib.rev}/libSparkFHE</sparkfhe.lib.url.base>
-    <downloaded.sparkfhe.lib.path>libSparkFHE/lib</downloaded.sparkfhe.lib.path>
+    <sparkfhe.lib.url.base>https://sparkfhe.s3.amazonaws.com/libSparkFHE/</sparkfhe.lib.url.base>
+    <downloaded.sparkfhe.lib.path>deps/lib</downloaded.sparkfhe.lib.path>
 
     <scala.binary.version>2.12</scala.binary.version>
     <spark.version>3.0.0-SNAPSHOT</spark.version>
