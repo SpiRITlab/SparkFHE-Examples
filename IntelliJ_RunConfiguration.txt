@@ -1,23 +1,23 @@
 To run these examples (except junit tests), you need to configure your run environment with the following.
 
 * VM Option
--Djava.library.path=libSparkFHE/lib
+-Djava.library.path=deps/lib
 
 
 
 * Program arguments (different for each example)
 
 KeyGenExamples:
-local
+local HELIB BGV
 
 
 EncDecExample:
-local gen/keys/my_public_key.txt gen/keys/my_secret_key.txt
+local HELIB BGV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/keys/my_relin_keys.txt gen/keys/my_galois_keys.txt
 
 
 BasicOPsExample
-local gen/keys/my_public_key.txt gen/keys/my_secret_key.txt
+local HELIB BGV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/keys/my_relin_keys.txt gen/keys/my_galois_keys.txt
 
 
 DotProductExample
-local gen/keys/my_public_key.txt gen/keys/my_secret_key.txt
+local HELIB BGV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/keys/my_relin_keys.txt gen/keys/my_galois_keys.txt

@@ -34,7 +34,17 @@ public class BasicOPsExample {
         System.out.println("SUB(1, 0):"+SparkFHE.do_basic_op(1, 0, SparkFHE.SUB));
     }
 
-    public static void test_FHE_basic_op(SparkSession spark, int slices, Broadcast<String> pk_b, Broadcast<String> sk_b) {
+    /**
+     * This method performs the basic HE operations on ciphertexts and print out the results
+     * @param spark spark session
+     * @param slices the number of time a task is split up
+     * @param pk_b broadcast variable for public key
+     * @param sk_b broadcast variable for secret key
+     * @param rlk_b broadcast variable for relin keys
+     * @param glk_b boradcast variable for galois keys
+     */
+    public static void test_FHE_basic_op(SparkSession spark, int slices, String library, String scheme, Broadcast<String> pk_b,
+                                         Broadcast<String> sk_b, Broadcast<String> rlk_b, Broadcast<String> glk_b) {
         /* Spark example for FHE calculations */
         // Encoders are created for Java beans
         Encoder<SerializedCiphertextObject> ctxtJSONEncoder = Encoders.bean(SerializedCiphertextObject.class);
@@ -43,10 +53,10 @@ public class BasicOPsExample {
         // Create dataset with json file.
         // if CtxtString a row? Dataset<Row> is the Dataframe in Java
         Dataset<SerializedCiphertextObject> serialized_ctxt_zero_ds = spark.read().json(CTXT_0_FILE).as(ctxtJSONEncoder);
-        System.out.println("Ciphertext Zero:"+SparkFHE.getInstance().decrypt(serialized_ctxt_zero_ds.javaRDD().first().getCtxt()));
+        System.out.println("Ciphertext Zero:"+SparkFHE.getInstance().decrypt(serialized_ctxt_zero_ds.javaRDD().first().getCtxt(), true));
 
         Dataset<SerializedCiphertextObject> serialized_ctxt_one_ds = spark.read().json(CTXT_1_FILE).as(ctxtJSONEncoder);
-        System.out.println("Ciphertext One:"+SparkFHE.getInstance().decrypt(serialized_ctxt_one_ds.javaRDD().first().getCtxt()));
+        System.out.println("Ciphertext One:"+SparkFHE.getInstance().decrypt(serialized_ctxt_one_ds.javaRDD().first().getCtxt(), true));
 
         // combine both rdds as a pair
         JavaPairRDD<SerializedCiphertextObject, SerializedCiphertextObject> Combined_ctxt_RDD = serialized_ctxt_one_ds.javaRDD().zip(serialized_ctxt_zero_ds.javaRDD()).cache();
@@ -55,35 +65,37 @@ public class BasicOPsExample {
         JavaRDD<SerializedCiphertextObject> Addition_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
-            SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
+            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
             return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(tuple._1().getCtxt(), tuple._2().getCtxt(), SparkFHE.FHE_ADD));
         });
-        System.out.println("Homomorphic Addition:"+ SparkFHE.getInstance().decrypt(Addition_ctxt_RDD.first().getCtxt()));
+        System.out.println("Homomorphic Addition:"+ SparkFHE.getInstance().decrypt(Addition_ctxt_RDD.first().getCtxt(), true));
 
 
         // call homomorphic multiply operators on the rdds
         JavaRDD<SerializedCiphertextObject> Multiplication_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
-            SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
+//            SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
+            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
             return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(tuple._1().getCtxt(), tuple._2().getCtxt(), SparkFHE.FHE_MULTIPLY));
         });
-        System.out.println("Homomorphic Multiplication:"+ SparkFHE.getInstance().decrypt(Multiplication_ctxt_RDD.first().getCtxt()));
+        System.out.println("Homomorphic Multiplication:"+ SparkFHE.getInstance().decrypt(Multiplication_ctxt_RDD.first().getCtxt(), true));
 
 
         // call homomorphic subtraction operators on the rdds
         JavaRDD<SerializedCiphertextObject> Subtraction_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
-            SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
+//            SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
+            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
             return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(tuple._1().getCtxt(), tuple._2().getCtxt(), SparkFHE.FHE_SUBTRACT));
         });
-        System.out.println("Homomorphic Subtraction:"+SparkFHE.getInstance().decrypt(Subtraction_ctxt_RDD.first().getCtxt()));
+        System.out.println("Homomorphic Subtraction:"+SparkFHE.getInstance().decrypt(Subtraction_ctxt_RDD.first().getCtxt(), true));
     }
 
 
     public static void main(String[] args) {
-        String pk="", sk="";
+        String scheme="", library = "", pk="", sk="", rlk="", glk="";
 
         // The variable slices represent the number of time a task is split up
         int slices = 2;
@@ -98,13 +110,25 @@ public class BasicOPsExample {
             case CLUSTER:
                 slices = Integer.parseInt(args[0]);
                 Config.set_HDFS_NAME_NODE(args[1]);
-                pk = args[2];
-                sk = args[3];
+                library = args[2];
+                scheme = args[3];
+                pk = args[4];
+                sk = args[5];
+                if (library == FHELibrary.SEAL){
+                    rlk = args[6];
+                    glk = args[7];
+                }
                 break;
             case LOCAL:
                 sparkConf.setMaster("local");
-                pk = args[1];
-                sk = args[2];
+                library = args[1];
+                scheme = args[2];
+                pk = args[3];
+                sk = args[4];
+                if (library == FHELibrary.SEAL){
+                    rlk = args[5];
+                    glk = args[6];
+                }
                 break;
             default:
                 break;
@@ -121,23 +145,27 @@ public class BasicOPsExample {
         // Note, the following loading of shared library and init are done on driver only. We need to do the same on the executors.
         // Load C++ shared library
         SparkFHEPlugin.setup();
-        // Create SparkFHE object with HElib, a library that implements homomorphic encryption
-        SparkFHE.init(FHELibrary.HELIB,  pk, sk);
+        // Create SparkFHE object with FHE library
+        SparkFHE.init(library, scheme, pk, sk, rlk, glk);
+
 
         CTXT_0_FILE = Config.get_records_directory() + "/ptxt_long_0_"+ SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";
         CTXT_1_FILE = Config.get_records_directory() +"/ptxt_long_1_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";
 
         Broadcast<String> pk_b = jsc.broadcast(pk);
         Broadcast<String> sk_b = jsc.broadcast(sk);
+        Broadcast<String> rlk_b = jsc.broadcast(rlk);
+        Broadcast<String> glk_b = jsc.broadcast(glk);
+
 
         // Testing and printing the addition function
         System.out.println(String.valueOf(SparkFHE.do_basic_op(1,1, SparkFHE.ADD)));
 
-        // Start testing the basic operations in Helib on plain text, such as addition, subtraction, and multiply.
+        // Start testing the basic operations in HE libraries on plain text, such as addition, subtraction, and multiply.
         test_basic_op();
 
-        // String testing the basic operations in Helib on encrypted data, such as addition, subtraction, and multiply.
-        test_FHE_basic_op(spark, slices, pk_b, sk_b);
+        // String testing the basic operations in HE libraries on encrypted data, such as addition, subtraction, and multiply.
+        test_FHE_basic_op(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
 
         // Stop existing spark context
         jsc.close();

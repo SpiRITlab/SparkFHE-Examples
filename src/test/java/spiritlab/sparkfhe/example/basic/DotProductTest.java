@@ -67,7 +67,7 @@ public class DotProductTest {
         spark = SparkSession.builder().config(sparkConf).getOrCreate();
         jsc = new JavaSparkContext(spark.sparkContext());
 
-        SparkFHE.init(FHELibrary.HELIB, Config.get_default_public_key_file(), Config.get_default_secret_key_file());
+        SparkFHE.init(FHELibrary.HELIB, FHEScheme.BGV, Config.get_default_public_key_file(), Config.get_default_secret_key_file());
 
         vec_a_ctxt = Config.get_records_directory()+"/vec_a_"+String.valueOf(Config.NUM_OF_VECTOR_ELEMENTS)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+".jsonl";
         vec_b_ctxt = Config.get_records_directory()+"/vec_b_"+String.valueOf(Config.NUM_OF_VECTOR_ELEMENTS)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+".jsonl";
@@ -124,7 +124,7 @@ public class DotProductTest {
 
         assertEquals(String.valueOf(10), SparkFHE.getInstance().decrypt(result_rdd.reduce((x, y) -> {
             return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(x.getCtxt(), y.getCtxt(), SparkFHE.FHE_ADD));
-        }).getCtxt()));
+        }).getCtxt(), true));
     }
 
     @Test
@@ -144,11 +144,11 @@ public class DotProductTest {
 
         assertEquals(5, ctxt_a_rdd.count());
         ctxt_a_rdd.foreach(data -> {
-            System.out.println(SparkFHE.getInstance().decrypt(data.getCtxt()));
+            System.out.println(SparkFHE.getInstance().decrypt(data.getCtxt(), true));
         });
         assertEquals(5, ctxt_b_rdd.count());
         ctxt_b_rdd.foreach(data -> {
-            System.out.println(SparkFHE.getInstance().decrypt(data.getCtxt()));
+            System.out.println(SparkFHE.getInstance().decrypt(data.getCtxt(), true));
         });
 
         JavaPairRDD<SerializedCiphertextObject, SerializedCiphertextObject> combined_ctxt_rdd = ctxt_a_rdd.zip(ctxt_b_rdd);
@@ -173,7 +173,7 @@ public class DotProductTest {
             return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(x.getCtxt(), y.getCtxt(), SparkFHE.FHE_ADD));
         });
 
-        assertEquals(String.valueOf(10), SparkFHE.getInstance().decrypt(res.getCtxt()));
+        assertEquals(String.valueOf(10), SparkFHE.getInstance().decrypt(res.getCtxt(), true));
     }
 
     @Test
@@ -228,7 +228,7 @@ public class DotProductTest {
             return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(x.getCtxt(), y.getCtxt(), SparkFHE.FHE_ADD));
         });
 
-        assertEquals(String.valueOf(10), SparkFHE.getInstance().decrypt(res.getCtxt()));
+        assertEquals(String.valueOf(10), SparkFHE.getInstance().decrypt(res.getCtxt(), true));
     }
 
 

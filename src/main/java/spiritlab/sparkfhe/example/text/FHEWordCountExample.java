@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.io.File;
 import spiritlab.sparkfhe.api.FHELibrary;
 import spiritlab.sparkfhe.api.FHE;
+import spiritlab.sparkfhe.api.FHEScheme;
 
 public class FHEWordCountExample {
     static {
@@ -62,7 +63,7 @@ public class FHEWordCountExample {
 
         //// Convert to FHE Ciphertexts using native call
         //// TODO List<Words> encodedWords = native call;
-        FHE sparkFHE = new FHE(FHELibrary.HELIB);
+        FHE sparkFHE = new FHE(FHELibrary.HELIB, FHEScheme.BGV);
 
         //// Do the RDD word count
         //SparkConf sparkConf = new SparkConf().setAppName("SparkFHETest").setMaster("local");

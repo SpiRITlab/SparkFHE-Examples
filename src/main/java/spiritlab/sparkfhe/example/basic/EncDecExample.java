@@ -22,18 +22,30 @@ public class EncDecExample {
 
 
     public static void main(String args[]) {
-        String pk="", sk="";
+        String scheme="", library = "", pk="", sk="", rlk="", glk="";
 
         Config.setExecutionEnvironment(args[0]);
         switch (Config.currentExecutionEnvironment) {
             case CLUSTER:
                 Config.set_HDFS_NAME_NODE(args[1]);
-                pk = args[2];
-                sk = args[3];
+                library = args[2];
+                scheme = args[3];
+                pk = args[4];
+                sk = args[5];
+                if (library == FHELibrary.SEAL){
+                    rlk = args[6];
+                    glk = args[7];
+                }
                 break;
             case LOCAL:
-                pk = args[1];
-                sk = args[2];
+                library = args[1];
+                scheme = args[2];
+                pk = args[3];
+                sk = args[4];
+                if (library == FHELibrary.SEAL){
+                    rlk = args[5];
+                    glk = args[6];
+                }
                 break;
             default:
                 break;
@@ -43,7 +55,8 @@ public class EncDecExample {
         // required to load our shared library
         SparkFHEPlugin.setup();
         // create SparkFHE object
-        SparkFHE.init(FHELibrary.HELIB, pk, sk);
+//        SparkFHE.init(FHELibrary.HELIB, pk, sk);
+        SparkFHE.init(library, scheme, pk, sk, rlk, glk);
 
         new File(Config.get_records_directory()).mkdirs();
         String CTXT_0_FILE = Config.get_records_directory() + "/ptxt_long_0_"+ SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";
@@ -53,11 +66,11 @@ public class EncDecExample {
         String inputNumberString="1";
         Plaintext inputNumberPtxt = new Plaintext(inputNumberString);
         Ciphertext inputNumberCtxt = SparkFHE.getInstance().encrypt(inputNumberPtxt);
-        Plaintext inputNumberPtxt_returned = SparkFHE.getInstance().decrypt(inputNumberCtxt);
+        Plaintext inputNumberPtxt_returned = SparkFHE.getInstance().decrypt(inputNumberCtxt, true);
         System.out.println("InputNumber="+inputNumberString + ", result of dec(enc(InputNumber))="+inputNumberPtxt_returned.toString());
 	
 	// store the cipher text to the pre-defined file location
-        for (int l=0;l<2;l++) {
+        for (int l=0; l<2; l++) {
             System.out.println("Storing ciphertext to "+Config.get_records_directory()+"/ptxt_long_"+String.valueOf(l)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl");
             SparkFHE.getInstance().store_ciphertext_to_file(
                     Config.Ciphertext_Label,
@@ -75,7 +88,7 @@ public class EncDecExample {
         // perform homomorphic addition on the cipertext
         ctxtresult = new Ciphertext(SparkFHE.getInstance().do_FHE_basic_op(ctxt_0_string, ctxt_1_string, SparkFHE.FHE_ADD));
         // decrypt the result and display it
-        System.out.println("0+1="+SparkFHE.getInstance().decrypt(ctxtresult).toString());
+        System.out.println("0+1="+SparkFHE.getInstance().decrypt(ctxtresult, true).toString());
 
 
         /* generating vectors of ctxt */
@@ -99,7 +112,16 @@ public class EncDecExample {
         vec_ctxt_2=SparkFHE.getInstance().encrypt(vec_ptxt_2);
         SparkFHE.getInstance().store_ciphertexts_to_file(Config.Ciphertext_Label, vec_ctxt_2, Config.get_records_directory()+"/vec_b_"+String.valueOf(Config.NUM_OF_VECTOR_ELEMENTS)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl");
 
+
+
+        // Generate a vector of 10 elements (for total sum)
+        StringVector ptxt_vec = new StringVector();
+        StringVector ctxt_vec = new StringVector();
+        for (int i = 0; i < 10; i++){
+            ptxt_vec.add(String.valueOf(i));
+        }
+
+        ctxt_vec = SparkFHE.getInstance().encrypt(ptxt_vec);
+        SparkFHE.getInstance().store_ciphertexts_to_file(Config.Ciphertext_Label, ctxt_vec, Config.get_records_directory()+"/vec_ctxt_"+String.valueOf(10)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+".jsonl");
     }
-
-
 }

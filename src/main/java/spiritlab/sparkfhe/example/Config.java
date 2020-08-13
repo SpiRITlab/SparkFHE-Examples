@@ -19,6 +19,8 @@ public class Config {
     private static final String DEFAULT_KEY_DIRECTORY="/gen/keys";
     public static final String DEFAULT_PUBLIC_KEY_FILE="my_public_key.txt";
     public static final String DEFAULT_SECRET_KEY_FILE="my_secret_key.txt";
+    public static final String DEFAULT_RELIN_KEY_FILE="my_relin_keys.txt";
+    public static final String DEFAULT_GALOIS_KEY_FILE="my_galois_keys.txt";
 
     private static final String DEFAULT_RECORDS_DIRECTORY="/gen/records";
     public static int NUM_OF_VECTOR_ELEMENTS = 5;
@@ -90,6 +92,14 @@ public class Config {
 
     public static String get_default_secret_key_file() {
         return get_current_directory() + DEFAULT_KEY_DIRECTORY + "/" + DEFAULT_SECRET_KEY_FILE;
+    }
+
+    public static String get_default_relin_key_file() {
+        return get_current_directory() + DEFAULT_KEY_DIRECTORY + "/" + DEFAULT_RELIN_KEY_FILE;
+    }
+
+    public static String get_default_galois_key_file() {
+        return get_current_directory() + DEFAULT_KEY_DIRECTORY + "/" + DEFAULT_GALOIS_KEY_FILE;
     }
 
     public static String get_records_directory() {

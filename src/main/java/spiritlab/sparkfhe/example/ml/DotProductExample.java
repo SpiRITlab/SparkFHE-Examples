@@ -26,6 +26,7 @@ import scala.runtime.AbstractFunction2;
 import scala.runtime.BoxedUnit;
 import spiritlab.sparkfhe.api.Ciphertext;
 import spiritlab.sparkfhe.api.FHELibrary;
+import spiritlab.sparkfhe.api.FHEScheme;
 import spiritlab.sparkfhe.api.SparkFHE;
 import spiritlab.sparkfhe.example.Config;
 
@@ -41,7 +42,8 @@ public class DotProductExample {
     private static String CTXT_1_FILE;
 
     // ciphertext version; dot-product((1,1,1),(1,1,1)) the result is in the first index.
-    public static void RunCtxtExample(SparkSession spark, int slices, Broadcast<String> pk_b, Broadcast<String> sk_b) {
+    public static void RunCtxtExample(SparkSession spark, int slices, String library, String scheme, Broadcast<String> pk_b,
+                                      Broadcast<String> sk_b, Broadcast<String> rlk_b, Broadcast<String> glk_b) {
         System.out.println("RunCtxtExample");
         // Create some vector data; also works for sparse vectors
         String zero_ctxt = SparkFHE.getInstance().read_ciphertext_from_file_as_string(Config.Ciphertext_Label, CTXT_0_FILE);
@@ -74,7 +76,7 @@ public class DotProductExample {
             AbstractFunction2<Object, String, BoxedUnit> f = new AbstractFunction2<Object, String, BoxedUnit>() {
                 public BoxedUnit apply(Object t1, String t2) {
                     if((int)t1==0)
-                        System.out.println("Dot-Product:" + SparkFHE.getInstance().decrypt(new Ciphertext((String)t2)));
+                        System.out.println("Dot-Product:" + SparkFHE.getInstance().decrypt(new Ciphertext((String)t2), true));
                     return BoxedUnit.UNIT;
                 }
             };
@@ -84,7 +86,8 @@ public class DotProductExample {
 
 
     // ciphertext version using RDD; dot-product((1,1,1),(1,1,1)) the result is in the first index.
-    public static void RunCtxtRDDExample(JavaSparkContext jsc, int slices, Broadcast<String> pk_b, Broadcast<String> sk_b) {
+    public static void RunCtxtRDDExample(JavaSparkContext jsc, int slices, String library, String scheme, Broadcast<String> pk_b,
+                                         Broadcast<String> sk_b, Broadcast<String> rlk_b, Broadcast<String> glk_b) {
         System.out.println("RunCtxtRDDExample");
         String zero_ctxt = SparkFHE.getInstance().read_ciphertext_from_file_as_string(Config.Ciphertext_Label, CTXT_0_FILE);
         String one_ctxt = SparkFHE.getInstance().read_ciphertext_from_file_as_string(Config.Ciphertext_Label,CTXT_1_FILE);
@@ -107,7 +110,7 @@ public class DotProductExample {
             AbstractFunction2<Object, String, BoxedUnit> f = new AbstractFunction2<Object, String, BoxedUnit>() {
                 public BoxedUnit apply(Object t1, String t2) {
                     if((int)t1==0)
-                        System.out.println("transformedData Dot-Product:" + SparkFHE.getInstance().decrypt(new Ciphertext((String)t2)));
+                        System.out.println("transformedData Dot-Product:" + SparkFHE.getInstance().decrypt(new Ciphertext((String)t2), true));
                     return BoxedUnit.UNIT;
                 }
             };
@@ -119,7 +122,7 @@ public class DotProductExample {
             AbstractFunction2<Object, String, BoxedUnit> f = new AbstractFunction2<Object, String, BoxedUnit>() {
                 public BoxedUnit apply(Object t1, String t2) {
                     if((int)t1==0)
-                        System.out.println("transformedData2 Dot-Product:" + SparkFHE.getInstance().decrypt(new Ciphertext((String)t2)));
+                        System.out.println("transformedData2 Dot-Product:" + SparkFHE.getInstance().decrypt(new Ciphertext((String)t2), true));
                     return BoxedUnit.UNIT;
                 }
             };
@@ -128,7 +131,7 @@ public class DotProductExample {
     }
 
     public static void main(String[] args) {
-        String pk="", sk="";
+        String scheme="", library = "", pk="", sk="", rlk="", glk="";
 
         // The variable slices represent the number of time a task is split up
         int slices = 2;
@@ -143,13 +146,25 @@ public class DotProductExample {
             case CLUSTER:
                 slices = Integer.parseInt(args[0]);
                 Config.set_HDFS_NAME_NODE(args[1]);
-                pk = args[2];
-                sk = args[3];
+                library = args[2];
+                scheme = args[3];
+                pk = args[4];
+                sk = args[5];
+                if (library == FHELibrary.SEAL){
+                    rlk = args[6];
+                    glk = args[7];
+                }
                 break;
             case LOCAL:
                 sparkConf.setMaster("local");
-                pk = args[1];
-                sk = args[2];
+                library = args[1];
+                scheme = args[2];
+                pk = args[3];
+                sk = args[4];
+                if (library == FHELibrary.SEAL){
+                    rlk = args[5];
+                    glk = args[6];
+                }
                 break;
             default:
                 break;
@@ -177,16 +192,18 @@ public class DotProductExample {
         // Load C++ shared library
         SparkFHEPlugin.setup();
         // Create SparkFHE object with HElib, a library that implements homomorphic encryption
-        SparkFHE.init(FHELibrary.HELIB,  pk, sk);
+        SparkFHE.init(library, scheme, pk, sk, rlk, glk);
 
         CTXT_0_FILE = Config.get_records_directory() + "/ptxt_long_0_"+ SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";
         CTXT_1_FILE = Config.get_records_directory() +"/ptxt_long_1_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";
 
         Broadcast<String> pk_b = jsc.broadcast(pk);
         Broadcast<String> sk_b = jsc.broadcast(sk);
+        Broadcast<String> rlk_b = jsc.broadcast(rlk);
+        Broadcast<String> glk_b = jsc.broadcast(glk);
 
-        RunCtxtExample(spark, slices, pk_b, sk_b);
-        RunCtxtRDDExample(jsc, slices, pk_b, sk_b);
+        RunCtxtExample(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
+        RunCtxtRDDExample(jsc, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
 
         jsc.close();
         spark.close();
