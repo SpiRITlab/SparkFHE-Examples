@@ -20,7 +20,6 @@ import java.util.Vector;
 
 public class EncDecExample {
 
-
     public static void main(String args[]) {
         String scheme="", library = "", pk="", sk="", rlk="", glk="";
 

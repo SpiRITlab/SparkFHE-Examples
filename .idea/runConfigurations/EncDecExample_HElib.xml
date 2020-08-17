@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="EncDecExample_HElib" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="spiritlab.sparkfhe.example.basic.EncDecExample" />
+    <module name="sparkfhe-examples" />
+    <option name="PROGRAM_PARAMETERS" value="local HELIB BGV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt" />
+    <option name="VM_PARAMETERS" value="-Djava.library.path=deps/lib" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
