@@ -55,7 +55,6 @@ public class EncDecExample {
         // required to load our shared library
         SparkFHEPlugin.setup();
         // create SparkFHE object
-//        SparkFHE.init(FHELibrary.HELIB, pk, sk);
         SparkFHE.init(library, scheme, pk, sk, rlk, glk);
 
         new File(Config.get_records_directory()).mkdirs();
@@ -68,8 +67,8 @@ public class EncDecExample {
         Ciphertext inputNumberCtxt = SparkFHE.getInstance().encrypt(inputNumberPtxt);
         Plaintext inputNumberPtxt_returned = SparkFHE.getInstance().decrypt(inputNumberCtxt, true);
         System.out.println("InputNumber="+inputNumberString + ", result of dec(enc(InputNumber))="+inputNumberPtxt_returned.toString());
-	
-	// store the cipher text to the pre-defined file location
+
+	    // store the cipher text to the pre-defined file location
         for (int l=0; l<2; l++) {
             System.out.println("Storing ciphertext to "+Config.get_records_directory()+"/ptxt_long_"+String.valueOf(l)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl");
             SparkFHE.getInstance().store_ciphertext_to_file(
