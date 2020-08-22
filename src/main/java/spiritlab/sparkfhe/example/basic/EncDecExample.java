@@ -72,19 +72,16 @@ public class EncDecExample {
             System.out.println("Storing ciphertext to "+Config.get_records_directory()+"/ptxt_long_"+String.valueOf(l)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl");
             SparkFHE.getInstance().store_ciphertext_to_file(
                     Config.Ciphertext_Label,
-                    SparkFHE.getInstance().encrypt(new Plaintext(l)).toString(),
+                    SparkFHE.getInstance().encrypt(new Plaintext(l)),
                     Config.get_records_directory()+"/ptxt_long_"+String.valueOf(l)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl");
         }
 
-        String ctxt_0_string, ctxt_1_string;
-
         // read in the cipher text from file and store them as Strings
-        ctxt_0_string = SparkFHE.getInstance().read_ciphertext_from_file_as_string(Config.Ciphertext_Label, CTXT_0_FILE);
-        ctxt_1_string = SparkFHE.getInstance().read_ciphertext_from_file_as_string(Config.Ciphertext_Label, CTXT_1_FILE);
+        Ciphertext ctxt0 = SparkFHE.getInstance().read_ciphertext_from_file(Config.Ciphertext_Label, CTXT_0_FILE);
+        Ciphertext ctxt1 = SparkFHE.getInstance().read_ciphertext_from_file(Config.Ciphertext_Label, CTXT_1_FILE);
 
-        Ciphertext ctxtresult;
         // perform homomorphic addition on the cipertext
-        ctxtresult = new Ciphertext(SparkFHE.getInstance().do_FHE_basic_op(ctxt_0_string, ctxt_1_string, SparkFHE.FHE_ADD));
+        Ciphertext ctxtresult = SparkFHE.getInstance().fhe_add(ctxt0, ctxt1);
         // decrypt the result and display it
         System.out.println("0+1="+SparkFHE.getInstance().decrypt(ctxtresult, true).toString());
 

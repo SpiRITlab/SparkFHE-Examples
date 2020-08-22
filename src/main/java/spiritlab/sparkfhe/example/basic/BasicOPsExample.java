@@ -9,11 +9,20 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.MapFunction;
+import org.apache.spark.api.java.function.MapPartitionsFunction;
 import org.apache.spark.broadcast.Broadcast;
+import org.apache.spark.rdd.RDD;
 import org.apache.spark.spiritlab.sparkfhe.SparkFHEPlugin;
 import org.apache.spark.sql.*;
+import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder;
+import scala.Function1;
+import scala.Tuple2;
 import spiritlab.sparkfhe.api.*;
 import spiritlab.sparkfhe.example.Config;
+
+import java.util.Iterator;
+import java.util.LinkedList;
 
 /**
  * This is an example for SparkFHE project. Created to test the functionality
@@ -50,47 +59,56 @@ public class BasicOPsExample {
         Encoder<SerializedCiphertextObject> ctxtJSONEncoder = Encoders.bean(SerializedCiphertextObject.class);
 
         // https://spark.apache.org/docs/latest/sql-programming-guide.html#untyped-dataset-operations-aka-dataframe-operations
-        // Create dataset with json file.
-        // if CtxtString a row? Dataset<Row> is the Dataframe in Java
-        Dataset<SerializedCiphertextObject> serialized_ctxt_zero_ds = spark.read().json(CTXT_0_FILE).as(ctxtJSONEncoder);
-        System.out.println("Ciphertext Zero:"+SparkFHE.getInstance().decrypt(serialized_ctxt_zero_ds.javaRDD().first().getCtxt(), true));
+        JavaRDD<Ciphertext> ctxt_zero_rdd = spark.read().json(CTXT_0_FILE).as(ctxtJSONEncoder).javaRDD().map(v -> {
+            return new Ciphertext(v.getCtxt());
+        });
+        System.out.println(" testing " + ctxt_zero_rdd.count());
+        System.out.println("Ciphertext Zero:"+SparkFHE.getInstance().decrypt(ctxt_zero_rdd.first(), true));
 
-        Dataset<SerializedCiphertextObject> serialized_ctxt_one_ds = spark.read().json(CTXT_1_FILE).as(ctxtJSONEncoder);
-        System.out.println("Ciphertext One:"+SparkFHE.getInstance().decrypt(serialized_ctxt_one_ds.javaRDD().first().getCtxt(), true));
+        JavaRDD<Ciphertext> ctxt_one_rdd = spark.read().json(CTXT_1_FILE).as(ctxtJSONEncoder).javaRDD().map(v -> {
+            return new Ciphertext(v.getCtxt());
+        });
+        //System.out.println("Ciphertext One:"+SparkFHE.getInstance().decrypt(ctxt_one_rdd.first(), true));
 
         // combine both rdds as a pair
-        JavaPairRDD<SerializedCiphertextObject, SerializedCiphertextObject> Combined_ctxt_RDD = serialized_ctxt_one_ds.javaRDD().zip(serialized_ctxt_zero_ds.javaRDD()).cache();
-
+        //JavaPairRDD<Ciphertext, Ciphertext> Combined_ctxt_RDD = ctxt_one_rdd.zip(ctxt_zero_rdd).cache();
+//
         // call homomorphic addition operators on the rdds
-        JavaRDD<SerializedCiphertextObject> Addition_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
-            // we need to load the shared library and init a copy of SparkFHE on the executor
-            SparkFHEPlugin.setup();
-            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
-            return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(tuple._1().getCtxt(), tuple._2().getCtxt(), SparkFHE.FHE_ADD));
-        });
-        System.out.println("Homomorphic Addition:"+ SparkFHE.getInstance().decrypt(Addition_ctxt_RDD.first().getCtxt(), true));
+//        JavaRDD<Ciphertext> Addition_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
+//            // we need to load the shared library and init a copy of SparkFHE on the executor
+//            SparkFHEPlugin.setup();
+//            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+//            Ciphertext result = SparkFHE.getInstance().fhe_add(tuple._1(), tuple._2());
+//            System.out.println("Homomorphic Addition (internal):"+ SparkFHE.getInstance().decrypt(result, true));
+//            return result;
+//        });
+//        System.out.println("Homomorphic Addition:"+ SparkFHE.getInstance().decrypt(Addition_ctxt_RDD.first(), true));
 
 
-        // call homomorphic multiply operators on the rdds
-        JavaRDD<SerializedCiphertextObject> Multiplication_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
-            // we need to load the shared library and init a copy of SparkFHE on the executor
-            SparkFHEPlugin.setup();
-//            SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
-            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
-            return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(tuple._1().getCtxt(), tuple._2().getCtxt(), SparkFHE.FHE_MULTIPLY));
-        });
-        System.out.println("Homomorphic Multiplication:"+ SparkFHE.getInstance().decrypt(Multiplication_ctxt_RDD.first().getCtxt(), true));
 
-
-        // call homomorphic subtraction operators on the rdds
-        JavaRDD<SerializedCiphertextObject> Subtraction_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
-            // we need to load the shared library and init a copy of SparkFHE on the executor
-            SparkFHEPlugin.setup();
-//            SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
-            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
-            return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(tuple._1().getCtxt(), tuple._2().getCtxt(), SparkFHE.FHE_SUBTRACT));
-        });
-        System.out.println("Homomorphic Subtraction:"+SparkFHE.getInstance().decrypt(Subtraction_ctxt_RDD.first().getCtxt(), true));
+//
+//        // call homomorphic multiply operators on the rdds
+//        JavaRDD<SerializedCiphertextObject> Multiplication_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
+//            // we need to load the shared library and init a copy of SparkFHE on the executor
+//            SparkFHEPlugin.setup();
+////            SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
+//            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+//            return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(tuple._1().getCtxt(), tuple._2().getCtxt(), SparkFHE.FHE_MULTIPLY));
+//        });
+//        System.out.println("Homomorphic Multiplication:"+ SparkFHE.getInstance().decrypt(Multiplication_ctxt_RDD.first().getCtxt(), true));
+//
+//
+//        // call homomorphic subtraction operators on the rdds
+//        JavaRDD<SerializedCiphertextObject> Subtraction_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
+//            // we need to load the shared library and init a copy of SparkFHE on the executor
+//            SparkFHEPlugin.setup();
+////            SparkFHE.init(FHELibrary.HELIB,  pk_b.getValue(), sk_b.getValue());
+//            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+//            return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(tuple._1().getCtxt(), tuple._2().getCtxt(), SparkFHE.FHE_SUBTRACT));
+//        });
+//        System.out.println("Homomorphic Subtraction:"+SparkFHE.getInstance().decrypt(Subtraction_ctxt_RDD.first().getCtxt(), true));
+//
+//
     }
 
 
