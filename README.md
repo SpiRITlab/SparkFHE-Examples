@@ -73,7 +73,7 @@ OR run it step-by-step
 
 1. `Symbol not found` and `Expected in: /usr/lib/libstdc++.6.dylib`
 Reason: This is due to the misalignment of the C++ compiler in your runtime and our libSparkFHE shared library.
-Resolution: Recompile the C++ libSparkFHE shared library.
+Resolution: Recompile the C++ ibSparkFHE shared library.
 
 
 You may see the these [warnings](https://github.com/SpiRITlab/SparkFHE-Examples/issues/7). It maybe due to Spark's internal bugs. 
