@@ -3,7 +3,7 @@
 // https://github.com/SpiRITlab
 //
 
-package spiritlab.sparkfhe.example.basic;
+package spiritlab.sparkfhe.example.packing;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -14,6 +14,8 @@ import org.apache.spark.spiritlab.sparkfhe.SparkFHEPlugin;
 import org.apache.spark.sql.*;
 import spiritlab.sparkfhe.api.*;
 import spiritlab.sparkfhe.example.Config;
+
+import java.util.Arrays;
 
 /**
  * This is an example for SparkFHE project. Created to test the functionality
@@ -53,10 +55,29 @@ public class BasicOPsExample {
         // Create dataset with json file.
         // if CtxtString a row? Dataset<Row> is the Dataframe in Java
         Dataset<SerializedCiphertextObject> serialized_ctxt_zero_ds = spark.read().json(CTXT_0_FILE).as(ctxtJSONEncoder);
-        System.out.println("Ciphertext Zero:"+SparkFHE.getInstance().decrypt(serialized_ctxt_zero_ds.javaRDD().first().getCtxt(), true));
+        // create an dataset/rdd from an object??
+        if (scheme.equalsIgnoreCase(FHEScheme.CKKS)) {
+            DoubleVector outputNumberPtxt = new DoubleVector();
+            SparkFHE.getInstance().decode(outputNumberPtxt, new Plaintext(SparkFHE.getInstance().decrypt(serialized_ctxt_zero_ds.javaRDD().first().getCtxt())));
+            System.out.println("Ciphertext Zero:"+ String.valueOf(outputNumberPtxt.get(0)));
+        } else {
+            LongVector outputNumberPtxt = new LongVector();
+            System.out.println("Ciphertext Zero:"+SparkFHE.getInstance().decrypt(serialized_ctxt_zero_ds.javaRDD().first().getCtxt())); //SparkFHE.getInstance().decode(outputNumberPtxt, new Plaintext(
+//            System.out.println("Ciphertext Zero:"+ String.valueOf(outputNumberPtxt.get(0)));
+        }
 
         Dataset<SerializedCiphertextObject> serialized_ctxt_one_ds = spark.read().json(CTXT_1_FILE).as(ctxtJSONEncoder);
-        System.out.println("Ciphertext One:"+SparkFHE.getInstance().decrypt(serialized_ctxt_one_ds.javaRDD().first().getCtxt(), true));
+                //.as(Encoders.kryo(SerializedCiphertextObject.class));
+//                .as(ctxtJSONEncoder);
+        if (scheme.equalsIgnoreCase(FHEScheme.CKKS)){
+            DoubleVector outputNumberPtxt = new DoubleVector();
+            SparkFHE.getInstance().decode(outputNumberPtxt, new Plaintext(SparkFHE.getInstance().decrypt(serialized_ctxt_zero_ds.javaRDD().first().getCtxt())));
+            System.out.println("Ciphertext One:"+ String.valueOf(outputNumberPtxt.get(0)));
+        } else {
+            LongVector outputNumberPtxt = new LongVector();
+            SparkFHE.getInstance().decode(outputNumberPtxt, new Plaintext(SparkFHE.getInstance().decrypt(serialized_ctxt_one_ds.javaRDD().first().getCtxt())));
+            System.out.println("Ciphertext One:"+ String.valueOf(outputNumberPtxt.get(0)));
+        }
 
         // combine both rdds as a pair
         JavaPairRDD<SerializedCiphertextObject, SerializedCiphertextObject> Combined_ctxt_RDD = serialized_ctxt_one_ds.javaRDD().zip(serialized_ctxt_zero_ds.javaRDD()).cache();
@@ -66,29 +87,51 @@ public class BasicOPsExample {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
             SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
-            return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(tuple._1().getCtxt(), tuple._2().getCtxt(), SparkFHE.FHE_ADD));
+            return new SerializedCiphertextObject(SparkFHE.getInstance().fhe_add(tuple._1().getCtxt(), tuple._2().getCtxt()));
         });
-        System.out.println("Homomorphic Addition:"+ SparkFHE.getInstance().decrypt(Addition_ctxt_RDD.first().getCtxt(), true));
-
+        if (scheme.equalsIgnoreCase(FHEScheme.CKKS)){
+            DoubleVector outputNumberPtxt = new DoubleVector();
+            SparkFHE.getInstance().decode(outputNumberPtxt, new Plaintext(SparkFHE.getInstance().decrypt(Addition_ctxt_RDD.first().getCtxt())));
+            System.out.println("Homomorphic Addition:"+ String.valueOf(outputNumberPtxt.get(0)));
+        } else {
+            LongVector outputNumberPtxt = new LongVector();
+            SparkFHE.getInstance().decode(outputNumberPtxt, new Plaintext(SparkFHE.getInstance().decrypt(Addition_ctxt_RDD.first().getCtxt())));
+            System.out.println("Homomorphic Addition:"+ String.valueOf(outputNumberPtxt.get(0)));
+        }
 
         // call homomorphic multiply operators on the rdds
         JavaRDD<SerializedCiphertextObject> Multiplication_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
             SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
-            return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(tuple._1().getCtxt(), tuple._2().getCtxt(), SparkFHE.FHE_MULTIPLY));
+            return new SerializedCiphertextObject(SparkFHE.getInstance().fhe_multiply(tuple._1().getCtxt(), tuple._2().getCtxt()));
         });
-        System.out.println("Homomorphic Multiplication:"+ SparkFHE.getInstance().decrypt(Multiplication_ctxt_RDD.first().getCtxt(), true));
-
+        if (scheme.equalsIgnoreCase(FHEScheme.CKKS)){
+            DoubleVector outputNumberPtxt = new DoubleVector();
+            SparkFHE.getInstance().decode(outputNumberPtxt, new Plaintext(SparkFHE.getInstance().decrypt(Multiplication_ctxt_RDD.first().getCtxt())));
+            System.out.println("Homomorphic Multiplication:"+ String.valueOf(outputNumberPtxt.get(0)));
+        } else {
+            LongVector outputNumberPtxt = new LongVector();
+            SparkFHE.getInstance().decode(outputNumberPtxt, new Plaintext(SparkFHE.getInstance().decrypt(Multiplication_ctxt_RDD.first().getCtxt())));
+            System.out.println("Homomorphic Multiplication:"+ String.valueOf(outputNumberPtxt.get(0)));
+        }
 
         // call homomorphic subtraction operators on the rdds
         JavaRDD<SerializedCiphertextObject> Subtraction_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
             SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
-            return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(tuple._1().getCtxt(), tuple._2().getCtxt(), SparkFHE.FHE_SUBTRACT));
+            return new SerializedCiphertextObject(SparkFHE.getInstance().fhe_subtract(tuple._1().getCtxt(), tuple._2().getCtxt()));
         });
-        System.out.println("Homomorphic Subtraction:"+SparkFHE.getInstance().decrypt(Subtraction_ctxt_RDD.first().getCtxt(), true));
+        if (scheme.equalsIgnoreCase(FHEScheme.CKKS)){
+            DoubleVector outputNumberPtxt = new DoubleVector();
+            SparkFHE.getInstance().decode(outputNumberPtxt, new Plaintext(SparkFHE.getInstance().decrypt(Subtraction_ctxt_RDD.first().getCtxt())));
+            System.out.println("Homomorphic Subtraction:"+ String.valueOf(outputNumberPtxt.get(0)));
+        } else {
+            LongVector outputNumberPtxt = new LongVector();
+            SparkFHE.getInstance().decode(outputNumberPtxt, new Plaintext(SparkFHE.getInstance().decrypt(Subtraction_ctxt_RDD.first().getCtxt())));
+            System.out.println("Homomorphic Subtraction:"+ String.valueOf(outputNumberPtxt.get(0)));
+        }
     }
 
 
@@ -146,9 +189,8 @@ public class BasicOPsExample {
         // Create SparkFHE object with FHE library
         SparkFHE.init(library, scheme, pk, sk, rlk, glk);
 
-
-        CTXT_0_FILE = Config.get_records_directory() + "/ptxt_long_0_"+ SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";
-        CTXT_1_FILE = Config.get_records_directory() +"/ptxt_long_1_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";
+        CTXT_0_FILE = Config.get_records_directory() + "/packed_ptxt_long_0_"+ SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";
+        CTXT_1_FILE = Config.get_records_directory() +"/packed_ptxt_long_1_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";
 
         Broadcast<String> pk_b = jsc.broadcast(pk);
         Broadcast<String> sk_b = jsc.broadcast(sk);
@@ -157,7 +199,7 @@ public class BasicOPsExample {
 
 
         // Testing and printing the addition function
-        System.out.println("testing 1+1=" +String.valueOf(SparkFHE.do_basic_op(1,1, SparkFHE.ADD)));
+        System.out.println("testing 1+1=" + String.valueOf(SparkFHE.do_basic_op(1,1, SparkFHE.ADD)));
 
         // Start testing the basic operations in HE libraries on plain text, such as addition, subtraction, and multiply.
         test_basic_op();

@@ -6,6 +6,7 @@
 package spiritlab.sparkfhe.example;
 
 import spiritlab.sparkfhe.api.FHELibrary;
+import spiritlab.sparkfhe.api.FHEScheme;
 
 public class Config {
     private static String Current_Directory=System.getProperty("user.dir");
@@ -15,6 +16,11 @@ public class Config {
     private static final String DEFAULT_HELIB_CRYPTO_PARAMS_FILE="CRYPTO_PARAMS_HELIB_TEMPLATE.json";
     private static final String DEFAULT_SEAL_CRYPTO_PARAMS_FILENAME="CRYPTO_PARAMS_SEAL_TEMPLATE.json";
     private static final String DEFAULT_PALISADE_CRYPTO_PARAMS_FILENAME="CRYPTO_PARAMS_PALISADE_TEMPLATE.json";
+
+    private static final String BATCH_HELIB_BGV_CRYPTO_PARAMS_FILENAME="CRYPTO_PARAMS_HELIB_BGV_BATCH.json";
+    private static final String BATCH_HELIB_CKKS_CRYPTO_PARAMS_FILENAME="CRYPTO_PARAMS_HELIB_CKKS_BATCH.json";
+    private static final String BATCH_SEAL_BFV_CRYPTO_PARAMS_FILENAME="CRYPTO_PARAMS_SEAL_BFV_BATCH.json";
+    private static final String BATCH_SEAL_CKKS_CRYPTO_PARAMS_FILENAME="CRYPTO_PARAMS_SEAL_CKKS_BATCH.json";
 
     private static final String DEFAULT_KEY_DIRECTORY="/gen/keys";
     public static final String DEFAULT_PUBLIC_KEY_FILE="my_public_key.txt";
@@ -132,4 +138,33 @@ public class Config {
         }
     }
 
+    public static String get_batch_crypto_params_file(String lib_name, String scheme_name) {
+        String crypto_param_file = DEFAULT_COMMON_CRYPTO_PARAMS_FILE;
+        if (lib_name.equalsIgnoreCase(FHELibrary.HELIB)){
+            if (scheme_name.equalsIgnoreCase(FHEScheme.BGV)){
+                crypto_param_file = BATCH_HELIB_BGV_CRYPTO_PARAMS_FILENAME;
+            } else if (scheme_name.equalsIgnoreCase(FHEScheme.CKKS)){
+                crypto_param_file = BATCH_HELIB_CKKS_CRYPTO_PARAMS_FILENAME;
+            }
+        } else if (lib_name.equalsIgnoreCase(FHELibrary.SEAL)) {
+            if (scheme_name.equalsIgnoreCase(FHEScheme.BFV)){
+                crypto_param_file = BATCH_SEAL_BFV_CRYPTO_PARAMS_FILENAME;
+            } else if (scheme_name.equalsIgnoreCase(FHEScheme.CKKS)){
+                crypto_param_file = BATCH_SEAL_CKKS_CRYPTO_PARAMS_FILENAME;
+            }
+        } else if (lib_name.equalsIgnoreCase(FHELibrary.PALISADE)) {
+            crypto_param_file = DEFAULT_PALISADE_CRYPTO_PARAMS_FILENAME;
+        }
+
+        switch (currentExecutionEnvironment) {
+            case CLUSTER:
+                return get_HDFS_path() +
+                        DEFAULT_CRYPTO_PARAMS_DIRECTORY + "/" +
+                        crypto_param_file;
+            case LOCAL:
+            default:
+                return get_current_directory() +
+                        DEFAULT_CRYPTO_PARAMS_DIRECTORY + "/" + crypto_param_file;
+        }
+    }
 }

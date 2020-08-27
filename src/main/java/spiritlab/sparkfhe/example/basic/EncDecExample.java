@@ -32,7 +32,7 @@ public class EncDecExample {
                 scheme = args[3];
                 pk = args[4];
                 sk = args[5];
-                if (library == FHELibrary.SEAL){
+                if (library.equalsIgnoreCase(FHELibrary.SEAL)){
                     rlk = args[6];
                     glk = args[7];
                 }
@@ -42,7 +42,7 @@ public class EncDecExample {
                 scheme = args[2];
                 pk = args[3];
                 sk = args[4];
-                if (library == FHELibrary.SEAL){
+                if (library.equalsIgnoreCase(FHELibrary.SEAL)){
                     rlk = args[5];
                     glk = args[6];
                 }
@@ -55,7 +55,6 @@ public class EncDecExample {
         // required to load our shared library
         SparkFHEPlugin.setup();
         // create SparkFHE object
-//        SparkFHE.init(FHELibrary.HELIB, pk, sk);
         SparkFHE.init(library, scheme, pk, sk, rlk, glk);
 
         new File(Config.get_records_directory()).mkdirs();
@@ -69,7 +68,7 @@ public class EncDecExample {
         Plaintext inputNumberPtxt_returned = SparkFHE.getInstance().decrypt(inputNumberCtxt, true);
         System.out.println("InputNumber="+inputNumberString + ", result of dec(enc(InputNumber))="+inputNumberPtxt_returned.toString());
 	
-	// store the cipher text to the pre-defined file location
+	    // store the cipher text to the pre-defined file location
         for (int l=0; l<2; l++) {
             System.out.println("Storing ciphertext to "+Config.get_records_directory()+"/ptxt_long_"+String.valueOf(l)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl");
             SparkFHE.getInstance().store_ciphertext_to_file(
@@ -114,14 +113,14 @@ public class EncDecExample {
 
 
 
-        // Generate a vector of 10 elements (for total sum)
+        // Generate a vector of 100 elements (for total sum)
         StringVector ptxt_vec = new StringVector();
         StringVector ctxt_vec = new StringVector();
-        for (int i = 0; i < 10; i++){
+        for (int i = 1; i <= 100; i++){
             ptxt_vec.add(String.valueOf(i));
         }
 
         ctxt_vec = SparkFHE.getInstance().encrypt(ptxt_vec);
-        SparkFHE.getInstance().store_ciphertexts_to_file(Config.Ciphertext_Label, ctxt_vec, Config.get_records_directory()+"/vec_ctxt_"+String.valueOf(10)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+".jsonl");
+        SparkFHE.getInstance().store_ciphertexts_to_file(Config.Ciphertext_Label, ctxt_vec, Config.get_records_directory()+"/vec_ctxt_"+String.valueOf(100)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+".jsonl");
     }
 }

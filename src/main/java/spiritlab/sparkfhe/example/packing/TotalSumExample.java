@@ -3,7 +3,7 @@
 // https://github.com/SpiRITlab
 //
 
-package spiritlab.sparkfhe.example.basic;
+package spiritlab.sparkfhe.example.packing;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
@@ -14,11 +14,7 @@ import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoder;
 import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.SparkSession;
-import spiritlab.sparkfhe.api.FHELibrary;
-import spiritlab.sparkfhe.api.FHEScheme;
-import spiritlab.sparkfhe.api.SerializedCiphertextObject;
-import spiritlab.sparkfhe.api.SparkFHE;
-import spiritlab.sparkfhe.api.StringVector;
+import spiritlab.sparkfhe.api.*;
 import spiritlab.sparkfhe.example.Config;
 
 import java.io.IOException;
@@ -44,16 +40,16 @@ public class TotalSumExample {
 
         // distribute a local Scala collection (lists in this case) to form 2 RDDs
         JavaRDD<Integer> values_RDD = jsc.parallelize(
-                Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9,
-                        10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-                        20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
-                        30, 31, 32, 33, 34, 35, 36, 37, 38, 39,
-                        40, 41, 42, 43, 44, 45, 46, 47, 48, 49,
-                        50, 51, 52, 53, 54, 55, 56, 57, 58, 59,
-                        60, 61, 62, 63, 64, 65, 66, 67, 68, 69,
-                        70, 71, 72, 73, 74, 75, 76, 77, 78, 79,
-                        80, 81, 82, 83, 84, 85, 86, 87, 88, 89,
-                        90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100), slices);
+                Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+                10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+                20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
+                30, 31, 32, 33, 34, 35, 36, 37, 38, 39,
+                40, 41, 42, 43, 44, 45, 46, 47, 48, 49,
+                50, 51, 52, 53, 54, 55, 56, 57, 58, 59,
+                60, 61, 62, 63, 64, 65, 66, 67, 68, 69,
+                70, 71, 72, 73, 74, 75, 76, 77, 78, 79,
+                80, 81, 82, 83, 84, 85, 86, 87, 88, 89,
+                90, 91, 92, 93, 94, 95, 96, 97, 98, 99), slices);
 
         // sum up the values and display
         System.out.println("values_RDD:"+values_RDD.reduce((x, y) -> {
@@ -94,12 +90,23 @@ public class TotalSumExample {
 
 
         // sum up the results from the previous operation and display
-        System.out.println("Total Sum: " + SparkFHE.getInstance().decrypt(ctxt_vec_rdd2.reduce((x, y) -> {
+        Plaintext total_sum_result = new Plaintext(SparkFHE.getInstance().decrypt(ctxt_vec_rdd2.reduce((x, y) -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
             SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
-            return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(x.getCtxt(), y.getCtxt(), SparkFHE.FHE_ADD));
-        }).getCtxt(), true));
+            return new SerializedCiphertextObject(SparkFHE.getInstance().fhe_add(x.getCtxt(), y.getCtxt()));
+        }).getCtxt()));
+
+        if (scheme.equalsIgnoreCase(FHEScheme.CKKS)){
+            DoubleVector outputNumberPtxt = new DoubleVector();
+            SparkFHE.getInstance().decode(outputNumberPtxt, total_sum_result);
+            System.out.println("Total Sum: "+ String.valueOf(outputNumberPtxt.get(0)));
+        } else {
+            LongVector outputNumberPtxt = new LongVector();
+            SparkFHE.getInstance().decode(outputNumberPtxt, total_sum_result);
+            System.out.println("Total Sum: "+ String.valueOf(outputNumberPtxt.get(0)));
+        }
+
     }
 
 
@@ -119,7 +126,7 @@ public class TotalSumExample {
                                                           Broadcast<String> sk_b, Broadcast<String> rlk_b, Broadcast<String> glk_b) {
         System.out.println("test_FHE_total_sum_via_native_code");
         /* Spark example for FHE calculations */
-        // Encoders are created for Java beans
+        /* Encoders are created for Java beans */
         Encoder<SerializedCiphertextObject> ctxtJSONEncoder = Encoders.bean(SerializedCiphertextObject.class);
 
         Dataset<SerializedCiphertextObject> serialized_ctxt_vec_ds = spark.read().json(ctxt_vec).as(ctxtJSONEncoder);
@@ -132,7 +139,19 @@ public class TotalSumExample {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
             SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
-            System.out.println(SparkFHE.getInstance().decrypt(data.getCtxt(), true));
+            if (scheme.equalsIgnoreCase(FHEScheme.CKKS)){
+                DoubleVector outputNumberPtxt = new DoubleVector();
+                SparkFHE.getInstance().decode(outputNumberPtxt, new Plaintext(SparkFHE.getInstance().decrypt(data.getCtxt())));
+                for (int i = 0; i < outputNumberPtxt.size(); i++){
+                    System.out.println(String.valueOf(outputNumberPtxt.get(i)));
+                }
+            } else {
+                LongVector outputNumberPtxt = new LongVector();
+                SparkFHE.getInstance().decode(outputNumberPtxt, new Plaintext(SparkFHE.getInstance().decrypt(data.getCtxt())));
+                for (int i = 0; i < outputNumberPtxt.size(); i++){
+                    System.out.println(String.valueOf(outputNumberPtxt.get(i)));
+                }
+            }
         });
 
 
@@ -157,11 +176,19 @@ public class TotalSumExample {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
             SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
-            return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(x.getCtxt(), y.getCtxt(), SparkFHE.FHE_ADD));
+            return new SerializedCiphertextObject(SparkFHE.getInstance().fhe_add(x.getCtxt(), y.getCtxt()));
         });
 
         // decrypt the result and verify it
-        System.out.println("Total sum: " + SparkFHE.getInstance().decrypt(res.getCtxt(), true));
+        if (scheme.equalsIgnoreCase(FHEScheme.CKKS)){
+            DoubleVector outputNumberPtxt = new DoubleVector();
+            SparkFHE.getInstance().decode(outputNumberPtxt, new Plaintext(SparkFHE.getInstance().decrypt(res.getCtxt())));
+            System.out.println("Total sum: " + String.valueOf(outputNumberPtxt.get(0)));
+        } else {
+            LongVector outputNumberPtxt = new LongVector();
+            SparkFHE.getInstance().decode(outputNumberPtxt, new Plaintext(SparkFHE.getInstance().decrypt(res.getCtxt())));
+            System.out.println("Total sum: " + String.valueOf(outputNumberPtxt.get(0)));
+        }
     }
 
 
@@ -258,11 +285,11 @@ public class TotalSumExample {
         String scheme="", library = "", pk="", sk="", rlk="", glk="";
         // The variable slices represent the number of time a task is split up
         int slices=2;
-          
+
         // Create a SparkConf that loads defaults from system properties and the classpath
         SparkConf sparkConf = new SparkConf();
         //Provides the Spark driver application a name for easy identification in the Spark or Yarn UI
-        sparkConf.setAppName("TotalSumExample");
+        sparkConf.setAppName("TotalSumWithBatchingExample");
 
         // Decide whether to run the task locally or on the clusters
         Config.setExecutionEnvironment(args[0]);
@@ -307,7 +334,7 @@ public class TotalSumExample {
         // create SparkFHE object
         SparkFHE.init(library, scheme, pk, sk, rlk, glk);
 
-        ctxt_vec = Config.get_records_directory()+"/vec_ctxt_"+String.valueOf(100)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+".jsonl";
+        ctxt_vec = Config.get_records_directory()+"/packed_ctxt_"+String.valueOf(100)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+".jsonl";
 
         Broadcast<String> pk_b = jsc.broadcast(pk);
         Broadcast<String> sk_b = jsc.broadcast(sk);
@@ -316,7 +343,7 @@ public class TotalSumExample {
 
         // testing the total sum operation on plaintext vector.
         test_basic_total_sum(jsc, slices);
-      
+
          // testing the total sum operation on ciphertext vector.
         test_FHE_total_sum_via_lambda(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
         test_FHE_total_sum_via_native_code(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
