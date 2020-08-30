@@ -14,12 +14,33 @@ import spiritlab.sparkfhe.example.Config;
  * This is an example for SparkFHE project. Created to test the functionality
  * of the encryption and decryption features.
  */
-
 import java.io.File;
-import java.util.Vector;
 
 public class EncDecExample {
 
+    public static void decrypt_and_print(String scheme, String output_label, Ciphertext ctxt){
+        if (scheme.equalsIgnoreCase(FHEScheme.CKKS)){
+            DoubleVector output_vec = new DoubleVector();
+            SparkFHE.getInstance().decode(output_vec, SparkFHE.getInstance().decrypt(ctxt));
+            System.out.println(output_label + " = " + String.valueOf(output_vec.get(0)));
+        } else { // BGV or BFV
+            LongVector output_vec = new LongVector();
+            SparkFHE.getInstance().decode(output_vec, SparkFHE.getInstance().decrypt(ctxt));
+            System.out.println(output_label + " = " + String.valueOf(output_vec.get(0)));
+        }
+    }
+
+    public static void decode_and_print(String scheme, String output_label, Plaintext ptxt){
+        if (scheme.equalsIgnoreCase(FHEScheme.CKKS)){
+            DoubleVector output_vec = new DoubleVector();
+            SparkFHE.getInstance().decode(output_vec, ptxt);
+            System.out.println(output_label + " = " + String.valueOf(output_vec.get(0)));
+        } else { // BGV or BFV
+            LongVector output_vec = new LongVector();
+            SparkFHE.getInstance().decode(output_vec, ptxt);
+            System.out.println(output_label + " = " + String.valueOf(output_vec.get(0)));
+        }
+    }
 
     public static void main(String args[]) {
         String scheme="", library = "", pk="", sk="", rlk="", glk="";
@@ -91,19 +112,10 @@ public class EncDecExample {
         ctxt_0_string = SparkFHE.getInstance().read_ciphertext_from_file_as_string(Config.Ciphertext_Label, CTXT_0_FILE);
         ctxt_1_string = SparkFHE.getInstance().read_ciphertext_from_file_as_string(Config.Ciphertext_Label, CTXT_1_FILE);
 
-        Ciphertext ctxtresult;
-        // perform homomorphic addition on the cipertext
-        ctxtresult = new Ciphertext(SparkFHE.getInstance().do_FHE_basic_op(ctxt_0_string, ctxt_1_string, SparkFHE.FHE_ADD));
+        // perform homomorphic addition on the ciphertext
+        Ciphertext ctxtresult = new Ciphertext(SparkFHE.getInstance().do_FHE_basic_op(ctxt_0_string, ctxt_1_string, SparkFHE.FHE_ADD));
         // decrypt the result and display it
-        if (scheme.equalsIgnoreCase(FHEScheme.CKKS)){
-            DoubleVector output = new DoubleVector();
-            SparkFHE.getInstance().decode(output, SparkFHE.getInstance().decrypt(ctxtresult));
-            System.out.println("0+1="+String.valueOf(output.get(0)));
-        } else {
-            LongVector output = new LongVector();
-            SparkFHE.getInstance().decode(output, SparkFHE.getInstance().decrypt(ctxtresult));
-            System.out.println("0+1="+String.valueOf(output.get(0)));
-        }
+        decrypt_and_print(scheme, "0 + 1", ctxtresult );
 
         /* generating vectors of ctxt */
         Plaintext ptxt_1, ptxt_2;
@@ -131,7 +143,6 @@ public class EncDecExample {
         }
 
         // encrypt them and store to pre-defined location
-
         Ciphertext ctxt_1 = SparkFHE.getInstance().encrypt(ptxt_1);
         SparkFHE.getInstance().store_ciphertext_to_file(Config.Ciphertext_Label, ctxt_1.toString(), Config.get_records_directory()+"/packed_ctxt_a_"+String.valueOf(Config.NUM_OF_VECTOR_ELEMENTS)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl");
 
@@ -143,20 +154,62 @@ public class EncDecExample {
         Plaintext ptxt;
         if (scheme.equalsIgnoreCase(FHEScheme.CKKS)){
             DoubleVector input_vec = new DoubleVector();
-            for (double i = 0; i < 100; i++){
-                input_vec.add(i);
+            for (double i = 1; i <= 100; i++){
+                input_vec.add(1.0);
             }
             ptxt = SparkFHE.getInstance().encode(input_vec);
         } else { // BGV or BFV
             LongVector input_vec = new LongVector();
-            for (int i = 0; i < 100; i++){
-                input_vec.add(i);
+            for (int i = 1; i <= 100; i++){
+                input_vec.add(1);
             }
             ptxt = SparkFHE.getInstance().encode(input_vec);
         }
         Ciphertext ctxt = SparkFHE.getInstance().encrypt(ptxt);
         SparkFHE.getInstance().store_ciphertext_to_file(Config.Ciphertext_Label, ctxt.toString(), Config.get_records_directory()+"/packed_ctxt_"+String.valueOf(100)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+".jsonl");
 
+        // Generate two matrices of size 10x10
+        PlaintextVector ptxt_mat_1 = new PlaintextVector();
+        PlaintextVector ptxt_mat_2 = new PlaintextVector();
 
+        if (scheme.equalsIgnoreCase(FHEScheme.CKKS)){
+            DoubleMatrix input_mat_1 = new DoubleMatrix();
+            DoubleMatrix input_mat_2 = new DoubleMatrix();
+            for (int i = 0; i < 10; i++){
+                DoubleVector input_vec_1 = new DoubleVector();
+                DoubleVector input_vec_2 = new DoubleVector();
+                for (double j = 0; j < 10; j++){
+                    input_vec_1.add(0.0);
+                    input_vec_2.add(1.0);
+                }
+                input_mat_1.add(input_vec_1);
+                input_mat_2.add(input_vec_2);
+            }
+            ptxt_mat_1 = SparkFHE.getInstance().encode_many(input_mat_1);
+            ptxt_mat_2 = SparkFHE.getInstance().encode_many(input_mat_2);
+        } else { // BGV or BFV
+            LongMatrix input_mat_1 = new LongMatrix();
+            LongMatrix input_mat_2 = new LongMatrix();
+            for (int i = 0; i < 10; i++){
+                LongVector input_vec_1 = new LongVector();
+                LongVector input_vec_2 = new LongVector();
+                for (int j = 0; j < 10; j++){
+                    input_vec_1.add(0);
+                    input_vec_2.add(1);
+                }
+                input_mat_1.add(input_vec_1);
+                input_mat_2.add(input_vec_2);
+            }
+            ptxt_mat_1 = SparkFHE.getInstance().encode_many(input_mat_1);
+            ptxt_mat_2 = SparkFHE.getInstance().encode_many(input_mat_2);
+        }
+
+        for (int i = 0; i < ptxt_mat_1.size(); i++){
+            Ciphertext ctxt_mat_1 = SparkFHE.getInstance().encrypt(ptxt_mat_1.get(i));
+            SparkFHE.getInstance().store_ciphertext_to_file(Config.Ciphertext_Label, ctxt.toString(), Config.get_records_directory()+"/packed_matrix_a"+String.valueOf(10*10)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+".jsonl");
+
+            Ciphertext ctxt_mat_2 = SparkFHE.getInstance().encrypt(ptxt_mat_2.get(i));
+            SparkFHE.getInstance().store_ciphertext_to_file(Config.Ciphertext_Label, ctxt.toString(), Config.get_records_directory()+"/packed_matrix_b"+String.valueOf(10*10)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+".jsonl");
+        }
     }
 }

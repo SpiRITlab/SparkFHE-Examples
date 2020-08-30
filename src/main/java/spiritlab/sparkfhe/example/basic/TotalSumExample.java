@@ -190,18 +190,14 @@ public class TotalSumExample {
         // explode - Creates a new row for each element in the given array or map column
         // select - select the newly created column, and alias it accordingly
         Dataset<String> ctxt_vec_ds2 = ctxt_vec_ds.select(ctxt_vec_ds.col("ctxt").as("ctxt_a")).as(Encoders.STRING());
-        Dataset<String> ctxt_b_ds2 = ctxt_b_ds.select(ctxt_b_ds.col("ctxt").as("ctxt_b")).as(Encoders.STRING());
 
         // withColumn - create a new DataFrame with a column added or renamed.
         // monotonically_increasing_id - A column that generates monotonically increasing 64-bit integers
-        Dataset<Row> ctxt_a_ds3 = ctxt_a_ds2.withColumn("id", functions.monotonically_increasing_id());
+        Dataset<Row> ctxt_a_ds3 = ctxt_vec_ds2.withColumn("id", functions.monotonically_increasing_id());
         // orderBy - creates a window specification that defines the partitioning, ordering, and frame boundaries with
         // the ordering defined. add this column as "id" and same it to the dataFrame ctxt_a_ds3
         ctxt_a_ds3 = ctxt_a_ds3.withColumn("id", functions.row_number().over(Window.orderBy("id")));
 
-        // repeat the process for the other cipher text
-        Dataset<Row> ctxt_b_ds3 = ctxt_b_ds2.withColumn("id", functions.monotonically_increasing_id());
-        ctxt_b_ds3 = ctxt_b_ds3.withColumn("id", functions.row_number().over(Window.orderBy("id")));
 
         // join - cartesian join between ctxt_a_ds3's id column and ctxt_b_ds3
         // equalTo - A filter that evaluates to true iff the attribute evaluates to a value equal to value.
@@ -250,7 +246,7 @@ public class TotalSumExample {
 
         // decrypt the result to verify it
         System.out.println("Dot product: " + SparkFHE.getInstance().decrypt(res.getCtxt(), true));
-    */
+         */
     }
 
 
@@ -316,8 +312,8 @@ public class TotalSumExample {
 
         // testing the total sum operation on plaintext vector.
         test_basic_total_sum(jsc, slices);
-      
-         // testing the total sum operation on ciphertext vector.
+
+        // testing the total sum operation on ciphertext vector.
         test_FHE_total_sum_via_lambda(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
         test_FHE_total_sum_via_native_code(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
 //        test_FHE_total_sum_via_sql(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);

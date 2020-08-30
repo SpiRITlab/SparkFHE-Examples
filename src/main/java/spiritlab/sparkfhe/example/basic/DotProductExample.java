@@ -355,7 +355,7 @@ public class DotProductExample {
 
         // testing the dot product operation on plaintext vector.
         test_basic_dot_product(jsc, slices);
-      
+
          // testing the dot product operation in HE libraries on cipher text vector.
         test_FHE_dot_product_via_lambda(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
         test_FHE_dot_product_via_native_code(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
