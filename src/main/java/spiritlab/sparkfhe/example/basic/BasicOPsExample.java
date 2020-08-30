@@ -91,6 +91,83 @@ public class BasicOPsExample {
         System.out.println("Homomorphic Subtraction:"+SparkFHE.getInstance().decrypt(Subtraction_ctxt_RDD.first().getCtxt(), true));
     }
 
+    /**
+     * This method performs the basic HE operations on vectors and print out the results
+     * @param spark spark session
+     * @param slices the number of time a task is split up
+     * @param pk_b broadcast variable for public key
+     * @param sk_b broadcast variable for secret key
+     * @param rlk_b broadcast variable for relin keys
+     * @param glk_b boradcast variable for galois keys
+     */
+    public static void test_FHE_vector_op(SparkSession spark, int slices, String library, String scheme, Broadcast<String> pk_b,
+                                          Broadcast<String> sk_b, Broadcast<String> rlk_b, Broadcast<String> glk_b) {
+        /* Spark example for FHE calculations on vectors */
+        // Encoders are created for Java beans
+        Encoder<SerializedCiphertextObject> ctxtJSONEncoder = Encoders.bean(SerializedCiphertextObject.class);
+
+        // FHE Ops on vectors
+        String packed_a_ctxt = Config.get_records_directory()+"/vec_a_"+String.valueOf(Config.NUM_OF_VECTOR_ELEMENTS)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";
+        String packed_b_ctxt = Config.get_records_directory()+"/vec_b_"+String.valueOf(Config.NUM_OF_VECTOR_ELEMENTS)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";
+
+        // https://spark.apache.org/docs/latest/sql-programming-guide.html#untyped-dataset-operations-aka-dataframe-operations
+        // Create dataset with json file. See http://jsonlines.org
+        Dataset<SerializedCiphertextObject> serialized_ctxt_a_ds = spark.read().json(packed_a_ctxt).as(ctxtJSONEncoder);
+        JavaRDD<SerializedCiphertextObject> ctxt_a_rdd = serialized_ctxt_a_ds.select(serialized_ctxt_a_ds.col("ctxt")).as(Encoders.STRING()).javaRDD().map(x -> new SerializedCiphertextObject(x));
+        Dataset<SerializedCiphertextObject> serialized_ctxt_b_ds = spark.read().json(packed_b_ctxt).as(ctxtJSONEncoder);
+        JavaRDD<SerializedCiphertextObject> ctxt_b_rdd = serialized_ctxt_b_ds.select(serialized_ctxt_b_ds.col("ctxt")).as(Encoders.STRING()).javaRDD().map(x -> new SerializedCiphertextObject(x));
+
+        // combine both rdds as a pair
+        JavaPairRDD<SerializedCiphertextObject, SerializedCiphertextObject> combined_ctxt_rdd = ctxt_a_rdd.zip(ctxt_b_rdd);
+        System.out.println("combined_ctxt_rdd.count() = " + combined_ctxt_rdd.count());
+
+        // call homomorphic addition operators on the rdds
+        JavaRDD<SerializedCiphertextObject> Addition_ctxt_RDD = combined_ctxt_rdd.map(tuple -> {
+            // we need to load the shared library and init a copy of SparkFHE on the executor
+            SparkFHEPlugin.setup();
+            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+            return new SerializedCiphertextObject(SparkFHE.getInstance().fhe_add(tuple._1().getCtxt(), tuple._2().getCtxt()));
+        });
+
+        System.out.println("Vector Homomorphic Addition");
+        Addition_ctxt_RDD.foreach(data -> {
+            // we need to load the shared library and init a copy of SparkFHE on the executor
+            SparkFHEPlugin.setup();
+            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+            System.out.println(SparkFHE.getInstance().decrypt(data.getCtxt(), true));
+        });
+
+        // call homomorphic multiply operators on the rdds
+        JavaRDD<SerializedCiphertextObject> Multiplication_ctxt_RDD = combined_ctxt_rdd.map(tuple -> {
+            // we need to load the shared library and init a copy of SparkFHE on the executor
+            SparkFHEPlugin.setup();
+            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+            return new SerializedCiphertextObject(SparkFHE.getInstance().fhe_multiply(tuple._1().getCtxt(), tuple._2().getCtxt()));
+        });
+        System.out.println("Vector Homomorphic Multiplication");
+        Multiplication_ctxt_RDD.foreach(data -> {
+            // we need to load the shared library and init a copy of SparkFHE on the executor
+            SparkFHEPlugin.setup();
+            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+            System.out.println(SparkFHE.getInstance().decrypt(data.getCtxt(), true));
+        });
+
+        // call homomorphic subtraction operators on the rdds
+        JavaRDD<SerializedCiphertextObject> Subtraction_ctxt_RDD = combined_ctxt_rdd.map(tuple -> {
+            // we need to load the shared library and init a copy of SparkFHE on the executor
+            SparkFHEPlugin.setup();
+            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+            return new SerializedCiphertextObject(SparkFHE.getInstance().fhe_subtract(tuple._1().getCtxt(), tuple._2().getCtxt()));
+        });
+        System.out.println("Vector Homomorphic Subtraction");
+        Subtraction_ctxt_RDD.foreach(data -> {
+            // we need to load the shared library and init a copy of SparkFHE on the executor
+            SparkFHEPlugin.setup();
+            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+            System.out.println(SparkFHE.getInstance().decrypt(data.getCtxt(), true));
+        });
+    }
+
 
     public static void main(String[] args) {
         String scheme="", library = "", pk="", sk="", rlk="", glk="";
@@ -164,6 +241,9 @@ public class BasicOPsExample {
 
         // String testing the basic operations in HE libraries on encrypted data, such as addition, subtraction, and multiply.
         test_FHE_basic_op(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
+
+        // Testing the basic operations in HE libraries on encrypted vectors, such as addition, subtraction, and multiply.
+        test_FHE_vector_op(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
 
         // Stop existing spark context
         jsc.close();

@@ -179,8 +179,8 @@ public class EncDecExample {
                 DoubleVector input_vec_1 = new DoubleVector();
                 DoubleVector input_vec_2 = new DoubleVector();
                 for (double j = 0; j < 10; j++){
-                    input_vec_1.add(0.0);
-                    input_vec_2.add(1.0);
+                    input_vec_1.add(1.0);
+                    input_vec_2.add(0.0);
                 }
                 input_mat_1.add(input_vec_1);
                 input_mat_2.add(input_vec_2);
@@ -194,8 +194,8 @@ public class EncDecExample {
                 LongVector input_vec_1 = new LongVector();
                 LongVector input_vec_2 = new LongVector();
                 for (int j = 0; j < 10; j++){
-                    input_vec_1.add(0);
-                    input_vec_2.add(1);
+                    input_vec_1.add(1);
+                    input_vec_2.add(0);
                 }
                 input_mat_1.add(input_vec_1);
                 input_mat_2.add(input_vec_2);
@@ -206,10 +206,10 @@ public class EncDecExample {
 
         for (int i = 0; i < ptxt_mat_1.size(); i++){
             Ciphertext ctxt_mat_1 = SparkFHE.getInstance().encrypt(ptxt_mat_1.get(i));
-            SparkFHE.getInstance().store_ciphertext_to_file(Config.Ciphertext_Label, ctxt.toString(), Config.get_records_directory()+"/packed_matrix_a"+String.valueOf(10*10)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+".jsonl");
+            SparkFHE.getInstance().store_ciphertext_to_file(Config.Ciphertext_Label, ctxt_mat_1.toString(), Config.get_records_directory()+"/packed_matrix_a_"+String.valueOf(10*10)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+".jsonl");
 
             Ciphertext ctxt_mat_2 = SparkFHE.getInstance().encrypt(ptxt_mat_2.get(i));
-            SparkFHE.getInstance().store_ciphertext_to_file(Config.Ciphertext_Label, ctxt.toString(), Config.get_records_directory()+"/packed_matrix_b"+String.valueOf(10*10)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+".jsonl");
+            SparkFHE.getInstance().store_ciphertext_to_file(Config.Ciphertext_Label, ctxt_mat_2.toString(), Config.get_records_directory()+"/packed_matrix_b_"+String.valueOf(10*10)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+".jsonl");
         }
     }
 }
