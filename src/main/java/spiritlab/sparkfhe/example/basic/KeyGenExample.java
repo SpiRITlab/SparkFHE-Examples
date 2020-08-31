@@ -68,9 +68,6 @@ public class KeyGenExample {
         Ciphertext ctxt = SparkFHE.getInstance().encrypt(inputNumberPtxt);
         Plaintext ptxt = SparkFHE.getInstance().decrypt(ctxt, true);
 
-        // Printing out the result
-        System.out.println("InputNumber="+inputNumberString + ", result of dec(enc(InputNumber))="+ptxt.toString());
-
     }
 
 }

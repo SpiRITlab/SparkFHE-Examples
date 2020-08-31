@@ -16,6 +16,7 @@ import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.SparkSession;
 import spiritlab.sparkfhe.api.*;
 import spiritlab.sparkfhe.example.Config;
+import spiritlab.sparkfhe.example.Util;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -29,60 +30,7 @@ public class TotalSumExample {
 
     // declare variable to hold a ciphertext vector
     private static String ctxt_vec;
-
-    public static void decrypt_and_print(String scheme, String output_label, Ciphertext ctxt, boolean loop, int bound){
-        if (!output_label.equalsIgnoreCase(""))
-            output_label += " = ";
-
-        if (scheme.equalsIgnoreCase(FHEScheme.CKKS)){
-            DoubleVector output_vec = new DoubleVector();
-            SparkFHE.getInstance().decode(output_vec, SparkFHE.getInstance().decrypt(ctxt));
-            if (loop) {
-                for (int i = 0; i < bound; i++){
-                    System.out.println(output_label + String.valueOf(output_vec.get(i)));
-                }
-            } else {
-                System.out.println(output_label + String.valueOf(output_vec.get(0)));
-            }
-        } else { // BGV or BFV
-            LongVector output_vec = new LongVector();
-            SparkFHE.getInstance().decode(output_vec, SparkFHE.getInstance().decrypt(ctxt));
-            if (loop) {
-                for (int i = 0; i < bound; i++){
-                    System.out.println(output_label + String.valueOf(output_vec.get(i)));
-                }
-            } else {
-                System.out.println(output_label + String.valueOf(output_vec.get(0)));
-            }
-        }
-    }
-
-    public static void decode_and_print(String scheme, String output_label, Plaintext ptxt, boolean loop, int bound){
-        if (!output_label.equalsIgnoreCase(""))
-            output_label += " = ";
-
-        if (scheme.equalsIgnoreCase(FHEScheme.CKKS)){
-            DoubleVector output_vec = new DoubleVector();
-            SparkFHE.getInstance().decode(output_vec, ptxt);
-            if (loop) {
-                for (int i = 0; i < bound; i++){
-                    System.out.println(output_label + String.valueOf(output_vec.get(i)));
-                }
-            } else {
-                System.out.println(output_label + String.valueOf(output_vec.get(0)));
-            }
-        } else { // BGV or BFV
-            LongVector output_vec = new LongVector();
-            SparkFHE.getInstance().decode(output_vec, ptxt);
-            if (loop) {
-                for (int i = 0; i < bound; i++){
-                    System.out.println(output_label + String.valueOf(output_vec.get(i)));
-                }
-            } else {
-                System.out.println(output_label + String.valueOf(output_vec.get(0)));
-            }
-        }
-    }
+    private static String CTXT_Vector_FILE;
 
     /**
      * This method performs the total sum operation on a plaintext vector and print out the result
@@ -111,7 +59,6 @@ public class TotalSumExample {
             SparkFHEPlugin.setup();
             return SparkFHE.do_basic_op(x, y, SparkFHE.ADD);
         }));
-
     }
 
     /**
@@ -130,19 +77,14 @@ public class TotalSumExample {
                                                      Broadcast<String> sk_b, Broadcast<String> rlk_b, Broadcast<String> glk_b) {
         System.out.println("test_FHE_total_sum_via_lambda");
 
-        /* Spark example for FHE calculations */
         // Encoders are created for Java beans
         Encoder<SerializedCiphertextObject> ctxtJSONEncoder = Encoders.bean(SerializedCiphertextObject.class);
-        Dataset<SerializedCiphertextObject> serialized_ctxt_vec_ds = spark.read().json(ctxt_vec).as(ctxtJSONEncoder);
 
+        // Create rdd with json line file.
+        JavaRDD<SerializedCiphertextObject> ctxt_vec_rdd = spark.read().json(CTXT_Vector_FILE).as(ctxtJSONEncoder).javaRDD();
+//        System.out.println("Partitions:"+ctxt_vec_rdd.partitions().size());
 
-        JavaRDD<String> ctxt_vec_rdd = serialized_ctxt_vec_ds.select(serialized_ctxt_vec_ds.col("ctxt")).as(Encoders.STRING()).javaRDD();
-
-        // causes n = slice tasks to be started using NODE_LOCAL data locality.
-        JavaRDD<SerializedCiphertextObject> ctxt_vec_rdd2 = ctxt_vec_rdd.map(x -> new SerializedCiphertextObject(x));
-        System.out.println("Partitions:"+ctxt_vec_rdd2.partitions().size());
-
-        ctxt_vec_rdd2.reduce((x, y) -> {
+        ctxt_vec_rdd.reduce((x, y) -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
             SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
@@ -150,9 +92,8 @@ public class TotalSumExample {
         });
 
         // sum up the slots of the result and display
-        Ciphertext total_sum_ctxt = new Ciphertext(SparkFHE.getInstance().fhe_total_sum(ctxt_vec_rdd2.first().getCtxt()));
-        decrypt_and_print(scheme, "Total Sum", total_sum_ctxt, false, 0);
-
+        Ciphertext total_sum_ctxt = new Ciphertext(SparkFHE.getInstance().fhe_total_sum(ctxt_vec_rdd.first().getCtxt()));
+        Util.decrypt_and_print(scheme, "Total Sum", total_sum_ctxt, false, 0);
     }
 
 
@@ -171,23 +112,21 @@ public class TotalSumExample {
     public static void test_FHE_total_sum_via_native_code(SparkSession spark, int slices, String library, String scheme, Broadcast<String> pk_b,
                                                           Broadcast<String> sk_b, Broadcast<String> rlk_b, Broadcast<String> glk_b) {
         System.out.println("test_FHE_total_sum_via_native_code");
-        /* Spark example for FHE calculations */
+
         /* Encoders are created for Java beans */
         Encoder<SerializedCiphertextObject> ctxtJSONEncoder = Encoders.bean(SerializedCiphertextObject.class);
 
-        Dataset<SerializedCiphertextObject> serialized_ctxt_vec_ds = spark.read().json(ctxt_vec).as(ctxtJSONEncoder);
-        JavaRDD<SerializedCiphertextObject> ctxt_vec_rdd = serialized_ctxt_vec_ds.select(serialized_ctxt_vec_ds.col("ctxt")).as(Encoders.STRING()).javaRDD().map(x -> new SerializedCiphertextObject(x));
+        // Create rdd with json line file.
+        JavaRDD<SerializedCiphertextObject> ctxt_vec_rdd = spark.read().json(CTXT_Vector_FILE).as(ctxtJSONEncoder).javaRDD();
 
         // print out the cipher text vectors after decryption for verification purposes
-        System.out.println("ctxt_vec_rdd.count() = " + ctxt_vec_rdd.count());
-
-        ctxt_vec_rdd.foreach(data -> {
-            // we need to load the shared library and init a copy of SparkFHE on the executor
-            SparkFHEPlugin.setup();
-            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
-            decrypt_and_print(scheme, "", new Ciphertext(data.getCtxt()), true, 100);
-        });
-
+//        System.out.println("ctxt_vec_rdd.count() = " + ctxt_vec_rdd.count());
+//        ctxt_vec_rdd.foreach(data -> {
+//            // we need to load the shared library and init a copy of SparkFHE on the executor
+//            SparkFHEPlugin.setup();
+//            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+//            Util.decrypt_and_print(scheme, "", new Ciphertext(data.getCtxt()), true, 100);
+//        });
 
         // call homomorphic array sum operator on the rdd
         JavaRDD<SerializedCiphertextObject> collection = ctxt_vec_rdd.mapPartitions(records -> {
@@ -215,8 +154,7 @@ public class TotalSumExample {
 
         // sum up the slots of the result and display to verify it
         Ciphertext total_sum_ctxt = new Ciphertext(SparkFHE.getInstance().fhe_total_sum(res.getCtxt()));
-        decrypt_and_print(scheme, "Total Sum", total_sum_ctxt, false, 0);
-
+//        Util.decrypt_and_print(scheme, "Total Sum", total_sum_ctxt, false, 0);
     }
 
 
@@ -239,7 +177,7 @@ public class TotalSumExample {
         // Spark example for FHE calculations //
         // Encoders are created for Java beans
         Encoder<SerializedCiphertextObject> ctxtJSONEncoder = Encoders.bean(SerializedCiphertextObject.class);
-        Dataset<SerializedCiphertextObject> ctxt_vec_ds = spark.read().json(ctxt_vec).as(ctxtJSONEncoder);
+        Dataset<SerializedCiphertextObject> ctxt_vec_ds = spark.read().json(CTXT_Vector_FILE).as(ctxtJSONEncoder);
 
         // col - Returns a Column based on the given column name, ctxt.
         // explode - Creates a new row for each element in the given array or map column
@@ -362,7 +300,8 @@ public class TotalSumExample {
         // create SparkFHE object
         SparkFHE.init(library, scheme, pk, sk, rlk, glk);
 
-        ctxt_vec = Config.get_records_directory()+"/packed_ctxt_"+String.valueOf(100)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+".jsonl";
+        // set ctxt file name
+        CTXT_Vector_FILE = Config.get_records_directory()+"/packed_vec_a_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";
 
         Broadcast<String> pk_b = jsc.broadcast(pk);
         Broadcast<String> sk_b = jsc.broadcast(sk);
