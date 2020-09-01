@@ -26,6 +26,8 @@ public class KeyGenExample {
     public static void main(String args[]) {
         String scheme="", library = "";
 
+        long startTime, endTime;
+
         Config.setExecutionEnvironment(args[0]);
 
         switch (Config.currentExecutionEnvironment) {
@@ -53,6 +55,7 @@ public class KeyGenExample {
         // and including any necessary parent directories.
          new File(Config.get_keys_directory()).mkdirs();
 
+        startTime = System.currentTimeMillis();
         // Using the object created to call the C++ function to generate the keys.
         SparkFHE.getInstance().generate_key_pair(
                 Config.get_default_crypto_params_file(library),
@@ -60,7 +63,10 @@ public class KeyGenExample {
                 Config.get_default_secret_key_file(),
                 Config.get_default_relin_key_file(),
                 Config.get_default_galois_key_file());
-      
+        endTime = System.currentTimeMillis();
+        System.out.println("generate_keys took " + (endTime - startTime) + " milliseconds");
+
+        if (Config.DEBUG) {
         // Encrypting the literal 1, and decrypting it to verify the keys' accuracy.
         String inputNumberString="1";
         Plaintext inputNumberPtxt = new Plaintext(inputNumberString);
@@ -69,6 +75,7 @@ public class KeyGenExample {
         Plaintext ptxt = SparkFHE.getInstance().decrypt(ctxt, true);
 
         // Printing out the result
-        System.out.println("InputNumber = "+inputNumberString + ", result of dec(enc(InputNumber)) = "+ptxt.toString());
+        System.out.println("InputNumber = " + inputNumberString + ", result of dec(enc(InputNumber)) = " + ptxt.toString());
+        }
     }
 }

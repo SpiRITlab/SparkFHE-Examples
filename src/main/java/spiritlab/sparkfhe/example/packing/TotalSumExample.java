@@ -82,7 +82,6 @@ public class TotalSumExample {
 
         // Create rdd with json line file.
         JavaRDD<SerializedCiphertextObject> ctxt_vec_rdd = spark.read().json(CTXT_Vector_FILE).as(ctxtJSONEncoder).javaRDD();
-        System.out.println("Partitions:"+ctxt_vec_rdd.partitions().size());
 
         ctxt_vec_rdd.reduce((x, y) -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
@@ -91,9 +90,14 @@ public class TotalSumExample {
             return new SerializedCiphertextObject(SparkFHE.getInstance().fhe_add(x.getCtxt(), y.getCtxt()));
         });
 
-        // sum up the slots of the result and display
+        // sum up the slots of the result
         Ciphertext total_sum_ctxt = new Ciphertext(SparkFHE.getInstance().fhe_total_sum(ctxt_vec_rdd.first().getCtxt()));
-        Util.decrypt_and_print(scheme, "Total Sum", total_sum_ctxt, false, 0);
+
+        if (Config.DEBUG) {
+            System.out.println("Partitions:"+ctxt_vec_rdd.partitions().size());
+            // print results for debugging purposes
+            Util.decrypt_and_print(scheme, "Total Sum", total_sum_ctxt, false, 0);
+        }
     }
 
 
@@ -118,15 +122,6 @@ public class TotalSumExample {
 
         // Create rdd with json line file.
         JavaRDD<SerializedCiphertextObject> ctxt_vec_rdd = spark.read().json(CTXT_Vector_FILE).as(ctxtJSONEncoder).javaRDD();
-
-        // print out the cipher text vectors after decryption for verification purposes
-        System.out.println("ctxt_vec_rdd.count() = " + ctxt_vec_rdd.count());
-        ctxt_vec_rdd.foreach(data -> {
-            // we need to load the shared library and init a copy of SparkFHE on the executor
-            SparkFHEPlugin.setup();
-            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
-            Util.decrypt_and_print(scheme, "", new Ciphertext(data.getCtxt()), true, 100);
-        });
 
         // call homomorphic array sum operator on the rdd
         JavaRDD<SerializedCiphertextObject> collection = ctxt_vec_rdd.mapPartitions(records -> {
@@ -154,7 +149,20 @@ public class TotalSumExample {
 
         // sum up the slots of the result and display to verify it
         Ciphertext total_sum_ctxt = new Ciphertext(SparkFHE.getInstance().fhe_total_sum(res.getCtxt()));
-        Util.decrypt_and_print(scheme, "Total Sum", total_sum_ctxt, false, 0);
+
+        if (Config.DEBUG) {
+            // print out the ciphertext vectors after decryption for verification purposes
+            System.out.println("ctxt_vec_rdd.count() = " + ctxt_vec_rdd.count());
+            ctxt_vec_rdd.foreach(data -> {
+                // we need to load the shared library and init a copy of SparkFHE on the executor
+                SparkFHEPlugin.setup();
+                SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+                Util.decrypt_and_print(scheme, "", new Ciphertext(data.getCtxt()), true, 100);
+            });
+
+            // print out the results for debugging purposes
+            Util.decrypt_and_print(scheme, "Total Sum", total_sum_ctxt, false, 0);
+        }
     }
 
 
@@ -249,6 +257,8 @@ public class TotalSumExample {
 
     public static void main(String[] args) {
         String scheme="", library = "", pk="", sk="", rlk="", glk="";
+        long startTime, endTime;
+
         // The variable slices represent the number of time a task is split up
         int slices=2;
 
@@ -291,6 +301,7 @@ public class TotalSumExample {
         // Creating a session to Spark. The session allows the creation of the
         // various data abstractions such as RDDs, DataFrame, and more.
         SparkSession spark = SparkSession.builder().config(sparkConf).getOrCreate();
+        spark.sparkContext().setLogLevel("ERROR");
 
         // Creating spark context which allows the communication with worker nodes
         JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());
@@ -312,8 +323,16 @@ public class TotalSumExample {
         test_basic_total_sum(jsc, slices);
 
          // testing the total sum operation on ciphertext vector.
+        startTime = System.currentTimeMillis();
         test_FHE_total_sum_via_lambda(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
+        endTime = System.currentTimeMillis();
+        System.out.println("batch_FHE_total_sum_via_lambda took " + (endTime - startTime) + " milliseconds");
+
+        startTime = System.currentTimeMillis();
         test_FHE_total_sum_via_native_code(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
+        endTime = System.currentTimeMillis();
+        System.out.println("batch_FHE_total_sum_via_native_code took " + (endTime - startTime) + " milliseconds");
+
 //        test_FHE_total_sum_via_sql(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
 
         try {

@@ -97,9 +97,6 @@ public class DotProductExample {
         JavaRDD<SerializedCiphertextObject> ctxt_vec_a_rdd = spark.read().json(CTXT_Vector_a_FILE).as(ctxtJSONEncoder).javaRDD();
         JavaRDD<SerializedCiphertextObject> ctxt_vec_b_rdd = spark.read().json(CTXT_Vector_b_FILE).as(ctxtJSONEncoder).javaRDD();
 
-        // causes n = slice tasks to be started using NODE_LOCAL data locality.
-        System.out.println("Partitions:"+ctxt_vec_b_rdd.partitions().size());
-
         // combine both RDDs as pairs
         JavaPairRDD<SerializedCiphertextObject, SerializedCiphertextObject> combined_ctxt_rdd = ctxt_vec_a_rdd.zip(ctxt_vec_b_rdd);
 
@@ -119,11 +116,17 @@ public class DotProductExample {
             return new SerializedCiphertextObject(SparkFHE.getInstance().fhe_add(x.getCtxt(), y.getCtxt()));
         });
 
-        // sum up all slots of the result and display
+        // sum up all slots of the result
         Ciphertext dot_product_ctxt = new Ciphertext(SparkFHE.getInstance().fhe_total_sum(result_rdd.first().getCtxt())); // SparkFHE.getInstance().fhe_total_sum(
-        Util.decrypt_and_print(scheme, "Dot product result", dot_product_ctxt, false, 0);
-    }
 
+        if (Config.DEBUG) {
+            // causes n = slice tasks to be started using NODE_LOCAL data locality.
+            System.out.println("Partitions:"+ctxt_vec_b_rdd.partitions().size());
+
+            // display results for debugging purposes
+            Util.decrypt_and_print(scheme, "Dot product result", dot_product_ctxt, false, 0);
+        }
+    }
 
     /**
      This method performs the dot product operation on cipher-text vectors and print out the results naively
@@ -149,25 +152,8 @@ public class DotProductExample {
         JavaRDD<SerializedCiphertextObject> ctxt_vec_a_rdd = spark.read().json(CTXT_Vector_a_FILE).as(ctxtJSONEncoder).javaRDD();
         JavaRDD<SerializedCiphertextObject> ctxt_vec_b_rdd = spark.read().json(CTXT_Vector_b_FILE).as(ctxtJSONEncoder).javaRDD();
 
-        // print out the cipher text vectors after decryption for verification purposes
-        System.out.println("ctxt_a_rdd.count() = " + ctxt_vec_a_rdd.count());
-        ctxt_vec_a_rdd.foreach(data -> {
-            // we need to load the shared library and init a copy of SparkFHE on the executor
-            SparkFHEPlugin.setup();
-            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
-            Util.decrypt_and_print(scheme, "", new Ciphertext(data.getCtxt()), true, 100);
-        });
-        System.out.println("ctxt_b_rdd.count() = " + ctxt_vec_b_rdd.count());
-        ctxt_vec_b_rdd.foreach(data -> {
-            // we need to load the shared library and init a copy of SparkFHE on the executor
-            SparkFHEPlugin.setup();
-            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
-            Util.decrypt_and_print(scheme, "", new Ciphertext(data.getCtxt()), true, 100);
-        });
-
         // combine both rdds as a pair
         JavaPairRDD<SerializedCiphertextObject, SerializedCiphertextObject> combined_ctxt_rdd = ctxt_vec_a_rdd.zip(ctxt_vec_b_rdd);
-        System.out.println("combined_ctxt_rdd.count() = " + combined_ctxt_rdd.count());
 
         // call homomorphic doc product operators on the rdds
         JavaRDD<SerializedCiphertextObject> collection = combined_ctxt_rdd.mapPartitions(records -> {
@@ -195,9 +181,30 @@ public class DotProductExample {
             return new SerializedCiphertextObject(SparkFHE.getInstance().fhe_add(x.getCtxt(), y.getCtxt()));
         });
 
-        // sum up all slots of the result and display
+        // sum up all slots of the result
         Ciphertext dot_product_ctxt = new Ciphertext(SparkFHE.getInstance().fhe_total_sum(res.getCtxt()));
-        Util.decrypt_and_print(scheme, "Dot product", dot_product_ctxt, false, 0);
+
+        if (Config.DEBUG) {
+            // print out the cipher text vectors after decryption for verification purposes
+            System.out.println("ctxt_a_rdd.count() = " + ctxt_vec_a_rdd.count());
+            ctxt_vec_a_rdd.foreach(data -> {
+                // we need to load the shared library and init a copy of SparkFHE on the executor
+                SparkFHEPlugin.setup();
+                SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+                Util.decrypt_and_print(scheme, "", new Ciphertext(data.getCtxt()), true, 100);
+            });
+            System.out.println("ctxt_b_rdd.count() = " + ctxt_vec_b_rdd.count());
+            ctxt_vec_b_rdd.foreach(data -> {
+                // we need to load the shared library and init a copy of SparkFHE on the executor
+                SparkFHEPlugin.setup();
+                SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+                Util.decrypt_and_print(scheme, "", new Ciphertext(data.getCtxt()), true, 100);
+            });
+
+            System.out.println("combined_ctxt_rdd.count() = " + combined_ctxt_rdd.count());
+
+            Util.decrypt_and_print(scheme, "Dot product", dot_product_ctxt, false, 0);
+        }
     }
 
 
@@ -288,12 +295,16 @@ public class DotProductExample {
 
         // sum up all slots of the result and display
         Ciphertext dot_product_ctxt = new Ciphertext(SparkFHE.getInstance().fhe_total_sum(res.getCtxt()));
-        Util.decrypt_and_print(scheme, "Dot product", dot_product_ctxt, false, 0);
+        if (Config.DEBUG) {
+            Util.decrypt_and_print(scheme, "Dot product", dot_product_ctxt, false, 0);
+        }
     }
 
 
     public static void main(String[] args) {
         String scheme="", library = "", pk="", sk="", rlk="", glk="";
+        long startTime, endTime;
+
         // The variable slices represent the number of time a task is split up
         int slices=2;
 
@@ -336,6 +347,7 @@ public class DotProductExample {
         // Creating a session to Spark. The session allows the creation of the
         // various data abstractions such as RDDs, DataFrame, and more.
         SparkSession spark = SparkSession.builder().config(sparkConf).getOrCreate();
+        spark.sparkContext().setLogLevel("ERROR");
 
         // Creating spark context which allows the communication with worker nodes
         JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());
@@ -358,9 +370,20 @@ public class DotProductExample {
         test_basic_dot_product(jsc, slices);
 
          // testing the dot product operation in HE libraries on cipher text vector.
+        startTime = System.currentTimeMillis();
         test_FHE_dot_product_via_lambda(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
+        endTime = System.currentTimeMillis();
+        System.out.println("batch_FHE_dot_product_via_lambda took " + (endTime - startTime) + " milliseconds");
+
+        startTime = System.currentTimeMillis();
         test_FHE_dot_product_via_native_code(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
+        endTime = System.currentTimeMillis();
+        System.out.println("batch_FHE_dot_product_via_native_code took " + (endTime - startTime) + " milliseconds");
+
+        startTime = System.currentTimeMillis();
         test_FHE_dot_product_via_sql(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
+        endTime = System.currentTimeMillis();
+        System.out.println("batch_FHE_dot_product_via_sql took " + (endTime - startTime) + " milliseconds");
 
         try {
             System.out.println("Paused to allow checking the Spark server log, press enter to continue.");

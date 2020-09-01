@@ -21,7 +21,9 @@ import java.io.File;
 public class KeyGenExample {
 
     public static void main(String args[]) {
-        String scheme="", library = "";
+        String scheme = "", library = "";
+
+        long startTime, endTime;
 
         Config.setExecutionEnvironment(args[0]);
 
@@ -38,7 +40,7 @@ public class KeyGenExample {
             default:
                 break;
         }
-        System.out.println("CURRENT_DIRECTORY = "+Config.get_current_directory());
+        System.out.println("CURRENT_DIRECTORY = " + Config.get_current_directory());
 
         // Load C++ shared library
         SparkFHEPlugin.setup();
@@ -47,8 +49,9 @@ public class KeyGenExample {
 
         // Creates the directory named by the pathname - current_directiory/gen/keys,
         // and including any necessary parent directories.
-         new File(Config.get_keys_directory()).mkdirs();
+        new File(Config.get_keys_directory()).mkdirs();
 
+        startTime = System.currentTimeMillis();
         // Using the object created to call the C++ function to generate the keys.
         SparkFHE.getInstance().generate_key_pair(
                 Config.get_batch_crypto_params_file(library, scheme),
@@ -56,21 +59,25 @@ public class KeyGenExample {
                 Config.get_default_secret_key_file(),
                 Config.get_default_relin_key_file(),
                 Config.get_default_galois_key_file());
+        endTime = System.currentTimeMillis();
+        System.out.println("batch_generate_keys took " + (endTime - startTime) + " milliseconds");
 
-        // Encrypting the literal 1, and decrypting it to verify the keys' accuracy.
-        String inputNumberString="1";
-        Plaintext inputNumberPtxt = SparkFHE.getInstance().encode(inputNumberString);
-        Ciphertext ctxt = SparkFHE.getInstance().encrypt(inputNumberPtxt);
-        Plaintext ptxt = SparkFHE.getInstance().decrypt(ctxt);
+        if (Config.DEBUG) {
+            // Encrypting the literal 1, and decrypting it to verify the keys' accuracy.
+            String inputNumberString = "1";
+            Plaintext inputNumberPtxt = SparkFHE.getInstance().encode(inputNumberString);
+            Ciphertext ctxt = SparkFHE.getInstance().encrypt(inputNumberPtxt);
+            Plaintext ptxt = SparkFHE.getInstance().decrypt(ctxt);
 
-        if (scheme.equalsIgnoreCase(FHEScheme.CKKS)){
-            DoubleVector outputNumberPtxt = new DoubleVector();
-            SparkFHE.getInstance().decode(outputNumberPtxt, ptxt);
-            System.out.println("InputNumber=" + inputNumberString + ", result of dec(enc(InputNumber))=" + String.valueOf(outputNumberPtxt.get(0)));
-        } else { // BGV or BFV
-            LongVector outputNumberPtxt = new LongVector();
-            SparkFHE.getInstance().decode(outputNumberPtxt, ptxt);
-            System.out.println("InputNumber=" + inputNumberString + ", result of dec(enc(InputNumber))=" + String.valueOf(outputNumberPtxt.get(0)));
+            if (scheme.equalsIgnoreCase(FHEScheme.CKKS)) {
+                DoubleVector outputNumberPtxt = new DoubleVector();
+                SparkFHE.getInstance().decode(outputNumberPtxt, ptxt);
+                System.out.println("InputNumber=" + inputNumberString + ", result of dec(enc(InputNumber))=" + String.valueOf(outputNumberPtxt.get(0)));
+            } else { // BGV or BFV
+                LongVector outputNumberPtxt = new LongVector();
+                SparkFHE.getInstance().decode(outputNumberPtxt, ptxt);
+                System.out.println("InputNumber=" + inputNumberString + ", result of dec(enc(InputNumber))=" + String.valueOf(outputNumberPtxt.get(0)));
+            }
         }
     }
 }
