@@ -59,7 +59,6 @@ public class DotProductExample {
             System.out.println("Combined_RDD: ("+data._1 +","+ data._2+")");
         });
 
-        // todo: try out mappartition
         // perform the multiply operator on each of the pairs
         JavaRDD<Integer> Result_RDD = Combined_RDD.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
@@ -121,7 +120,7 @@ public class DotProductExample {
                     SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
                     return new SerializedCiphertextObject(SparkFHE.getInstance().fhe_add(x.getCtxt(), y.getCtxt()));
         });
-//        System.out.println("Dot product: " + SparkFHE.getInstance().decrypt(res.getCtxt(), true));
+        System.out.println("Dot product: " + SparkFHE.getInstance().decrypt(res.getCtxt(), true));
     }
 
 
@@ -147,28 +146,27 @@ public class DotProductExample {
         // https://spark.apache.org/docs/latest/sql-programming-guide.html#untyped-dataset-operations-aka-dataframe-operations
         // Create dataset with json file. See http://jsonlines.org
         JavaRDD<SerializedCiphertextObject> ctxt_vec_a_rdd = spark.read().json(CTXT_Vector_a_FILE).as(ctxtJSONEncoder).javaRDD();
-
         JavaRDD<SerializedCiphertextObject> ctxt_vec_b_rdd = spark.read().json(CTXT_Vector_b_FILE).as(ctxtJSONEncoder).javaRDD();
 
-//        // print out the cipher text vectors after decryption for verification purposes
-//        System.out.println("ctxt_a_rdd.count() = " + ctxt_vec_a_rdd.count());
-//        ctxt_vec_a_rdd.foreach(data -> {
-//            // we need to load the shared library and init a copy of SparkFHE on the executor
-//            SparkFHEPlugin.setup();
-//            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
-//            System.out.println(SparkFHE.getInstance().decrypt(data.getCtxt(), true));
-//        });
-//        System.out.println("ctxt_b_rdd.count() = " + ctxt_vec_b_rdd.count());
-//        ctxt_vec_b_rdd.foreach(data -> {
-//            // we need to load the shared library and init a copy of SparkFHE on the executor
-//            SparkFHEPlugin.setup();
-//            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
-//            System.out.println(SparkFHE.getInstance().decrypt(data.getCtxt(), true));
-//        });
+        // print out the cipher text vectors after decryption for verification purposes
+        System.out.println("ctxt_a_rdd.count() = " + ctxt_vec_a_rdd.count());
+        ctxt_vec_a_rdd.foreach(data -> {
+            // we need to load the shared library and init a copy of SparkFHE on the executor
+            SparkFHEPlugin.setup();
+            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+            System.out.println(SparkFHE.getInstance().decrypt(data.getCtxt(), true));
+        });
+        System.out.println("ctxt_b_rdd.count() = " + ctxt_vec_b_rdd.count());
+        ctxt_vec_b_rdd.foreach(data -> {
+            // we need to load the shared library and init a copy of SparkFHE on the executor
+            SparkFHEPlugin.setup();
+            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+            System.out.println(SparkFHE.getInstance().decrypt(data.getCtxt(), true));
+        });
 
         // combine both rdds as a pair
         JavaPairRDD<SerializedCiphertextObject, SerializedCiphertextObject> combined_ctxt_rdd = ctxt_vec_a_rdd.zip(ctxt_vec_b_rdd);
-//        System.out.println("combined_ctxt_rdd.count() = " + combined_ctxt_rdd.count());
+        System.out.println("combined_ctxt_rdd.count() = " + combined_ctxt_rdd.count());
 
         // call homomorphic doc product operators on the rdds
         JavaRDD<SerializedCiphertextObject> collection = combined_ctxt_rdd.mapPartitions(records -> {
@@ -197,7 +195,7 @@ public class DotProductExample {
         });
 
         // decrypt the result and verify it
-//        System.out.println("Dot product: " + SparkFHE.getInstance().decrypt(res.getCtxt(), true));
+        System.out.println("Dot product: " + SparkFHE.getInstance().decrypt(res.getCtxt(), true));
     }
 
 
@@ -287,7 +285,7 @@ public class DotProductExample {
         });
 
         // decrypt the result to verify it
-//        System.out.println("Dot product: " + SparkFHE.getInstance().decrypt(res.getCtxt(), true));
+        System.out.println("Dot product: " + SparkFHE.getInstance().decrypt(res.getCtxt(), true));
     }
 
 

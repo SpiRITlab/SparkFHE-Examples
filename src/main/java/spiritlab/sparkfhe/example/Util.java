@@ -48,6 +48,7 @@ public class Util {
             DoubleVector output_vec = new DoubleVector();
             SparkFHE.getInstance().decode(output_vec, SparkFHE.getInstance().decrypt(ctxt));
             if (loop) {
+                if (bound == 0) bound = output_vec.size();
                 for (int i = 0; i < bound; i++){
                     System.out.println(output_label + String.valueOf(output_vec.get(i)));
                 }
@@ -58,6 +59,7 @@ public class Util {
             LongVector output_vec = new LongVector();
             SparkFHE.getInstance().decode(output_vec, SparkFHE.getInstance().decrypt(ctxt));
             if (loop) {
+                if (bound == 0) bound = output_vec.size();
                 for (int i = 0; i < bound; i++){
                     System.out.println(output_label + String.valueOf(output_vec.get(i)));
                 }
@@ -75,6 +77,7 @@ public class Util {
             DoubleVector output_vec = new DoubleVector();
             SparkFHE.getInstance().decode(output_vec, ptxt);
             if (loop) {
+                if (bound == 0) bound = output_vec.size();
                 for (int i = 0; i < bound; i++){
                     System.out.println(output_label + String.valueOf(output_vec.get(i)));
                 }
@@ -85,6 +88,7 @@ public class Util {
             LongVector output_vec = new LongVector();
             SparkFHE.getInstance().decode(output_vec, ptxt);
             if (loop) {
+                if (bound == 0) bound = output_vec.size();
                 for (int i = 0; i < bound; i++){
                     System.out.println(output_label + String.valueOf(output_vec.get(i)));
                 }

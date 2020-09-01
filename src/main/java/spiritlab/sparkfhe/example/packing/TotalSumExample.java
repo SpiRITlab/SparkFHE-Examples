@@ -82,7 +82,7 @@ public class TotalSumExample {
 
         // Create rdd with json line file.
         JavaRDD<SerializedCiphertextObject> ctxt_vec_rdd = spark.read().json(CTXT_Vector_FILE).as(ctxtJSONEncoder).javaRDD();
-//        System.out.println("Partitions:"+ctxt_vec_rdd.partitions().size());
+        System.out.println("Partitions:"+ctxt_vec_rdd.partitions().size());
 
         ctxt_vec_rdd.reduce((x, y) -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
@@ -120,13 +120,13 @@ public class TotalSumExample {
         JavaRDD<SerializedCiphertextObject> ctxt_vec_rdd = spark.read().json(CTXT_Vector_FILE).as(ctxtJSONEncoder).javaRDD();
 
         // print out the cipher text vectors after decryption for verification purposes
-//        System.out.println("ctxt_vec_rdd.count() = " + ctxt_vec_rdd.count());
-//        ctxt_vec_rdd.foreach(data -> {
-//            // we need to load the shared library and init a copy of SparkFHE on the executor
-//            SparkFHEPlugin.setup();
-//            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
-//            Util.decrypt_and_print(scheme, "", new Ciphertext(data.getCtxt()), true, 100);
-//        });
+        System.out.println("ctxt_vec_rdd.count() = " + ctxt_vec_rdd.count());
+        ctxt_vec_rdd.foreach(data -> {
+            // we need to load the shared library and init a copy of SparkFHE on the executor
+            SparkFHEPlugin.setup();
+            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+            Util.decrypt_and_print(scheme, "", new Ciphertext(data.getCtxt()), true, 100);
+        });
 
         // call homomorphic array sum operator on the rdd
         JavaRDD<SerializedCiphertextObject> collection = ctxt_vec_rdd.mapPartitions(records -> {
@@ -154,7 +154,7 @@ public class TotalSumExample {
 
         // sum up the slots of the result and display to verify it
         Ciphertext total_sum_ctxt = new Ciphertext(SparkFHE.getInstance().fhe_total_sum(res.getCtxt()));
-//        Util.decrypt_and_print(scheme, "Total Sum", total_sum_ctxt, false, 0);
+        Util.decrypt_and_print(scheme, "Total Sum", total_sum_ctxt, false, 0);
     }
 
 

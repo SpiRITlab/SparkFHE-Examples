@@ -32,10 +32,10 @@ public class EncDecExample {
     public static void encrypt_data() {
         // Generate two ciphertexts and store them to the pre-defined file location
         System.out.println("Storing ciphertext to "+CTXT_0_FILE);
-        SparkFHE.getInstance().store_ciphertext_to_file( Config.Ciphertext_Label, SparkFHE.getInstance().encrypt(new Plaintext(0)).toString(), CTXT_0_FILE);
+        SparkFHE.getInstance().store_ciphertext_to_file( Config.Ciphertext_Label, SparkFHE.getInstance().encrypt(new Plaintext(String.valueOf(0))).toString(), CTXT_0_FILE);
 
         System.out.println("Storing ciphertext to "+CTXT_1_FILE);
-        SparkFHE.getInstance().store_ciphertext_to_file( Config.Ciphertext_Label, SparkFHE.getInstance().encrypt(new Plaintext(1)).toString(), CTXT_0_FILE);
+        SparkFHE.getInstance().store_ciphertext_to_file( Config.Ciphertext_Label, SparkFHE.getInstance().encrypt(new Plaintext(String.valueOf(0))).toString(), CTXT_1_FILE);
     }
 
     public static void encrypt_vector(String scheme, long row) {
@@ -111,7 +111,7 @@ public class EncDecExample {
         SparkFHE.getInstance().store_ciphertexts_to_file(Config.Ciphertext_Label, ctxt_mat_1, CTXT_Matrix_a_FILE);
 
         CiphertextVector ctxt_mat_2 = SparkFHE.getInstance().encrypt(ptxt_mat_2);
-        SparkFHE.getInstance().store_ciphertexts_to_file(Config.Ciphertext_Label, ctxt_mat_1, CTXT_Matrix_b_FILE);
+        SparkFHE.getInstance().store_ciphertexts_to_file(Config.Ciphertext_Label, ctxt_mat_2, CTXT_Matrix_b_FILE);
     }
 
     public static void main(String args[]) {
@@ -128,20 +128,30 @@ public class EncDecExample {
                 scheme = args[3];
                 pk = args[4];
                 sk = args[5];
-                rlk = args[6];
-                glk = args[7];
-                row = Long.valueOf(args[8]);
-                col = Long.valueOf(args[9]);
+                if (library.equalsIgnoreCase(FHELibrary.SEAL)) {
+                    rlk = args[6];
+                    glk = args[7];
+                    row = Long.valueOf(args[8]);
+                    col = Long.valueOf(args[9]);
+                } else {
+                    row = Long.valueOf(args[6]);
+                    col = Long.valueOf(args[7]);
+                }
                 break;
             case LOCAL:
                 library = args[1];
                 scheme = args[2];
                 pk = args[3];
                 sk = args[4];
-                rlk = args[5];
-                glk = args[6];
-                row = Long.valueOf(args[7]);
-                col = Long.valueOf(args[8]);
+                if (library.equalsIgnoreCase(FHELibrary.SEAL)) {
+                    rlk = args[5];
+                    glk = args[6];
+                    row = Long.valueOf(args[7]);
+                    col = Long.valueOf(args[8]);
+                } else {
+                    row = Long.valueOf(args[5]);
+                    col = Long.valueOf(args[6]);
+                }
                 break;
             default:
                 break;
@@ -183,9 +193,11 @@ public class EncDecExample {
         if (scheme.equalsIgnoreCase(FHEScheme.CKKS)){
             DoubleVector outputNumberPtxt = new DoubleVector();
             SparkFHE.getInstance().decode(outputNumberPtxt, inputNumberPtxt_returned);
+            System.out.println("InputNumber=" + inputNumberString + ", result of dec(enc(InputNumber))=" + String.valueOf(outputNumberPtxt.get(0)));
         } else {
             LongVector outputNumberPtxt = new LongVector();
             SparkFHE.getInstance().decode(outputNumberPtxt, inputNumberPtxt_returned);
+            System.out.println("InputNumber=" + inputNumberString + ", result of dec(enc(InputNumber))=" + String.valueOf(outputNumberPtxt.get(0)));
         }
 
         // read in the cipher text from file and store them as Strings
@@ -194,5 +206,8 @@ public class EncDecExample {
 
         // perform homomorphic addition on the ciphertext
         Ciphertext ctxtresult = new Ciphertext(SparkFHE.getInstance().do_FHE_basic_op(ctxt_0_string, ctxt_1_string, SparkFHE.FHE_ADD));
+
+        // decrypt the result and display it
+        Util.decrypt_and_print(scheme, "0 + 1", ctxtresult );
     }
 }

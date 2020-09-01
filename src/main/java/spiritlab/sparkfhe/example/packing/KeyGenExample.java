@@ -66,10 +66,11 @@ public class KeyGenExample {
         if (scheme.equalsIgnoreCase(FHEScheme.CKKS)){
             DoubleVector outputNumberPtxt = new DoubleVector();
             SparkFHE.getInstance().decode(outputNumberPtxt, ptxt);
+            System.out.println("InputNumber=" + inputNumberString + ", result of dec(enc(InputNumber))=" + String.valueOf(outputNumberPtxt.get(0)));
         } else { // BGV or BFV
             LongVector outputNumberPtxt = new LongVector();
             SparkFHE.getInstance().decode(outputNumberPtxt, ptxt);
+            System.out.println("InputNumber=" + inputNumberString + ", result of dec(enc(InputNumber))=" + String.valueOf(outputNumberPtxt.get(0)));
         }
-
     }
 }

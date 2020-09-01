@@ -30,10 +30,10 @@ public class EncDecExample {
     public static void encrypt_data() {
         // Generate two ciphertexts and store them to the pre-defined file location
         System.out.println("Storing ciphertext to "+CTXT_0_FILE);
-        SparkFHE.getInstance().store_ciphertext_to_file( Config.Ciphertext_Label, SparkFHE.getInstance().encrypt(new Plaintext(0)).toString(), CTXT_0_FILE);
+        SparkFHE.getInstance().store_ciphertext_to_file( Config.Ciphertext_Label, SparkFHE.getInstance().encrypt(new Plaintext(String.valueOf(0))).toString(), CTXT_0_FILE);
 
         System.out.println("Storing ciphertext to "+CTXT_1_FILE);
-        SparkFHE.getInstance().store_ciphertext_to_file( Config.Ciphertext_Label, SparkFHE.getInstance().encrypt(new Plaintext(1)).toString(), CTXT_0_FILE);
+        SparkFHE.getInstance().store_ciphertext_to_file( Config.Ciphertext_Label, SparkFHE.getInstance().encrypt(new Plaintext(String.valueOf(1))).toString(), CTXT_1_FILE);
     }
 
     public static void encrypt_vector(long vecSize) {
@@ -68,18 +68,26 @@ public class EncDecExample {
                 scheme = args[3];
                 pk = args[4];
                 sk = args[5];
-                rlk = args[6];
-                glk = args[7];
-                vecSize = Long.valueOf(args[8]);
+                if (library.equalsIgnoreCase(FHELibrary.SEAL)) {
+                    rlk = args[6];
+                    glk = args[7];
+                    vecSize = Long.valueOf(args[8]);
+                } else {
+                    vecSize = Long.valueOf(args[6]);
+                }
                 break;
             case LOCAL:
                 library = args[1];
                 scheme = args[2];
                 pk = args[3];
                 sk = args[4];
-                rlk = args[5];
-                glk = args[6];
-                vecSize = Long.valueOf(args[7]);
+                if (library.equalsIgnoreCase(FHELibrary.SEAL)) {
+                    rlk = args[5];
+                    glk = args[6];
+                    vecSize = Long.valueOf(args[7]);
+                } else {
+                    vecSize = Long.valueOf(args[5]);
+                }
                 break;
             default:
                 break;
@@ -112,7 +120,7 @@ public class EncDecExample {
         Plaintext inputNumberPtxt = new Plaintext(inputNumberString);
         Ciphertext inputNumberCtxt = SparkFHE.getInstance().encrypt(inputNumberPtxt);
         Plaintext inputNumberPtxt_returned = SparkFHE.getInstance().decrypt(inputNumberCtxt, true);
-//        System.out.println("InputNumber="+inputNumberString + ", result of dec(enc(InputNumber))="+inputNumberPtxt_returned.toString());
+        System.out.println("InputNumber="+inputNumberString + ", result of dec(enc(InputNumber))="+inputNumberPtxt_returned.toString());
 
 
         // read in the cipher text from file and store them as Strings
@@ -122,6 +130,6 @@ public class EncDecExample {
         // perform homomorphic addition on the cipertext
         Ciphertext ctxtresult = new Ciphertext(SparkFHE.getInstance().do_FHE_basic_op(ctxt_0_string, ctxt_1_string, SparkFHE.FHE_ADD));
         // decrypt the result and display it
-//        System.out.println("0+1="+SparkFHE.getInstance().decrypt(ctxtresult, true).toString());
+        System.out.println("0+1="+SparkFHE.getInstance().decrypt(ctxtresult, true).toString());
     }
 }
