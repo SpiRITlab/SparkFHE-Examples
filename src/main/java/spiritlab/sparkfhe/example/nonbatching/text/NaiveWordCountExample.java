@@ -3,7 +3,7 @@
 // https://github.com/SpiRITlab
 //
 
-package spiritlab.sparkfhe.example.text;
+package spiritlab.sparkfhe.example.nonbatching.text;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
@@ -38,7 +38,7 @@ public class NaiveWordCountExample {
 
     // ASCII representation of the salt is as long as the generated hash.
     // In practice a random salt should be generated for each run of word count
-    // to prevent an advesary from generating a lookup table to reverse the 
+    // to prevent an advesary from generating a lookup table to reverse the
     // encoding of the words.
     private static String m_salt = "InPracticeUseARandom32ByteString";
 

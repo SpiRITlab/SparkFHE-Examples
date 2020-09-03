@@ -4,7 +4,7 @@
 //
 
 
-package spiritlab.sparkfhe.example.text;
+package spiritlab.sparkfhe.example.nonbatching.text;
 
 import java.util.List;
 import java.util.Scanner;
@@ -58,7 +58,7 @@ public class FHEWordCountExample {
         }
 
         // Convert words to a vector of 64 bit integers (CRC64 encoded words)
-        
+
 
 
         //// Convert to FHE Ciphertexts using native call

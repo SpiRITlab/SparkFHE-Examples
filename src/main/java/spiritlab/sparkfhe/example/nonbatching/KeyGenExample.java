@@ -3,14 +3,10 @@
 // https://github.com/SpiRITlab
 //
 
-package spiritlab.sparkfhe.example.basic;
+package spiritlab.sparkfhe.example.nonbatching;
 
-import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.spiritlab.sparkfhe.SparkFHEPlugin;
-import org.apache.spark.sql.SparkSession;
 import spiritlab.sparkfhe.api.Ciphertext;
-import spiritlab.sparkfhe.api.FHELibrary;
 import spiritlab.sparkfhe.api.Plaintext;
 import spiritlab.sparkfhe.api.SparkFHE;
 import spiritlab.sparkfhe.example.Config;
@@ -60,7 +56,7 @@ public class KeyGenExample {
                 Config.get_default_secret_key_file(),
                 Config.get_default_relin_key_file(),
                 Config.get_default_galois_key_file());
-      
+
         // Encrypting the literal 1, and decrypting it to verify the keys' accuracy.
         String inputNumberString="1";
         Plaintext inputNumberPtxt = new Plaintext(inputNumberString);

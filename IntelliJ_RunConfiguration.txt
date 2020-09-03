@@ -7,13 +7,13 @@ To run these examples (except junit tests), you need to configure your run envir
 
 * Program arguments (different for each example)
 
+Note, you can replace `HELIB BGV` with `HELIB CKKS`, `SEAL BFV`, or `SEAL CKKS`.
+
 KeyGenExamples:
 local HELIB BGV
 
-
 EncDecExample:
-local HELIB BGV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/keys/my_relin_keys.txt gen/keys/my_galois_keys.txt
-
+local HELIB BGV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt
 
 BasicOPsExample
 local HELIB BGV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/keys/my_relin_keys.txt gen/keys/my_galois_keys.txt

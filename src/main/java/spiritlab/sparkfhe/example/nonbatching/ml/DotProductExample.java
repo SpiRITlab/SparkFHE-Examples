@@ -3,15 +3,13 @@
 // https://github.com/SpiRITlab
 //
 
-package spiritlab.sparkfhe.example.ml;
+package spiritlab.sparkfhe.example.nonbatching.ml;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.ml_fhe.linalg.CtxtVectorUDT;
-import org.apache.spark.mllib.linalg.Vector;
-import org.apache.spark.mllib.linalg.Vectors;
 import org.apache.spark.mllib_fhe.linalg.CtxtVector;
 import org.apache.spark.mllib_fhe.linalg.CtxtVectors;
 import org.apache.spark.spiritlab.sparkfhe.SparkFHEPlugin;
@@ -26,7 +24,6 @@ import scala.runtime.AbstractFunction2;
 import scala.runtime.BoxedUnit;
 import spiritlab.sparkfhe.api.Ciphertext;
 import spiritlab.sparkfhe.api.FHELibrary;
-import spiritlab.sparkfhe.api.FHEScheme;
 import spiritlab.sparkfhe.api.SparkFHE;
 import spiritlab.sparkfhe.example.Config;
 

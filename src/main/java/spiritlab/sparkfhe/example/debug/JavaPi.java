@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package spiritlab.sparkfhe.example.basic;
+package spiritlab.sparkfhe.example.debug;
 
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -23,8 +23,6 @@ import org.apache.spark.sql.SparkSession;
 
 import java.util.ArrayList;
 import java.util.List;
-
-
 
 public final class JavaPi {
 

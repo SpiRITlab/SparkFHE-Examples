@@ -5,7 +5,7 @@
 
 //https://github.com/apache/spark/blob/master/examples/src/main/java/org/apache/spark/examples/ml/JavaElementwiseProductExample.java
 
-package spiritlab.sparkfhe.example.ml;
+package spiritlab.sparkfhe.example.nonbatching.ml;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -28,7 +28,6 @@ import org.apache.spark.sql.types.StructType;
 import org.apache.spark.api.java.JavaRDD;
 import scala.runtime.AbstractFunction2;
 import scala.runtime.BoxedUnit;
-import static spiritlab.sparkfhe.api.Ciphertext.*;
 
 import spiritlab.sparkfhe.api.*;
 import spiritlab.sparkfhe.example.Config;

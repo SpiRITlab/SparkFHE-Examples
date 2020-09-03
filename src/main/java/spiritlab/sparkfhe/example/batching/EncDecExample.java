@@ -3,9 +3,8 @@
 // https://github.com/SpiRITlab
 //
 
-package spiritlab.sparkfhe.example.packing;
+package spiritlab.sparkfhe.example.batching;
 
-import org.apache.spark.SparkConf;
 import org.apache.spark.spiritlab.sparkfhe.SparkFHEPlugin;
 import spiritlab.sparkfhe.api.*;
 import spiritlab.sparkfhe.example.Config;

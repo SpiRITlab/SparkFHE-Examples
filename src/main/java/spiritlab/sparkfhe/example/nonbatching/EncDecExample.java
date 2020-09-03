@@ -3,9 +3,8 @@
 // https://github.com/SpiRITlab
 //
 
-package spiritlab.sparkfhe.example.basic;
+package spiritlab.sparkfhe.example.nonbatching;
 
-import org.apache.spark.SparkConf;
 import org.apache.spark.spiritlab.sparkfhe.SparkFHEPlugin;
 import spiritlab.sparkfhe.api.*;
 import spiritlab.sparkfhe.example.Config;
@@ -16,7 +15,6 @@ import spiritlab.sparkfhe.example.Config;
  */
 
 import java.io.File;
-import java.util.Vector;
 
 public class EncDecExample {
 
@@ -67,7 +65,7 @@ public class EncDecExample {
         Ciphertext inputNumberCtxt = SparkFHE.getInstance().encrypt(inputNumberPtxt);
         Plaintext inputNumberPtxt_returned = SparkFHE.getInstance().decrypt(inputNumberCtxt, true);
         System.out.println("InputNumber="+inputNumberString + ", result of dec(enc(InputNumber))="+inputNumberPtxt_returned.toString());
-	
+
 	    // store the cipher text to the pre-defined file location
         for (int l=0; l<2; l++) {
             System.out.println("Storing ciphertext to "+Config.get_records_directory()+"/ptxt_long_"+String.valueOf(l)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl");
