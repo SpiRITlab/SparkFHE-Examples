@@ -44,7 +44,6 @@ public class KeyGenExample {
         // Create SparkFHE object with library
         SparkFHE.init(library, scheme);
 
-
         // Creates the directory named by the pathname - current_directiory/gen/keys,
         // and including any necessary parent directories.
          new File(Config.get_keys_directory()).mkdirs();
@@ -53,9 +52,7 @@ public class KeyGenExample {
         SparkFHE.getInstance().generate_key_pair(
                 Config.get_default_crypto_params_file(library),
                 Config.get_default_public_key_file(),
-                Config.get_default_secret_key_file(),
-                Config.get_default_relin_key_file(),
-                Config.get_default_galois_key_file());
+                Config.get_default_secret_key_file());
 
         // Encrypting the literal 1, and decrypting it to verify the keys' accuracy.
         String inputNumberString="1";
@@ -66,7 +63,5 @@ public class KeyGenExample {
 
         // Printing out the result
         System.out.println("InputNumber="+inputNumberString + ", result of dec(enc(InputNumber))="+ptxt.toString());
-
     }
-
 }

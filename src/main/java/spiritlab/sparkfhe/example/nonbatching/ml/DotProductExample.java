@@ -40,7 +40,7 @@ public class DotProductExample {
 
     // ciphertext version; dot-product((1,1,1),(1,1,1)) the result is in the first index.
     public static void RunCtxtExample(SparkSession spark, int slices, String library, String scheme, Broadcast<String> pk_b,
-                                      Broadcast<String> sk_b, Broadcast<String> rlk_b, Broadcast<String> glk_b) {
+                                      Broadcast<String> sk_b) {
         System.out.println("RunCtxtExample");
         // Create some vector data; also works for sparse vectors
         String zero_ctxt = SparkFHE.getInstance().read_ciphertext_from_file_as_string(Config.Ciphertext_Label, CTXT_0_FILE);
@@ -84,7 +84,7 @@ public class DotProductExample {
 
     // ciphertext version using RDD; dot-product((1,1,1),(1,1,1)) the result is in the first index.
     public static void RunCtxtRDDExample(JavaSparkContext jsc, int slices, String library, String scheme, Broadcast<String> pk_b,
-                                         Broadcast<String> sk_b, Broadcast<String> rlk_b, Broadcast<String> glk_b) {
+                                         Broadcast<String> sk_b) {
         System.out.println("RunCtxtRDDExample");
         String zero_ctxt = SparkFHE.getInstance().read_ciphertext_from_file_as_string(Config.Ciphertext_Label, CTXT_0_FILE);
         String one_ctxt = SparkFHE.getInstance().read_ciphertext_from_file_as_string(Config.Ciphertext_Label,CTXT_1_FILE);
@@ -128,7 +128,7 @@ public class DotProductExample {
     }
 
     public static void main(String[] args) {
-        String scheme="", library = "", pk="", sk="", rlk="", glk="";
+        String scheme="", library = "", pk="", sk="";
 
         // The variable slices represent the number of time a task is split up
         int slices = 2;
@@ -147,10 +147,6 @@ public class DotProductExample {
                 scheme = args[3];
                 pk = args[4];
                 sk = args[5];
-                if (library == FHELibrary.SEAL){
-                    rlk = args[6];
-                    glk = args[7];
-                }
                 break;
             case LOCAL:
                 sparkConf.setMaster("local");
@@ -158,10 +154,6 @@ public class DotProductExample {
                 scheme = args[2];
                 pk = args[3];
                 sk = args[4];
-                if (library == FHELibrary.SEAL){
-                    rlk = args[5];
-                    glk = args[6];
-                }
                 break;
             default:
                 break;
@@ -189,21 +181,18 @@ public class DotProductExample {
         // Load C++ shared library
         SparkFHEPlugin.setup();
         // Create SparkFHE object with HElib, a library that implements homomorphic encryption
-        SparkFHE.init(library, scheme, pk, sk, rlk, glk);
+        SparkFHE.init(library, scheme, pk, sk);
 
         CTXT_0_FILE = Config.get_records_directory() + "/ptxt_long_0_"+ SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";
         CTXT_1_FILE = Config.get_records_directory() +"/ptxt_long_1_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";
 
         Broadcast<String> pk_b = jsc.broadcast(pk);
         Broadcast<String> sk_b = jsc.broadcast(sk);
-        Broadcast<String> rlk_b = jsc.broadcast(rlk);
-        Broadcast<String> glk_b = jsc.broadcast(glk);
 
-        RunCtxtExample(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
-        RunCtxtRDDExample(jsc, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
+        RunCtxtExample(spark, slices, library, scheme, pk_b, sk_b);
+        RunCtxtRDDExample(jsc, slices, library, scheme, pk_b, sk_b);
 
         jsc.close();
         spark.close();
     }
-
 }

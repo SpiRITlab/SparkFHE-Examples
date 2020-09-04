@@ -17,86 +17,8 @@ import java.io.File;
 
 public class EncDecExample {
 
-    public static void decrypt_and_print(String scheme, String output_label, Ciphertext ctxt){
-        if (scheme.equalsIgnoreCase(FHEScheme.CKKS)){
-            DoubleVector output_vec = new DoubleVector();
-            SparkFHE.getInstance().decode(output_vec, SparkFHE.getInstance().decrypt(ctxt));
-            System.out.println(output_label + " = " + String.valueOf(output_vec.get(0)));
-        } else { // BGV or BFV
-            LongVector output_vec = new LongVector();
-            SparkFHE.getInstance().decode(output_vec, SparkFHE.getInstance().decrypt(ctxt));
-            System.out.println(output_label + " = " + String.valueOf(output_vec.get(0)));
-        }
-    }
-
-    public static void decode_and_print(String scheme, String output_label, Plaintext ptxt){
-        if (scheme.equalsIgnoreCase(FHEScheme.CKKS)){
-            DoubleVector output_vec = new DoubleVector();
-            SparkFHE.getInstance().decode(output_vec, ptxt);
-            System.out.println(output_label + " = " + String.valueOf(output_vec.get(0)));
-        } else { // BGV or BFV
-            LongVector output_vec = new LongVector();
-            SparkFHE.getInstance().decode(output_vec, ptxt);
-            System.out.println(output_label + " = " + String.valueOf(output_vec.get(0)));
-        }
-    }
-
-    public static void main(String args[]) {
-        String scheme="", library = "", pk="", sk="", rlk="", glk="";
-
-        Config.setExecutionEnvironment(args[0]);
-        switch (Config.currentExecutionEnvironment) {
-            case CLUSTER:
-                Config.set_HDFS_NAME_NODE(args[1]);
-                library = args[2];
-                scheme = args[3];
-                pk = args[4];
-                sk = args[5];
-                if (library.equalsIgnoreCase(FHELibrary.SEAL)){
-                    rlk = args[6];
-                    glk = args[7];
-                }
-                break;
-            case LOCAL:
-                library = args[1];
-                scheme = args[2];
-                pk = args[3];
-                sk = args[4];
-                if (library.equalsIgnoreCase(FHELibrary.SEAL)){
-                    rlk = args[5];
-                    glk = args[6];
-                }
-                break;
-            default:
-                break;
-        }
-        System.out.println("CURRENT_DIRECTORY = "+Config.get_current_directory());
-
-        // required to load our shared library
-        SparkFHEPlugin.setup();
-        // create SparkFHE object
-        SparkFHE.init(library, scheme, pk, sk, rlk, glk);
-
-        new File(Config.get_records_directory()).mkdirs();
-        String CTXT_0_FILE = Config.get_records_directory() + "/packed_ptxt_long_0_"+ SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";
-        String CTXT_1_FILE = Config.get_records_directory() +"/packed_ptxt_long_1_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";
-
-        // initialize a literal 1, encrypt it and decrypted it to verify the cryptography functions
-        String inputNumberString="1";
-        Plaintext inputNumberPtxt = SparkFHE.getInstance().encode(inputNumberString);
-        Ciphertext inputNumberCtxt = SparkFHE.getInstance().encrypt(inputNumberPtxt);
-        Plaintext inputNumberPtxt_returned = SparkFHE.getInstance().decrypt(inputNumberCtxt);
-        if (scheme.equalsIgnoreCase(FHEScheme.CKKS)){
-            DoubleVector outputNumberPtxt = new DoubleVector();
-            SparkFHE.getInstance().decode(outputNumberPtxt, inputNumberPtxt_returned);
-            System.out.println("InputNumber=" + inputNumberString + ", result of dec(enc(InputNumber))=" + String.valueOf(outputNumberPtxt.get(0)));
-        } else {
-            LongVector outputNumberPtxt = new LongVector();
-            SparkFHE.getInstance().decode(outputNumberPtxt, inputNumberPtxt_returned);
-            System.out.println("InputNumber=" + inputNumberString + ", result of dec(enc(InputNumber))=" + String.valueOf(outputNumberPtxt.get(0)));
-        }
-
-	    // store the cipher text to the pre-defined file location
+    private static void encrypt_data(){
+        // store the ciphertexts to the pre-defined file location
         for (int l=0; l<2; l++) {
             System.out.println("Storing ciphertext to "+Config.get_records_directory()+"/packed_ptxt_long_"+String.valueOf(l)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl");
             SparkFHE.getInstance().store_ciphertext_to_file(
@@ -104,18 +26,9 @@ public class EncDecExample {
                     SparkFHE.getInstance().encrypt(SparkFHE.getInstance().encode(String.valueOf(l))).toString(),
                     Config.get_records_directory()+"/packed_ptxt_long_"+String.valueOf(l)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl");
         }
+    }
 
-        String ctxt_0_string, ctxt_1_string;
-
-        // read in the cipher text from file and store them as Strings
-        ctxt_0_string = SparkFHE.getInstance().read_ciphertext_from_file_as_string(Config.Ciphertext_Label, CTXT_0_FILE);
-        ctxt_1_string = SparkFHE.getInstance().read_ciphertext_from_file_as_string(Config.Ciphertext_Label, CTXT_1_FILE);
-
-        // perform homomorphic addition on the ciphertext
-        Ciphertext ctxtresult = new Ciphertext(SparkFHE.getInstance().do_FHE_basic_op(ctxt_0_string, ctxt_1_string, SparkFHE.FHE_ADD));
-        // decrypt the result and display it
-        decrypt_and_print(scheme, "0 + 1", ctxtresult );
-
+    private static void encrypt_vector(String scheme){
         /* generating vectors of ctxt */
         Plaintext ptxt_1, ptxt_2;
         int ptxtMod_half = 10;
@@ -166,8 +79,10 @@ public class EncDecExample {
         }
         Ciphertext ctxt = SparkFHE.getInstance().encrypt(ptxt);
         SparkFHE.getInstance().store_ciphertext_to_file(Config.Ciphertext_Label, ctxt.toString(), Config.get_records_directory()+"/packed_ctxt_"+String.valueOf(100)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+".jsonl");
+    }
 
-        // Generate two matrices of size 10x10
+    private static void encrypt_matrix(String scheme){
+        /* generating two matrices of ctxt of size 10x10 */
         PlaintextVector ptxt_mat_1 = new PlaintextVector();
         PlaintextVector ptxt_mat_2 = new PlaintextVector();
 
@@ -210,5 +125,68 @@ public class EncDecExample {
             Ciphertext ctxt_mat_2 = SparkFHE.getInstance().encrypt(ptxt_mat_2.get(i));
             SparkFHE.getInstance().store_ciphertext_to_file(Config.Ciphertext_Label, ctxt_mat_2.toString(), Config.get_records_directory()+"/packed_matrix_b_"+String.valueOf(10*10)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+".jsonl");
         }
+    }
+
+    public static void main(String args[]) {
+        String scheme="", library = "", pk="", sk="";
+
+        Config.setExecutionEnvironment(args[0]);
+        switch (Config.currentExecutionEnvironment) {
+            case CLUSTER:
+                Config.set_HDFS_NAME_NODE(args[1]);
+                library = args[2];
+                scheme = args[3];
+                pk = args[4];
+                sk = args[5];
+                break;
+            case LOCAL:
+                library = args[1];
+                scheme = args[2];
+                pk = args[3];
+                sk = args[4];
+                break;
+            default:
+                break;
+        }
+        System.out.println("CURRENT_DIRECTORY = "+Config.get_current_directory());
+
+        // required to load our shared library
+        SparkFHEPlugin.setup();
+        // create SparkFHE object
+        SparkFHE.init(library, scheme, pk, sk);
+
+        new File(Config.get_records_directory()).mkdirs();
+
+        // generate encrypted digits, vectors, and matrcies required for the batching examples
+        encrypt_data();
+        encrypt_vector(scheme);
+        encrypt_matrix(scheme);
+
+        String CTXT_0_FILE = Config.get_records_directory() + "/packed_ptxt_long_0_"+ SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";
+        String CTXT_1_FILE = Config.get_records_directory() +"/packed_ptxt_long_1_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";
+
+        // initialize a literal 1, encrypt it and decrypted it to verify the cryptography functions
+        String inputNumberString="1";
+        Plaintext inputNumberPtxt = SparkFHE.getInstance().encode(inputNumberString);
+        Ciphertext inputNumberCtxt = SparkFHE.getInstance().encrypt(inputNumberPtxt);
+        Plaintext inputNumberPtxt_returned = SparkFHE.getInstance().decrypt(inputNumberCtxt);
+        if (scheme.equalsIgnoreCase(FHEScheme.CKKS)){
+            DoubleVector outputNumberPtxt = new DoubleVector();
+            SparkFHE.getInstance().decode(outputNumberPtxt, inputNumberPtxt_returned);
+            System.out.println("InputNumber=" + inputNumberString + ", result of dec(enc(InputNumber))=" + String.valueOf(outputNumberPtxt.get(0)));
+        } else {
+            LongVector outputNumberPtxt = new LongVector();
+            SparkFHE.getInstance().decode(outputNumberPtxt, inputNumberPtxt_returned);
+            System.out.println("InputNumber=" + inputNumberString + ", result of dec(enc(InputNumber))=" + String.valueOf(outputNumberPtxt.get(0)));
+        }
+
+        // read in the cipher text from file and store them as Strings
+        String ctxt_0_string = SparkFHE.getInstance().read_ciphertext_from_file_as_string(Config.Ciphertext_Label, CTXT_0_FILE);
+        String ctxt_1_string = SparkFHE.getInstance().read_ciphertext_from_file_as_string(Config.Ciphertext_Label, CTXT_1_FILE);
+
+        // perform homomorphic addition on the ciphertext
+        Ciphertext ctxtresult = new Ciphertext(SparkFHE.getInstance().fhe_add(ctxt_0_string, ctxt_1_string));
+        // decrypt the result and display it
+        Util.decrypt_and_print(scheme, "0 + 1", ctxtresult );
     }
 }

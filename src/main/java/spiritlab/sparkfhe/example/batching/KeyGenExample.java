@@ -50,9 +50,7 @@ public class KeyGenExample {
         SparkFHE.getInstance().generate_key_pair(
                 Config.get_batch_crypto_params_file(library, scheme),
                 Config.get_default_public_key_file(),
-                Config.get_default_secret_key_file(),
-                Config.get_default_relin_key_file(),
-                Config.get_default_galois_key_file());
+                Config.get_default_secret_key_file());
 
         // Encrypting the literal 1, and decrypting it to verify the keys' accuracy.
         String inputNumberString="1";

@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="HELIB-CKKS-KeyGen" type="Application" factoryName="Application">
-    <option name="MAIN_CLASS_NAME" value="spiritlab.sparkfhe.example.nonbatching.KeyGenExample" />
+  <configuration default="false" name="HELIB-CKKS-KeyGen-Batching" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="spiritlab.sparkfhe.example.batching.KeyGenExample" />
     <module name="sparkfhe-examples" />
     <option name="PROGRAM_PARAMETERS" value="local HELIB CKKS" />
     <option name="VM_PARAMETERS" value="-Djava.library.path=deps/lib" />

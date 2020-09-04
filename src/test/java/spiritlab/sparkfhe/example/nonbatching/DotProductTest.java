@@ -93,12 +93,12 @@ public class DotProductTest {
         });
 
         JavaRDD<Integer> Result_RDD = Combined_RDD.map(tuple -> {
-            return SparkFHE.do_basic_op(tuple._1(), tuple._2(), SparkFHE.MUL);
+            return (tuple._1()*tuple._2());
         });
 
         // TODO need to use plaintext module
         assertEquals(10, (int)Result_RDD.reduce((x, y) -> {
-            return SparkFHE.do_basic_op(x, y, SparkFHE.ADD);
+            return (x+y);
         }));
     }
 
@@ -119,11 +119,11 @@ public class DotProductTest {
         JavaPairRDD<SerializedCiphertext, SerializedCiphertext> combined_ctxt_rdd = ctxt_a_rdd.zip(ctxt_b_rdd);
 
         JavaRDD<SerializedCiphertext> result_rdd = combined_ctxt_rdd.map(tuple -> {
-            return new SerializedCiphertext(SparkFHE.getInstance().do_FHE_basic_op(tuple._1().getCtxt(), tuple._2().getCtxt(), SparkFHE.FHE_MULTIPLY));
+            return new SerializedCiphertext(SparkFHE.getInstance().fhe_multiply(tuple._1().getCtxt(), tuple._2().getCtxt()));
         });
 
         assertEquals(String.valueOf(10), SparkFHE.getInstance().decrypt(result_rdd.reduce((x, y) -> {
-            return new SerializedCiphertext(SparkFHE.getInstance().do_FHE_basic_op(x.getCtxt(), y.getCtxt(), SparkFHE.FHE_ADD));
+            return new SerializedCiphertext(SparkFHE.getInstance().fhe_add(x.getCtxt(), y.getCtxt()));
         }).getCtxt(), true));
     }
 
@@ -170,7 +170,7 @@ public class DotProductTest {
         collection.cache();
 
         SerializedCiphertext res = collection.reduce((x, y) -> {
-            return new SerializedCiphertext(SparkFHE.getInstance().do_FHE_basic_op(x.getCtxt(), y.getCtxt(), SparkFHE.FHE_ADD));
+            return new SerializedCiphertext(SparkFHE.getInstance().fhe_add(x.getCtxt(), y.getCtxt()));
         });
 
         assertEquals(String.valueOf(10), SparkFHE.getInstance().decrypt(res.getCtxt(), true));
@@ -225,7 +225,7 @@ public class DotProductTest {
         collection.printSchema();
 
         SerializedCiphertext res = collection.reduce((ReduceFunction<SerializedCiphertext>) (x, y) -> {
-            return new SerializedCiphertext(SparkFHE.getInstance().do_FHE_basic_op(x.getCtxt(), y.getCtxt(), SparkFHE.FHE_ADD));
+            return new SerializedCiphertext(SparkFHE.getInstance().fhe_add(x.getCtxt(), y.getCtxt()));
         });
 
         assertEquals(String.valueOf(10), SparkFHE.getInstance().decrypt(res.getCtxt(), true));

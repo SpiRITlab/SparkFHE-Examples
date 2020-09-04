@@ -1,8 +1,8 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="HELIB-BGV-KeyGen-Nonbatching" type="Application" factoryName="Application">
-    <option name="MAIN_CLASS_NAME" value="spiritlab.sparkfhe.example.nonbatching.KeyGenExample" />
+  <configuration default="false" name="HELIB-BGV-DotProduct-Batching" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="spiritlab.sparkfhe.example.batching.DotProductExample" />
     <module name="sparkfhe-examples" />
-    <option name="PROGRAM_PARAMETERS" value="local HELIB BGV" />
+    <option name="PROGRAM_PARAMETERS" value="local HELIB BGV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt" />
     <option name="VM_PARAMETERS" value="-Djava.library.path=deps/lib" />
     <extension name="coverage">
       <pattern>
