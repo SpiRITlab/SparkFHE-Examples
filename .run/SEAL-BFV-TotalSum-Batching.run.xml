@@ -1,0 +1,17 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="SEAL-BFV-TotalSum-Batching" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="spiritlab.sparkfhe.example.batching.TotalSumExample" />
+    <module name="sparkfhe-examples" />
+    <option name="PROGRAM_PARAMETERS" value="local SEAL BFV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt" />
+    <option name="VM_PARAMETERS" value="-Djava.library.path=deps/lib" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="spiritlab.sparkfhe.example.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

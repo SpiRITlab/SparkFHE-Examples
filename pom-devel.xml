@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>spiritlab.sparkfhe</groupId>
@@ -12,13 +12,13 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
     <junit.jupiter.version>5.3.2</junit.jupiter.version>
     <sparkfhe.maven.repo>file://${project.basedir}/../SparkFHE-Maven-Repo</sparkfhe.maven.repo>
 
     <sparkfhe.lib.url.base>https://sparkfhe.s3.amazonaws.com/libSparkFHE/</sparkfhe.lib.url.base>
-    <downloaded.sparkfhe.lib.path>libSparkFHE/lib</downloaded.sparkfhe.lib.path>
+    <downloaded.sparkfhe.lib.path>deps/lib</downloaded.sparkfhe.lib.path>
 
     <scala.binary.version>2.12</scala.binary.version>
     <spark.version>3.1.0-SNAPSHOT</spark.version>
@@ -57,12 +57,12 @@
       </snapshots>
     </repository>
     <repository>
-    <id>sparkfhe-remote</id>
-    <url>https://sparkfhe.s3.amazonaws.com/</url>
+      <id>sparkfhe-remote</id>
+      <url>https://sparkfhe.s3.amazonaws.com</url>
     </repository>
     <repository>
-    <id>sparkfhe-local</id>
-    <url>${sparkfhe.maven.repo}</url>
+      <id>sparkfhe-local</id>
+      <url>${sparkfhe.maven.repo}</url>
     </repository>
   </repositories>
 
@@ -165,79 +165,79 @@
   <build>
     <outputDirectory>target/classes</outputDirectory>
     <testOutputDirectory>target/test-classes</testOutputDirectory>
-      <plugins>
-        <plugin>
-          <artifactId>maven-clean-plugin</artifactId>
-          <version>3.1.0</version>
-        </plugin>
-        <plugin>
-          <artifactId>maven-resources-plugin</artifactId>
-          <version>3.1.0</version>
-        </plugin>
-        <plugin>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.7.0</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <version>3.0.0-M1</version>
-          <configuration>
-            <systemPropertyVariables>
-              <java.library.path>${downloaded.sparkfhe.lib.path}</java.library.path>
-            </systemPropertyVariables>
-            <argLine>-Djava.library.path=${downloaded.sparkfhe.lib.path}</argLine>
-            <!-- DONT DO PARALLEL TESTS -->
-          </configuration>
-        </plugin>
-        <plugin>
-          <artifactId>maven-jar-plugin</artifactId>
-          <version>3.1.0</version>
-        </plugin>
-        <plugin>
-          <artifactId>maven-install-plugin</artifactId>
-          <version>2.5.2</version>
-        </plugin>
-        <plugin>
-          <artifactId>maven-deploy-plugin</artifactId>
-          <version>2.8.2</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-source-plugin</artifactId>
-          <executions>
-            <execution>
-              <id>attach-sources</id>
-              <goals>
-                <goal>jar</goal>
-              </goals>
-            </execution>
-          </executions>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-javadoc-plugin</artifactId>
-          <executions>
-            <execution>
-              <id>attach-javadocs</id>
-              <goals>
-                <goal>jar</goal>
-              </goals>
-            </execution>
-          </executions>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-scm-plugin</artifactId>
-          <version>1.11.1</version>
-          <configuration>
-            <connectionType>developerConnection</connectionType>
-            <scmVersion>master</scmVersion>
-            <scmVersionType>branch</scmVersionType>
-            <checkoutDirectory>./SparkFHE-Addon</checkoutDirectory>
-          </configuration>
-        </plugin>
-      </plugins>
+    <plugins>
+      <plugin>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>3.1.0</version>
+      </plugin>
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>3.1.0</version>
+      </plugin>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.7.0</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.0.0-M1</version>
+        <configuration>
+          <systemPropertyVariables>
+            <java.library.path>${downloaded.sparkfhe.lib.path}</java.library.path>
+          </systemPropertyVariables>
+          <argLine>-Djava.library.path=${downloaded.sparkfhe.lib.path}</argLine>
+          <!-- DONT DO PARALLEL TESTS -->
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.1.0</version>
+      </plugin>
+      <plugin>
+        <artifactId>maven-install-plugin</artifactId>
+        <version>2.5.2</version>
+      </plugin>
+      <plugin>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <version>2.8.2</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-scm-plugin</artifactId>
+        <version>1.11.1</version>
+        <configuration>
+          <connectionType>developerConnection</connectionType>
+          <scmVersion>master</scmVersion>
+          <scmVersionType>branch</scmVersionType>
+          <checkoutDirectory>./SparkFHE-Addon</checkoutDirectory>
+        </configuration>
+      </plugin>
+    </plugins>
   </build>
 
 </project>

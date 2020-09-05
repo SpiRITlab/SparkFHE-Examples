@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="TestConnectionToSharedLibrary" type="Application" factoryName="Application" nameIsGenerated="true">
+    <option name="MAIN_CLASS_NAME" value="spiritlab.sparkfhe.example.TestConnectionToSharedLibrary" />
+    <module name="sparkfhe-examples" />
+    <option name="VM_PARAMETERS" value="-Djava.library.path=deps/lib" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="spiritlab.sparkfhe.example.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
