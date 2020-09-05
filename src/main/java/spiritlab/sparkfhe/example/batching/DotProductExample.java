@@ -344,12 +344,12 @@ public class DotProductExample {
         test_FHE_dot_product_via_native_code(spark, slices, library, scheme, pk_b, sk_b);
         test_FHE_dot_product_via_sql(spark, slices, library, scheme, pk_b, sk_b);
 
-        try {
-            System.out.println("Paused to allow checking the Spark server log, press enter to continue.");
-            System.in.read();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            System.out.println("Paused to allow checking the Spark server log, press enter to continue.");
+//            System.in.read();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
         // Stop existing spark context
         jsc.close();
