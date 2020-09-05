@@ -18,7 +18,7 @@
     <sparkfhe.maven.repo>file://${project.basedir}/../SparkFHE-Maven-Repo</sparkfhe.maven.repo>
 
     <sparkfhe.lib.url.base>https://sparkfhe.s3.amazonaws.com/libSparkFHE/</sparkfhe.lib.url.base>
-    <downloaded.sparkfhe.lib.path>libSparkFHE/lib</downloaded.sparkfhe.lib.path>
+    <downloaded.sparkfhe.lib.path>deps/lib</downloaded.sparkfhe.lib.path>
 
     <scala.binary.version>2.12</scala.binary.version>
     <spark.version>3.1.0-SNAPSHOT</spark.version>

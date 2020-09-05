@@ -314,7 +314,10 @@ public class DotProductExample {
 
         // Creating a session to Spark. The session allows the creation of the
         // various data abstractions such as RDDs, DataFrame, and more.
-        SparkSession spark = SparkSession.builder().config(sparkConf).getOrCreate();
+        SparkSession spark = SparkSession.builder()
+                .config(sparkConf)
+                .config("spark.eventlog.enabled", "true")
+                .getOrCreate();
 
         // Creating spark context which allows the communication with worker nodes
         JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());
