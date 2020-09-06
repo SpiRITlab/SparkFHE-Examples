@@ -9,7 +9,6 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.spiritlab.sparkfhe.SparkFHEPlugin;
 import spiritlab.sparkfhe.api.*;
 import spiritlab.sparkfhe.example.Config;
-import spiritlab.sparkfhe.example.Util;
 
 /**
  * This is an example for SparkFHE project. Created to test the functionality
@@ -29,7 +28,7 @@ public class EncDecExample {
     private static String CTXT_Matrix_a_FILE;
     private static String CTXT_Matrix_b_FILE;
 
-    public static void encrypt_data() {
+    private static void encrypt_data() {
         // Generate two ciphertexts and store them to the pre-defined file location
         System.out.println("Storing ciphertext to "+CTXT_0_FILE);
         SparkFHE.getInstance().store_ciphertext_to_file( Config.Ciphertext_Label, SparkFHE.getInstance().encrypt(new Plaintext(String.valueOf(0))).toString(), CTXT_0_FILE);
@@ -38,7 +37,7 @@ public class EncDecExample {
         SparkFHE.getInstance().store_ciphertext_to_file( Config.Ciphertext_Label, SparkFHE.getInstance().encrypt(new Plaintext(String.valueOf(0))).toString(), CTXT_1_FILE);
     }
 
-    public static void encrypt_vector(String scheme, long row) {
+    private static void encrypt_vector(String scheme, long row) {
         // Generate two vectors of size (row)
         PlaintextVector ptxt_vec_1, ptxt_vec_2;
         if (scheme.equalsIgnoreCase(FHEScheme.CKKS)){
@@ -72,7 +71,7 @@ public class EncDecExample {
         SparkFHE.getInstance().store_ciphertexts_to_file(Config.Ciphertext_Label, ctxt_vec_2, CTXT_Vector_b_FILE);
     }
 
-    public static void encrypt_matrix(String scheme, long row, long col) {
+    private static void encrypt_matrix(String scheme, long row, long col) {
         // Generate two matrices of size (row x col)
         PlaintextVector ptxt_mat_1, ptxt_mat_2;
         if (scheme.equalsIgnoreCase(FHEScheme.CKKS)){
@@ -181,19 +180,19 @@ public class EncDecExample {
         startTime = System.currentTimeMillis();
         encrypt_data();
         endTime = System.currentTimeMillis();
-        System.out.println("batch_encrypt_two_ctxts took " + (endTime - startTime) + " milliseconds");
+        System.out.println("TIME_INFO:batch_encrypt_two_ctxts:" + (endTime - startTime) + ":ms");
 
         /* generating vectors of ctxt */
         startTime = System.currentTimeMillis();
         encrypt_vector(scheme, row);
         endTime = System.currentTimeMillis();
-        System.out.println("batch_encrypt_two_vectors_size_" + String.valueOf(row)+ " took " + (endTime - startTime) + " milliseconds");
+        System.out.println("TIME_INFO:batch_encrypt_two_vectors_size_" + String.valueOf(row)+ ":" + (endTime - startTime) + ":ms");
 
         /* generating matrices of ctxt */
         startTime = System.currentTimeMillis();
         encrypt_matrix(scheme, row, col);
         endTime = System.currentTimeMillis();
-        System.out.println("batch_encrypt_two_matrices_size_" + String.valueOf(row) + "_" + String.valueOf(col) + " took " + (endTime - startTime) + " milliseconds");
+        System.out.println("TIME_INFO:batch_encrypt_two_matrices_size_" + String.valueOf(row) + "_" + String.valueOf(col) + ":" + (endTime - startTime) + ":ms");
 
         /* testing encode/enc/dec/decode operations (toy example for debugging purposes) */
         // initialize a literal 1, encrypt it and decrypted it to verify the cryptography functions
@@ -202,17 +201,17 @@ public class EncDecExample {
         startTime = System.currentTimeMillis();
         Plaintext inputNumberPtxt = SparkFHE.getInstance().encode(inputNumberString);
         endTime = System.currentTimeMillis();
-        System.out.println("batch_encoding_ptxt took " + (endTime - startTime) + " milliseconds");
+        System.out.println("TIME_INFO:batch_encoding_ptxt:" + (endTime - startTime) + ":ms");
 
         startTime = System.currentTimeMillis();
         Ciphertext inputNumberCtxt = SparkFHE.getInstance().encrypt(inputNumberPtxt);
         endTime = System.currentTimeMillis();
-        System.out.println("batch_encrypting_ptxt took " + (endTime - startTime) + " milliseconds");
+        System.out.println("TIME_INFO:batch_encrypting_ptxt:" + (endTime - startTime) + ":ms");
 
-        startTime = System.currentTimeMillis();
+        startTime = System.nanoTime();
         Plaintext inputNumberPtxt_returned = SparkFHE.getInstance().decrypt(inputNumberCtxt);
-        endTime = System.currentTimeMillis();
-        System.out.println("batch_decrypting_ctxt took " + (endTime - startTime) + " milliseconds");
+        endTime = System.nanoTime();
+        System.out.println("TIME_INFO:batch_decrypting_ctxt:" + (endTime - startTime) + ":ns");
 
         startTime = System.currentTimeMillis();
         if (scheme.equalsIgnoreCase(FHEScheme.CKKS)){
@@ -229,7 +228,7 @@ public class EncDecExample {
             }
         }
         endTime = System.currentTimeMillis();
-        System.out.println("batch_decoding_ptxt took " + (endTime - startTime) + " milliseconds");
+        System.out.println("TIME_INFO:batch_decoding_ptxt:" + (endTime - startTime) + ":ms");
 
         // read in the cipher text from file and store them as Strings
         String ctxt_0_string = SparkFHE.getInstance().read_ciphertext_from_file_as_string(Config.Ciphertext_Label, CTXT_0_FILE);

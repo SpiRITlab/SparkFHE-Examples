@@ -16,7 +16,8 @@ import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.SparkSession;
 import spiritlab.sparkfhe.api.FHELibrary;
 import spiritlab.sparkfhe.api.FHEScheme;
-import spiritlab.sparkfhe.api.SerializedCiphertextObject;
+import spiritlab.sparkfhe.api.SerializedCiphertext;
+import spiritlab.sparkfhe.api.Util;
 import spiritlab.sparkfhe.api.SparkFHE;
 import spiritlab.sparkfhe.api.StringVector;
 import spiritlab.sparkfhe.example.Config;
@@ -81,17 +82,17 @@ public class TotalSumExample {
         System.out.println("test_FHE_total_sum_via_lambda");
 
         // Encoders are created for Java beans
-        Encoder<SerializedCiphertextObject> ctxtJSONEncoder = Encoders.bean(SerializedCiphertextObject.class);
+        Encoder<SerializedCiphertext> ctxtJSONEncoder = Encoders.bean(SerializedCiphertext.class);
 
         // Create rdd with json line file.
-        JavaRDD<SerializedCiphertextObject> ctxt_vec_rdd = spark.read().json(CTXT_Vector_FILE).as(ctxtJSONEncoder).javaRDD();
+        JavaRDD<SerializedCiphertext> ctxt_vec_rdd = spark.read().json(CTXT_Vector_FILE).as(ctxtJSONEncoder).javaRDD();
 
         // sum up the results from the previous operation
-        SerializedCiphertextObject res = ctxt_vec_rdd.reduce((x, y) -> {
+        SerializedCiphertext res = ctxt_vec_rdd.reduce((x, y) -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
             SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
-            return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(x.getCtxt(), y.getCtxt(), SparkFHE.FHE_ADD));
+            return new SerializedCiphertext(SparkFHE.getInstance().do_FHE_basic_op(x.getCtxt(), y.getCtxt(), SparkFHE.FHE_ADD));
         });
 
         if (Config.DEBUG) {
@@ -121,33 +122,33 @@ public class TotalSumExample {
         System.out.println("test_FHE_total_sum_via_native_code");
 
         // Encoders are created for Java beans
-        Encoder<SerializedCiphertextObject> ctxtJSONEncoder = Encoders.bean(SerializedCiphertextObject.class);
+        Encoder<SerializedCiphertext> ctxtJSONEncoder = Encoders.bean(SerializedCiphertext.class);
 
         // Create rdd with json line file.
-        JavaRDD<SerializedCiphertextObject> ctxt_vec_rdd = spark.read().json(CTXT_Vector_FILE).as(ctxtJSONEncoder).javaRDD();
+        JavaRDD<SerializedCiphertext> ctxt_vec_rdd = spark.read().json(CTXT_Vector_FILE).as(ctxtJSONEncoder).javaRDD();
 
         // call homomorphic array sum operator on the rdd
-        JavaRDD<SerializedCiphertextObject> collection = ctxt_vec_rdd.mapPartitions(records -> {
+        JavaRDD<SerializedCiphertext> collection = ctxt_vec_rdd.mapPartitions(records -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
             SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
 
-            LinkedList<SerializedCiphertextObject> sum = new LinkedList<SerializedCiphertextObject>();
+            LinkedList<SerializedCiphertext> sum = new LinkedList<SerializedCiphertext>();
             StringVector vec = new StringVector();
             while (records.hasNext()) {
-                SerializedCiphertextObject rec = records.next();
+                SerializedCiphertext rec = records.next();
                 vec.add(rec.getCtxt());
             }
-            sum.add(new SerializedCiphertextObject(SparkFHE.getInstance().fhe_total_sum(vec)));
+            sum.add(new SerializedCiphertext(SparkFHE.getInstance().fhe_total_sum(vec)));
             return sum.iterator();
         });
 
         // sum up the results from the previous operation and display
-        SerializedCiphertextObject res = collection.reduce((x, y) -> {
+        SerializedCiphertext res = collection.reduce((x, y) -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
             SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
-            return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(x.getCtxt(), y.getCtxt(), SparkFHE.FHE_ADD));
+            return new SerializedCiphertext(SparkFHE.getInstance().do_FHE_basic_op(x.getCtxt(), y.getCtxt(), SparkFHE.FHE_ADD));
         });
 
         if (Config.DEBUG) {
@@ -184,8 +185,8 @@ public class TotalSumExample {
         System.out.println("test_FHE_total_sum_via_sql");
         // Spark example for FHE calculations //
         // Encoders are created for Java beans
-        Encoder<SerializedCiphertextObject> ctxtJSONEncoder = Encoders.bean(SerializedCiphertextObject.class);
-        Dataset<SerializedCiphertextObject> ctxt_vec_ds = spark.read().json(CTXT_Vector_FILE).as(ctxtJSONEncoder);
+        Encoder<SerializedCiphertext> ctxtJSONEncoder = Encoders.bean(SerializedCiphertext.class);
+        Dataset<SerializedCiphertext> ctxt_vec_ds = spark.read().json(CTXT_Vector_FILE).as(ctxtJSONEncoder);
 
         // col - Returns a Column based on the given column name, ctxt.
         // explode - Creates a new row for each element in the given array or map column
@@ -220,12 +221,12 @@ public class TotalSumExample {
 
         // mapPartition - converts each partition of the source RDD into multiple elements of the result
         // perform dot product on each pair (StringVector) of the dataFrame, and saving the rcesults to a LinkedList
-        Dataset<SerializedCiphertextObject> collection = fin.mapPartitions((MapPartitionsFunction<Row, SerializedCiphertextObject>)  iter -> {
+        Dataset<SerializedCiphertext> collection = fin.mapPartitions((MapPartitionsFunction<Row, SerializedCiphertext>)  iter -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
             SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
 
-            LinkedList<SerializedCiphertextObject> v = new LinkedList<SerializedCiphertextObject>();
+            LinkedList<SerializedCiphertext> v = new LinkedList<SerializedCiphertext>();
             StringVector a = new StringVector();
             StringVector b = new StringVector();
             while (iter.hasNext()) {
@@ -233,16 +234,16 @@ public class TotalSumExample {
                 a.add((String)row.getAs("ctxt_a"));
                 b.add((String)row.getAs("ctxt_b"));
             }
-            v.add(new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_dot_product(a, b)));
+            v.add(new SerializedCiphertext(SparkFHE.getInstance().do_FHE_dot_product(a, b)));
             return v.iterator();
-        }, Encoders.kryo(SerializedCiphertextObject.class));
+        }, Encoders.kryo(SerializedCiphertext.class));
 
         // sum up the results from the previous operation and display
-        SerializedCiphertextObject res = collection.javaRDD().reduce((x, y) -> {
+        SerializedCiphertext res = collection.javaRDD().reduce((x, y) -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
             SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
-            return new SerializedCiphertextObject(SparkFHE.getInstance().do_FHE_basic_op(x.getCtxt(), y.getCtxt(), SparkFHE.FHE_ADD));
+            return new SerializedCiphertext(SparkFHE.getInstance().do_FHE_basic_op(x.getCtxt(), y.getCtxt(), SparkFHE.FHE_ADD));
         });
 
         // decrypt the result to verify it
@@ -322,21 +323,21 @@ public class TotalSumExample {
         startTime = System.currentTimeMillis();
         test_FHE_total_sum_via_lambda(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
         endTime = System.currentTimeMillis();
-        System.out.println("FHE_total_sum_via_lambda took " + (endTime - startTime) + " milliseconds");
+        System.out.println("TIME_INFO:FHE_total_sum_via_lambda:" + (endTime - startTime) + ":ms");
 
         startTime = System.currentTimeMillis();
         test_FHE_total_sum_via_native_code(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
         endTime = System.currentTimeMillis();
-        System.out.println("FHE_total_sum_via_native_code took " + (endTime - startTime) + " milliseconds");
+        System.out.println("TIME_INFO:FHE_total_sum_via_native_code:" + (endTime - startTime) + ":ms");
 
 //        test_FHE_total_sum_via_sql(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
 
-        try {
-            System.out.println("Paused to allow checking the Spark server log, press enter to continue.");
-            System.in.read();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            System.out.println("Paused to allow checking the Spark server log, press enter to continue.");
+//            System.in.read();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
         // Stop existing spark context
         jsc.close();

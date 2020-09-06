@@ -64,7 +64,7 @@ public class KeyGenExample {
                 Config.get_default_relin_key_file(),
                 Config.get_default_galois_key_file());
         endTime = System.currentTimeMillis();
-        System.out.println("generate_keys took " + (endTime - startTime) + " milliseconds");
+        System.out.println("TIME_INFO:generate_keys:" + (endTime - startTime) + ":ms");
 
         if (Config.DEBUG) {
         // Encrypting the literal 1, and decrypting it to verify the keys' accuracy.

@@ -53,48 +53,48 @@ public class BasicOPsExample {
         long startTime, endTime;
 
         // Encoders are created for Java beans
-        Encoder<SerializedCiphertextObject> ctxtJSONEncoder = Encoders.bean(SerializedCiphertextObject.class);
+        Encoder<SerializedCiphertext> ctxtJSONEncoder = Encoders.bean(SerializedCiphertext.class);
 
         // https://spark.apache.org/docs/latest/sql-programming-guide.html#untyped-dataset-operations-aka-dataframe-operations
         // Create rdd with json file.
-        JavaRDD<SerializedCiphertextObject> ctxt_zero_rdd = spark.read().json(CTXT_0_FILE).as(ctxtJSONEncoder).javaRDD();
-        JavaRDD<SerializedCiphertextObject> ctxt_one_rdd = spark.read().json(CTXT_1_FILE).as(ctxtJSONEncoder).javaRDD();
+        JavaRDD<SerializedCiphertext> ctxt_zero_rdd = spark.read().json(CTXT_0_FILE).as(ctxtJSONEncoder).javaRDD();
+        JavaRDD<SerializedCiphertext> ctxt_one_rdd = spark.read().json(CTXT_1_FILE).as(ctxtJSONEncoder).javaRDD();
 
         // combine both rdds as a pair
-        JavaPairRDD<SerializedCiphertextObject, SerializedCiphertextObject> Combined_ctxt_RDD = ctxt_one_rdd.zip(ctxt_zero_rdd).cache();
+        JavaPairRDD<SerializedCiphertext, SerializedCiphertext> Combined_ctxt_RDD = ctxt_one_rdd.zip(ctxt_zero_rdd).cache();
 
         startTime = System.currentTimeMillis();
         // call homomorphic addition operators on the rdds
-        JavaRDD<SerializedCiphertextObject> Addition_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
+        JavaRDD<SerializedCiphertext> Addition_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
             SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
-            return new SerializedCiphertextObject(SparkFHE.getInstance().fhe_add(tuple._1().getCtxt(), tuple._2().getCtxt()));
+            return new SerializedCiphertext(SparkFHE.getInstance().fhe_add(tuple._1().getCtxt(), tuple._2().getCtxt()));
         });
         endTime = System.currentTimeMillis();
-        System.out.println("Homomorphic_Addition took " + (endTime - startTime) + " milliseconds");
+        System.out.println("TIME_INFO:Homomorphic_Addition:" + (endTime - startTime) + ":ms");
 
         startTime = System.currentTimeMillis();
         // call homomorphic multiply operators on the rdds
-        JavaRDD<SerializedCiphertextObject> Multiplication_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
+        JavaRDD<SerializedCiphertext> Multiplication_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
             SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
-            return new SerializedCiphertextObject(SparkFHE.getInstance().fhe_multiply(tuple._1().getCtxt(), tuple._2().getCtxt()));
+            return new SerializedCiphertext(SparkFHE.getInstance().fhe_multiply(tuple._1().getCtxt(), tuple._2().getCtxt()));
         });
         endTime = System.currentTimeMillis();
-        System.out.println("Homomorphic_Multiplication took " + (endTime - startTime) + " milliseconds");
+        System.out.println("TIME_INFO:Homomorphic_Multiplication:" + (endTime - startTime) + ":ms");
 
         startTime = System.currentTimeMillis();
         // call homomorphic subtraction operators on the rdds
-        JavaRDD<SerializedCiphertextObject> Subtraction_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
+        JavaRDD<SerializedCiphertext> Subtraction_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
             SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
-            return new SerializedCiphertextObject(SparkFHE.getInstance().fhe_subtract(tuple._1().getCtxt(), tuple._2().getCtxt()));
+            return new SerializedCiphertext(SparkFHE.getInstance().fhe_subtract(tuple._1().getCtxt(), tuple._2().getCtxt()));
         });
         endTime = System.currentTimeMillis();
-        System.out.println("Homomorphic_Subtraction took " + (endTime - startTime) + " milliseconds");
+        System.out.println("TIME_INFO:Homomorphic_Subtraction:" + (endTime - startTime) + ":ms");
 
         if (Config.DEBUG){
             // print out results for debug purposes
@@ -121,48 +121,48 @@ public class BasicOPsExample {
         long startTime, endTime;
 
         // Encoders are created for Java beans
-        Encoder<SerializedCiphertextObject> ctxtJSONEncoder = Encoders.bean(SerializedCiphertextObject.class);
+        Encoder<SerializedCiphertext> ctxtJSONEncoder = Encoders.bean(SerializedCiphertext.class);
 
         // https://spark.apache.org/docs/latest/sql-programming-guide.html#untyped-dataset-operations-aka-dataframe-operations
         // Create rdd with json file. See http://jsonlines.org
-        JavaRDD<SerializedCiphertextObject> ctxt_a_rdd = spark.read().json(CTXT_Vector_a_FILE).as(ctxtJSONEncoder).javaRDD();
-        JavaRDD<SerializedCiphertextObject> ctxt_b_rdd = spark.read().json(CTXT_Vector_b_FILE).as(ctxtJSONEncoder).javaRDD();
+        JavaRDD<SerializedCiphertext> ctxt_a_rdd = spark.read().json(CTXT_Vector_a_FILE).as(ctxtJSONEncoder).javaRDD();
+        JavaRDD<SerializedCiphertext> ctxt_b_rdd = spark.read().json(CTXT_Vector_b_FILE).as(ctxtJSONEncoder).javaRDD();
 
         // combine both rdds as a pair
-        JavaPairRDD<SerializedCiphertextObject, SerializedCiphertextObject> combined_ctxt_rdd = ctxt_a_rdd.zip(ctxt_b_rdd);
+        JavaPairRDD<SerializedCiphertext, SerializedCiphertext> combined_ctxt_rdd = ctxt_a_rdd.zip(ctxt_b_rdd);
 
         startTime = System.currentTimeMillis();
         // call homomorphic addition operators on the rdds
-        JavaRDD<SerializedCiphertextObject> Addition_ctxt_RDD = combined_ctxt_rdd.map(tuple -> {
+        JavaRDD<SerializedCiphertext> Addition_ctxt_RDD = combined_ctxt_rdd.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
             SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
-            return new SerializedCiphertextObject(SparkFHE.getInstance().fhe_add(tuple._1().getCtxt(), tuple._2().getCtxt()));
+            return new SerializedCiphertext(SparkFHE.getInstance().fhe_add(tuple._1().getCtxt(), tuple._2().getCtxt()));
         });
         endTime = System.currentTimeMillis();
-        System.out.println("Vector_Homomorphic_Addition took " + (endTime - startTime) + " milliseconds");
+        System.out.println("TIME_INFO:Vector_Homomorphic_Addition:" + (endTime - startTime) + ":ms");
 
         startTime = System.currentTimeMillis();
         // call homomorphic multiply operators on the rdds
-        JavaRDD<SerializedCiphertextObject> Multiplication_ctxt_RDD = combined_ctxt_rdd.map(tuple -> {
+        JavaRDD<SerializedCiphertext> Multiplication_ctxt_RDD = combined_ctxt_rdd.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
             SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
-            return new SerializedCiphertextObject(SparkFHE.getInstance().fhe_multiply(tuple._1().getCtxt(), tuple._2().getCtxt()));
+            return new SerializedCiphertext(SparkFHE.getInstance().fhe_multiply(tuple._1().getCtxt(), tuple._2().getCtxt()));
         });
         endTime = System.currentTimeMillis();
-        System.out.println("Vector_Homomorphic_Multiplication took " + (endTime - startTime) + " milliseconds");
+        System.out.println("TIME_INFO:Vector_Homomorphic_Multiplication:" + (endTime - startTime) + ":ms");
 
         startTime = System.currentTimeMillis();
         // call homomorphic subtraction operators on the rdds
-        JavaRDD<SerializedCiphertextObject> Subtraction_ctxt_RDD = combined_ctxt_rdd.map(tuple -> {
+        JavaRDD<SerializedCiphertext> Subtraction_ctxt_RDD = combined_ctxt_rdd.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
             SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
-            return new SerializedCiphertextObject(SparkFHE.getInstance().fhe_subtract(tuple._1().getCtxt(), tuple._2().getCtxt()));
+            return new SerializedCiphertext(SparkFHE.getInstance().fhe_subtract(tuple._1().getCtxt(), tuple._2().getCtxt()));
         });
         endTime = System.currentTimeMillis();
-        System.out.println("Vector_Homomorphic_Subtraction took " + (endTime - startTime) + " milliseconds");
+        System.out.println("TIME_INFO:Vector_Homomorphic_Subtraction:" + (endTime - startTime) + ":ms");
 
         if (Config.DEBUG) {
             System.out.println("combined_ctxt_rdd.count() = " + combined_ctxt_rdd.count());
@@ -215,7 +215,7 @@ public class BasicOPsExample {
                 scheme = args[3];
                 pk = args[4];
                 sk = args[5];
-                if (library.equalsIgnoreCase(FHELibrary.SEAL)){
+                if (library.equalsIgnoreCase(FHELibrary.SEAL)) {
                     rlk = args[6];
                     glk = args[7];
                 }
@@ -226,7 +226,7 @@ public class BasicOPsExample {
                 scheme = args[2];
                 pk = args[3];
                 sk = args[4];
-                if (library.equalsIgnoreCase(FHELibrary.SEAL)){
+                if (library.equalsIgnoreCase(FHELibrary.SEAL)) {
                     rlk = args[5];
                     glk = args[6];
                 }
