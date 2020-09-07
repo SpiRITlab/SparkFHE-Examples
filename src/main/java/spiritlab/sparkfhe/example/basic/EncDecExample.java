@@ -113,13 +113,13 @@ public class EncDecExample {
         startTime = System.currentTimeMillis();
         encrypt_data();
         endTime = System.currentTimeMillis();
-        System.out.println("TIME_INFO:encrypt_two_ctxts:" + (endTime - startTime) + ":ms");
+        System.out.println("TIMEINFO:encrypt_two_ctxts:" + (endTime - startTime) + ":ms");
 
         /* generating vectors of ctxt of size vecSize  */
         startTime = System.currentTimeMillis();
         encrypt_vector(vecSize);
         endTime = System.currentTimeMillis();
-        System.out.println("TIME_INFO:encrypt_two_vectors_size_" + String.valueOf(vecSize)+ ":" + (endTime - startTime) + ":ms");
+        System.out.println("TIMEINFO:encrypt_two_vectors_size_" + String.valueOf(vecSize)+ ":" + (endTime - startTime) + ":ms");
 
         /* testing enc/dec operations (toy example for debugging purposes) */
         // initialize a literal 1, encrypt it and decrypted it to verify the cryptography functions
@@ -129,12 +129,12 @@ public class EncDecExample {
         startTime = System.currentTimeMillis();
         Ciphertext inputNumberCtxt = SparkFHE.getInstance().encrypt(inputNumberPtxt);
         endTime = System.currentTimeMillis();
-        System.out.println("TIME_INFO:encrypting_ptxt:" + (endTime - startTime) + ":ms");
+        System.out.println("TIMEINFO:encrypting_ptxt:" + (endTime - startTime) + ":ms");
 
         startTime = System.nanoTime();
         Plaintext inputNumberPtxt_returned = SparkFHE.getInstance().decrypt(inputNumberCtxt, true);
         endTime = System.nanoTime();
-        System.out.println("TIME_INFO:decrypting_ctxt:" + (endTime - startTime) + ":ns");
+        System.out.println("TIMEINFO:decrypting_ctxt:" + (endTime - startTime) + ":ns");
 
         // read in the cipher text from file and store them as Strings
         String ctxt_0_string = SparkFHE.getInstance().read_ciphertext_from_file_as_string(Config.Ciphertext_Label, CTXT_0_FILE);

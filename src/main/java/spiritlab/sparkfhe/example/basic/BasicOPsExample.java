@@ -72,7 +72,7 @@ public class BasicOPsExample {
             return new SerializedCiphertext(SparkFHE.getInstance().fhe_add(tuple._1().getCtxt(), tuple._2().getCtxt()));
         });
         endTime = System.currentTimeMillis();
-        System.out.println("TIME_INFO:Homomorphic_Addition:" + (endTime - startTime) + ":ms");
+        System.out.println("TIMEINFO:Homomorphic_Addition:" + (endTime - startTime) + ":ms");
 
         startTime = System.currentTimeMillis();
         // call homomorphic multiply operators on the rdds
@@ -83,7 +83,7 @@ public class BasicOPsExample {
             return new SerializedCiphertext(SparkFHE.getInstance().fhe_multiply(tuple._1().getCtxt(), tuple._2().getCtxt()));
         });
         endTime = System.currentTimeMillis();
-        System.out.println("TIME_INFO:Homomorphic_Multiplication:" + (endTime - startTime) + ":ms");
+        System.out.println("TIMEINFO:Homomorphic_Multiplication:" + (endTime - startTime) + ":ms");
 
         startTime = System.currentTimeMillis();
         // call homomorphic subtraction operators on the rdds
@@ -94,7 +94,7 @@ public class BasicOPsExample {
             return new SerializedCiphertext(SparkFHE.getInstance().fhe_subtract(tuple._1().getCtxt(), tuple._2().getCtxt()));
         });
         endTime = System.currentTimeMillis();
-        System.out.println("TIME_INFO:Homomorphic_Subtraction:" + (endTime - startTime) + ":ms");
+        System.out.println("TIMEINFO:Homomorphic_Subtraction:" + (endTime - startTime) + ":ms");
 
         if (Config.DEBUG){
             // print out results for debug purposes
@@ -140,7 +140,7 @@ public class BasicOPsExample {
             return new SerializedCiphertext(SparkFHE.getInstance().fhe_add(tuple._1().getCtxt(), tuple._2().getCtxt()));
         });
         endTime = System.currentTimeMillis();
-        System.out.println("TIME_INFO:Vector_Homomorphic_Addition:" + (endTime - startTime) + ":ms");
+        System.out.println("TIMEINFO:Vector_Homomorphic_Addition:" + (endTime - startTime) + ":ms");
 
         startTime = System.currentTimeMillis();
         // call homomorphic multiply operators on the rdds
@@ -151,7 +151,7 @@ public class BasicOPsExample {
             return new SerializedCiphertext(SparkFHE.getInstance().fhe_multiply(tuple._1().getCtxt(), tuple._2().getCtxt()));
         });
         endTime = System.currentTimeMillis();
-        System.out.println("TIME_INFO:Vector_Homomorphic_Multiplication:" + (endTime - startTime) + ":ms");
+        System.out.println("TIMEINFO:Vector_Homomorphic_Multiplication:" + (endTime - startTime) + ":ms");
 
         startTime = System.currentTimeMillis();
         // call homomorphic subtraction operators on the rdds
@@ -162,7 +162,7 @@ public class BasicOPsExample {
             return new SerializedCiphertext(SparkFHE.getInstance().fhe_subtract(tuple._1().getCtxt(), tuple._2().getCtxt()));
         });
         endTime = System.currentTimeMillis();
-        System.out.println("TIME_INFO:Vector_Homomorphic_Subtraction:" + (endTime - startTime) + ":ms");
+        System.out.println("TIMEINFO:Vector_Homomorphic_Subtraction:" + (endTime - startTime) + ":ms");
 
         if (Config.DEBUG) {
             System.out.println("combined_ctxt_rdd.count() = " + combined_ctxt_rdd.count());

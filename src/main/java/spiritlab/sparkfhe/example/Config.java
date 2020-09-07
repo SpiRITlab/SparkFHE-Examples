@@ -39,7 +39,7 @@ public class Config {
     private static String HDFS_NAME_NODE = "hdfs://localhost:0";
     private static String HDFS_CURRENT_DIRECTORY = "/SparkFHE/HDFSFolder";
 
-    public static boolean DEBUG = false;
+    public static boolean DEBUG = true;
 
     public static void setExecutionEnvironment(String environment) {
         if ("local".equalsIgnoreCase(environment)) {

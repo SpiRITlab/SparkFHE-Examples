@@ -323,12 +323,12 @@ public class TotalSumExample {
         startTime = System.currentTimeMillis();
         test_FHE_total_sum_via_lambda(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
         endTime = System.currentTimeMillis();
-        System.out.println("TIME_INFO:FHE_total_sum_via_lambda:" + (endTime - startTime) + ":ms");
+        System.out.println("TIMEINFO:FHE_total_sum_via_lambda:" + (endTime - startTime) + ":ms");
 
         startTime = System.currentTimeMillis();
         test_FHE_total_sum_via_native_code(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
         endTime = System.currentTimeMillis();
-        System.out.println("TIME_INFO:FHE_total_sum_via_native_code:" + (endTime - startTime) + ":ms");
+        System.out.println("TIMEINFO:FHE_total_sum_via_native_code:" + (endTime - startTime) + ":ms");
 
 //        test_FHE_total_sum_via_sql(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
 
