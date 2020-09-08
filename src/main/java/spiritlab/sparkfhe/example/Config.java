@@ -146,6 +146,12 @@ public class Config {
             crypto_param_file = DEFAULT_PALISADE_CRYPTO_PARAMS_FILENAME;
         }
 
+        if (crypto_param_file == "") {
+            System.err.println("Crypto parameter file cannot be found! Please make sure valid crypto " +
+                    "parameter files are in the 'SparkFHE-Addon/resources/params' folder.");
+            System.exit(0);
+        }
+
         switch (currentExecutionEnvironment) {
             case CLUSTER:
                 return get_HDFS_path() +
