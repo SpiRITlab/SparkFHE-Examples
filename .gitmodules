@@ -1,0 +1,3 @@
+[submodule "SparkFHE-Addon"]
+	path = SparkFHE-Addon
+	url = https://github.com/SpiRITlab/SparkFHE-Addon.git
