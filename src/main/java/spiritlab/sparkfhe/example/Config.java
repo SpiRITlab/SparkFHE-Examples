@@ -39,7 +39,7 @@ public class Config {
     private static String HDFS_NAME_NODE = "hdfs://localhost:0";
     private static String HDFS_CURRENT_DIRECTORY = "/SparkFHE/HDFSFolder";
 
-    public static boolean DEBUG = true;
+    public static boolean DEBUG = false;
 
     public static void setExecutionEnvironment(String environment) {
         if ("local".equalsIgnoreCase(environment)) {
@@ -140,7 +140,7 @@ public class Config {
     }
 
     public static String get_batch_crypto_params_file(String lib_name, String scheme_name) {
-        String crypto_param_file = DEFAULT_COMMON_CRYPTO_PARAMS_FILE;
+        String crypto_param_file = "";
         if (lib_name.equalsIgnoreCase(FHELibrary.HELIB)){
             if (scheme_name.equalsIgnoreCase(FHEScheme.BGV)){
                 crypto_param_file = BATCH_HELIB_BGV_CRYPTO_PARAMS_FILENAME;
@@ -155,6 +155,12 @@ public class Config {
             }
         } else if (lib_name.equalsIgnoreCase(FHELibrary.PALISADE)) {
             crypto_param_file = DEFAULT_PALISADE_CRYPTO_PARAMS_FILENAME;
+        }
+
+        if (crypto_param_file == "") {
+            System.err.println("Crypto parameter file cannot be found! Please make sure valid crypto " +
+                    "parameter files are in the 'SparkFHE-Addon/resources/params' folder.");
+            System.exit(0);
         }
 
         switch (currentExecutionEnvironment) {

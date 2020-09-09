@@ -5,10 +5,12 @@ import time
 import signal
 import math
 
-def runTheProgram(n, libraryScheme, rowSize, colSize, resultFileName):
+def runTheProgram(n, libraryScheme, rowSize, colSize, threadNum, resultFileName):
     print("Output redirected to", resultFileName)
     for i in range( 1, n+1 ):
-        os.system("./runTest.bash %s %s %s >> %s" % (libraryScheme, rowSize, colSize, resultFileName))
+        os.system("./runTest.bash %s %s %s %s >> %s 2>&1" % (libraryScheme, rowSize, colSize, threadNum, resultFileName))
+#        os.system("./mySparkSubmitLocal.bash %s %s %s %s >> %s 2>&1" % (libraryScheme, rowSize, colSize, threadNum, resultFileName))
+        
 
     print("DONE")
 
@@ -64,7 +66,7 @@ def createDir(dirname):
         os.makedirs(dirname)
 
 def printHelp():
-    print('USAGE: ./testMultipleRuns.py -n <N> -s <libraryScheme> -r <rowSize> -c <columnSize> -o <outputfile>')
+    print('USAGE: ./testMultipleRuns.py -n <N> -s <libraryScheme> -r <rowSize> -c <columnSize>')
     print('Options for <libraryScheme>: SEAL-BFV | SEAL-CKKS | HELIB-BGV | HELIB-CKKS')
     sys.exit(2)
 
@@ -79,7 +81,7 @@ def main():
     resultFileName = ''
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "n:s:r:c:") #o:
+        opts, args = getopt.getopt(sys.argv[1:], "n:s:r:c:t:") #o:
     except getopt.GetoptError:
         printHelp()
     for opt, arg in opts:
@@ -91,20 +93,16 @@ def main():
             rowSize = int(arg)
         elif opt == '-c':
             colSize = int(arg)
-#        elif opt == '-o':
-#            resultFileName = arg
+        elif opt == '-t':
+            threadNum = int(arg)
         else:
             printHelp()
-    
-    print(n)
-    print(libraryScheme)
-    print(rowSize)
-    print(colSize)
-    resultFileName = "results/result_"+str(n)+"_"+libraryScheme+"_"+str(rowSize)+"_"+str(colSize)+".txt"
-    print(resultFileName)
-    
 
-    runTheProgram(n, libraryScheme, rowSize, colSize, resultFileName)
+
+    createDir("results")
+    resultFileName = "results/result_N_"+str(n)+"_"+libraryScheme+"_"+str(rowSize)+"_"+str(colSize)+"_thread_"+str(threadNum)+".txt"
+    
+    runTheProgram(n, libraryScheme, rowSize, colSize, threadNum, resultFileName)
     TIME_MAP = collectOperationRuntime( resultFileName )
     processResults( TIME_MAP, resultFileName)
 

@@ -57,10 +57,6 @@
       </snapshots>
     </repository>
     <repository>
-      <id>sparkfhe-remote</id>
-      <url>https://sparkfhe.s3.amazonaws.com</url>
-    </repository>
-    <repository>
       <id>sparkfhe-local</id>
       <url>${sparkfhe.maven.repo}</url>
     </repository>

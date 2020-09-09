@@ -283,7 +283,7 @@ public class BasicOPsExample {
     }
 
     public static void main(String[] args) {
-        String scheme="", library = "", pk="", sk="", rlk="", glk="";
+        String scheme="", library = "", pk="", sk="", rlk="", glk="", master="";
         int row = 100, col = 1;
 
         // The variable slices represent the number of time a task is split up
@@ -314,19 +314,24 @@ public class BasicOPsExample {
                 }
                 break;
             case LOCAL:
-                sparkConf.setMaster("local");
-                library = args[1];
-                scheme = args[2];
-                pk = args[3];
-                sk = args[4];
-                if (library.equalsIgnoreCase(FHELibrary.SEAL)) {
-                    rlk = args[5];
-                    glk = args[6];
-                    row = Integer.valueOf(args[7]);
-                    col = Integer.valueOf(args[8]);
+                if (args[1] == "") {
+                    master = "local";
                 } else {
-                    row = Integer.valueOf(args[5]);
-                    col = Integer.valueOf(args[6]);
+                    master = "local["+args[1]+"]";
+                }
+                sparkConf.setMaster(master);
+                library = args[2];
+                scheme = args[3];
+                pk = args[4];
+                sk = args[5];
+                if (library.equalsIgnoreCase(FHELibrary.SEAL)) {
+                    rlk = args[6];
+                    glk = args[7];
+                    row = Integer.valueOf(args[8]);
+                    col = Integer.valueOf(args[9]);
+                } else {
+                    row = Integer.valueOf(args[6]);
+                    col = Integer.valueOf(args[7]);
                 }
                 break;
             default:
