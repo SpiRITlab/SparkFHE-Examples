@@ -6,7 +6,7 @@
 
   <groupId>spiritlab.sparkfhe</groupId>
   <artifactId>sparkfhe-examples</artifactId>
-  <version>2.0-SNAPSHOT</version>
+  <version>1.1.0-SNAPSHOT</version>
   <name>sparkfhe-examples</name>
   <url>https://github.com/SpiRITlab/SparkFHE-Examples</url>
 
@@ -55,10 +55,6 @@
       <snapshots>
         <enabled>true</enabled>
       </snapshots>
-    </repository>
-    <repository>
-      <id>sparkfhe-remote</id>
-      <url>https://sparkfhe.s3.amazonaws.com</url>
     </repository>
     <repository>
       <id>sparkfhe-local</id>
@@ -121,13 +117,6 @@
 
 
     <dependency>
-      <groupId>spiritlab.sparkfhe</groupId>
-      <artifactId>spark-fhe_${scala.binary.version}</artifactId>
-      <version>2.0-SNAPSHOT</version>
-      <scope>compile</scope>
-    </dependency>
-
-    <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-core_${scala.binary.version}</artifactId>
       <version>${spark.version}</version>
@@ -151,7 +140,13 @@
     <dependency>
       <groupId>spiritlab.sparkfhe</groupId>
       <artifactId>sparkfhe-api</artifactId>
-      <version>2.0-SNAPSHOT</version>
+      <version>1.1.0-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>spiritlab.sparkfhe</groupId>
+      <artifactId>spark-fhe_${scala.binary.version}</artifactId>
+      <version>1.1.0-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>

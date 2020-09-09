@@ -129,7 +129,7 @@ public class Config {
     }
 
     public static String get_batch_crypto_params_file(String lib_name, String scheme_name) {
-        String crypto_param_file = DEFAULT_COMMON_CRYPTO_PARAMS_FILE;
+        String crypto_param_file = "";
         if (lib_name.equalsIgnoreCase(FHELibrary.HELIB)){
             if (scheme_name.equalsIgnoreCase(FHEScheme.BGV)){
                 crypto_param_file = BATCH_HELIB_BGV_CRYPTO_PARAMS_FILENAME;
@@ -149,7 +149,7 @@ public class Config {
         if (crypto_param_file == "") {
             System.err.println("Crypto parameter file cannot be found! Please make sure valid crypto " +
                     "parameter files are in the 'SparkFHE-Addon/resources/params' folder.");
-            System.exit(0);
+            System.exit(1);
         }
 
         switch (currentExecutionEnvironment) {

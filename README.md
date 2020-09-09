@@ -23,6 +23,10 @@ ln -s ${PATH_TO_spark-3.0.0-SNAPSHOT-bin-SparkFHE}/libSparkFHE/ ./
 ```bash
 ./mvn -f pom-devel.xml scm:checkout
 ```
+or
+```bash
+git submodule update
+```
 
 ## 3. Compile the example code
 The example code will use the shared libraries downloaded while setting up the Apache Spark environment.

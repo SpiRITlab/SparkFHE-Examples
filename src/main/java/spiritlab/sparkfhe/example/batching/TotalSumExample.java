@@ -295,12 +295,14 @@ public class TotalSumExample {
         test_FHE_total_sum_via_native_code(spark, slices, library, scheme, pk_b, sk_b);
 //        test_FHE_total_sum_via_sql(spark, slices, library, scheme, pk_b, sk_b);
 
-        try {
-            System.out.println("Paused to allow checking the Spark server log, press enter to continue.");
-            System.in.read();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        // Normally, the Spark web UI at http://127.0.0.1:4040 will be shutdown after the experiment run.
+        // Uncomment the following block of code to paused the shutdown so that you have a chance to check the Spark web UI.
+//        try {
+//            System.out.println("Paused to allow checking the Spark server log, press enter to continue.");
+//            System.in.read();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
         // Stop existing spark context
         jsc.close();

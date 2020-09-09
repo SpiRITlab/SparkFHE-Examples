@@ -2,7 +2,7 @@
   <configuration default="false" name="SEAL-CKKS-KeyGen-Batching" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="spiritlab.sparkfhe.example.batching.KeyGenExample" />
     <module name="sparkfhe-examples" />
-    <option name="PROGRAM_PARAMETERS" value="local SEAL BFV" />
+    <option name="PROGRAM_PARAMETERS" value="local SEAL CKKS" />
     <option name="VM_PARAMETERS" value="-Djava.library.path=deps/lib" />
     <extension name="coverage">
       <pattern>
