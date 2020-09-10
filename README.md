@@ -66,22 +66,25 @@ cd scripts
 bash myMavenExampleRun.bash
 ```
 
-#### Or, 4.2 Run the demo code step-by-step
+#### Or, 4.2 Run the demo code (Nonbatching with HElib BGV) step-by-step
 ##### Step 1. Generate necessary key pair and example ciphertexts (only needed to run once)
 ```bash
 # this will generate the example key pair
-./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.KeyGenExample -Dexec.args="local" 
+./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.nonbatching.KeyGenExample -Dexec.args="local HELIB BGV" 
 
 # this will generate some ciphertexts
-./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.EncDecExample -Dexec.args="local gen/keys/my_public_key.txt gen/keys/my_secret_key.txt"      
+./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.nonbatching.EncDecExample -Dexec.args="local HELIB BGV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt"      
 ```
 ##### Step 2. Run examples: Test different FHE operations on example ciphertexts and vectors of ciphertexts
 ```bash
 # this will perform some basic FHE operations
-./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.BasicOPsExample -Dexec.args="local  gen/keys/my_public_key.txt gen/keys/my_secret_key.txt"
+./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.nonbatching.BasicOPsExample -Dexec.args="local HELIB BGV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt"
 
 # this will perform dot product calculation on vectors of encrypted numbers 
-./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.DotProductExample -Dexec.args="local gen/keys/my_public_key.txt gen/keys/my_secret_key.txt"
+./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.nonbatching.DotProductExample -Dexec.args="local HELIB BGV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt"
+
+# this will perform total sum calculation on vector and matrix of encrypted numbers 
+./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.nonbatching.TotalSumExample -Dexec.args="local HELIB BGV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt"
 ```
 
 
