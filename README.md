@@ -63,7 +63,14 @@ Note, without '-f pom-devel.xml', maven will download a new shared library from 
 #### 4.1 Run the demo code with a script 
 ```bash
 cd scripts
-bash myMavenExampleRun.bash
+bash HELIB-BGV-Nonbatching-MavenExampleRun.bash
+```
+
+In addition, you can try the following scripts.
+```bash
+HELIB-BGV-Batching-MavenExampleRun.bash         SEAL-BFV-Batching-MavenExampleRun.bash          
+HELIB-BGV-Nonbatching-MavenExampleRun.bash      SEAL-BFV-Nonbatching-MavenExampleRun.bash       testConnectionToSharedLib.bash
+HELIB-CKKS-Batching-MavenExampleRun.bash        SEAL-CKKS-Batching-MavenExampleRun.bash
 ```
 
 #### Or, 4.2 Run the demo code (Nonbatching with HElib BGV) step-by-step
