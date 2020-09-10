@@ -16,7 +16,7 @@ pom.xml                         # will download and refresh the C++ shared lib f
 Note, change ${PATH_TO_spark-3.1.0-SNAPSHOT-bin-SparkFHE} to where you install "spark-3.1.0-SNAPSHOT-bin-SparkFHE"
 ```bash
 cd SparkFHE-Examples
-ln -s ${PATH_TO_spark-3.1.0-SNAPSHOT-bin-SparkFHE}/libSparkFHE/ ./
+ln -s ${PATH_TO_spark-3.1.0-SNAPSHOT-bin-SparkFHE}/deps/ ./
 ```
 
 ## 2. Get SparkFHE-Addon
