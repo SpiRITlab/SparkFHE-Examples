@@ -18,7 +18,8 @@ While efficiency in data processing is achieved, outsourcing computation on priv
 
 SparkFHE integrates Apache Spark with fully homomorphic encryption – an encryption technology that allows computing directly on encrypted data without requiring a secret key. This integration makes two novel contributions to  large-scale secure data analytics in the Cloud: (1) enabling Spark to perform efficient computation on large datasets while preserving user privacy, and (2) accelerating intensive homomorphic computation through parallelization of tasks across clusters of computing nodes. To our best knowledge, SparkFHE is the first addressing these two needs simultaneously. This project is in collaboration with Microsoft Research, Redmond. 
 
-[Learn more about this project in our research group page.](https://www.cs.rit.edu/~ph/PrivateComputation)
+- [Learn more about this project in our research group page.](https://www.cs.rit.edu/~ph/PrivateComputation)
+- We greatly appreciated the contributions from our [contributors](https://github.com/SpiRITlab/SparkFHE-Examples/wiki/Contributors).
 
 ## Give it a try
 
