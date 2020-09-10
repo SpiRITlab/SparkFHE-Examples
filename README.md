@@ -10,7 +10,6 @@ While efficiency in data processing is achieved, outsourcing computation on priv
 - Apache Spark: A Unified Engine For Big Data Processing. Matei Zaharia, Reynold S. Xin, Patrick Wendell, Tathagata Das, Michael Armbrust, Ankur Dave, Xiangrui Meng, Josh Rosen, Shivaram Venkataraman, Michael J. Franklin, Ali Ghodsi, Joseph Gonzalez, Scott Shenker, Ion Stoica. Communications of the ACM, November 2016, Vol. 59 No. 11, Pages 56-65. DOI 10.1145/2934664
 
 ### FHE, a cryptography technique that enables arithmetic computations on encrypted data without decrypting it first.
-![Toy example of homomorphism](https://www.cs.rit.edu/~ph/sites/default/files/inline-images/he_example.png)
 - "Computing arbitrary functions of encrypted data". Craig Gentry. Communications of the ACM. March 2010. DOI 1666420.1666444.
 - "Technical Perspective: A First Glimpse of Cryptography's Holy Grail". Daniele Micciancio.  Communications of the ACM, March 2010, Vol. 53 No. 3, Page 96. DOI 10.1145/1666420.1666445
 
