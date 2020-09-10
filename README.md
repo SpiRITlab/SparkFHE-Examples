@@ -1,10 +1,10 @@
 # For Testers
-If you want to go for a quick test drive of the SparkFHE code within the Apache Spark environment, please visit and follow these instructions, https://github.com/SpiRITlab/SparkFHE-Examples/wiki
+If you want to go for a quick test drive of the SparkFHE code within the Apache Spark environment, please visit and follow these instructions, [https://github.com/SpiRITlab/SparkFHE-Examples/wiki](https://github.com/SpiRITlab/SparkFHE-Examples/wiki)
 
 
 
 # For Developers
-If you are a developer working on the SparkFHE-Examples code, you can use the following instructions to develop new example code. You will also need to setup the Apache Spark environment, because it will download and install all dependencies. If you haven't done so, please visit and follow these instructions, https://github.com/SpiRITlab/SparkFHE-Examples/wiki
+If you are a developer working on the SparkFHE-Examples code, you can use the following instructions to develop new example code. You will also need to setup the Apache Spark environment, because it will download and install all dependencies. If you haven't done so, please visit and follow these instructions, [https://github.com/SpiRITlab/SparkFHE-Examples/wiki](https://github.com/SpiRITlab/SparkFHE-Examples/wiki)
 
 Note, there are two pom files which you can use to compile or package:
 ```bash
@@ -13,10 +13,10 @@ pom.xml                         # will download and refresh the C++ shared lib f
 ```
 
 ## 1. Soft-link the libSparkFHE folder
-Note, change ${PATH_TO_spark-3.0.0-SNAPSHOT-bin-SparkFHE} to where you install "spark-3.0.0-SNAPSHOT-bin-SparkFHE"
+Note, change ${PATH_TO_spark-3.1.0-SNAPSHOT-bin-SparkFHE} to where you install "spark-3.1.0-SNAPSHOT-bin-SparkFHE"
 ```bash
 cd SparkFHE-Examples
-ln -s ${PATH_TO_spark-3.0.0-SNAPSHOT-bin-SparkFHE}/libSparkFHE/ ./
+ln -s ${PATH_TO_spark-3.1.0-SNAPSHOT-bin-SparkFHE}/libSparkFHE/ ./
 ```
 
 ## 2. Get SparkFHE-Addon
