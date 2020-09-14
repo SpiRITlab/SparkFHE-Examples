@@ -62,6 +62,8 @@ public class KeyGenExample {
         endTime = System.currentTimeMillis();
         System.out.println("TIMEINFO:batch_generate_keys:" + (endTime - startTime) + ":ms");
 
+        System.out.println("Number of slots = " + SparkFHE.getInstance().get_crypto_param("SlotCount"));
+
         if (Config.DEBUG) {
             // Encrypting the literal 1, and decrypting it to verify the keys' accuracy.
             String inputNumberString = "1";

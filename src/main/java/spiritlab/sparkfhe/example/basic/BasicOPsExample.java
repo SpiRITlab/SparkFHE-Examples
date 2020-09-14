@@ -53,6 +53,8 @@ public class BasicOPsExample {
         /* Spark example for FHE calculations */
         long startTime, endTime;
 
+        startTime = System.currentTimeMillis();
+
         // Encoders are created for Java beans
         Encoder<SerializedCiphertext> ctxtJSONEncoder = Encoders.bean(SerializedCiphertext.class);
 
@@ -64,7 +66,10 @@ public class BasicOPsExample {
         // combine both rdds as a pair
         JavaPairRDD<SerializedCiphertext, SerializedCiphertext> Combined_ctxt_RDD = ctxt_one_rdd.zip(ctxt_zero_rdd).cache();
 
-        startTime = System.currentTimeMillis();
+        endTime = System.currentTimeMillis();
+        System.out.println("TIMEINFO:FHE_Pre_Basic_Spark_Ops:" + (endTime - startTime) + ":ms");
+
+        startTime = System.nanoTime();
         // call homomorphic addition operators on the rdds
         JavaRDD<SerializedCiphertext> Addition_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
@@ -72,10 +77,10 @@ public class BasicOPsExample {
             SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
             return new SerializedCiphertext(SparkFHE.getInstance().fhe_add(tuple._1().getCtxt(), tuple._2().getCtxt()));
         });
-        endTime = System.currentTimeMillis();
-        System.out.println("TIMEINFO:Homomorphic_Addition:" + (endTime - startTime) + ":ms");
+        endTime = System.nanoTime();
+        System.out.println("TIMEINFO:Homomorphic_Addition:" + (endTime - startTime) + ":ns");
 
-        startTime = System.currentTimeMillis();
+        startTime = System.nanoTime();
         // call homomorphic multiply operators on the rdds
         JavaRDD<SerializedCiphertext> Multiplication_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
@@ -83,10 +88,10 @@ public class BasicOPsExample {
             SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
             return new SerializedCiphertext(SparkFHE.getInstance().fhe_multiply(tuple._1().getCtxt(), tuple._2().getCtxt()));
         });
-        endTime = System.currentTimeMillis();
-        System.out.println("TIMEINFO:Homomorphic_Multiplication:" + (endTime - startTime) + ":ms");
+        endTime = System.nanoTime();
+        System.out.println("TIMEINFO:Homomorphic_Multiplication:" + (endTime - startTime) + ":ns");
 
-        startTime = System.currentTimeMillis();
+        startTime = System.nanoTime();
         // call homomorphic subtraction operators on the rdds
         JavaRDD<SerializedCiphertext> Subtraction_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
@@ -94,8 +99,8 @@ public class BasicOPsExample {
             SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
             return new SerializedCiphertext(SparkFHE.getInstance().fhe_subtract(tuple._1().getCtxt(), tuple._2().getCtxt()));
         });
-        endTime = System.currentTimeMillis();
-        System.out.println("TIMEINFO:Homomorphic_Subtraction:" + (endTime - startTime) + ":ms");
+        endTime = System.nanoTime();
+        System.out.println("TIMEINFO:Homomorphic_Subtraction:" + (endTime - startTime) + ":ns");
 
         if (Config.DEBUG){
             // print out results for debug purposes
@@ -121,6 +126,7 @@ public class BasicOPsExample {
         /* Spark example for FHE calculations on vectors */
         long startTime, endTime;
 
+        startTime = System.currentTimeMillis();
         // Encoders are created for Java beans
         Encoder<SerializedCiphertext> ctxtJSONEncoder = Encoders.bean(SerializedCiphertext.class);
 
@@ -132,7 +138,12 @@ public class BasicOPsExample {
         // combine both rdds as a pair
         JavaPairRDD<SerializedCiphertext, SerializedCiphertext> combined_ctxt_rdd = ctxt_a_rdd.zip(ctxt_b_rdd);
 
-        startTime = System.currentTimeMillis();
+        endTime = System.currentTimeMillis();
+        System.out.println("TIMEINFO:FHE_Pre_Vector_Spark_Ops:" + (endTime - startTime) + ":ms");
+
+        System.out.println("combined_ctxt_rdd.count() = " + combined_ctxt_rdd.count());
+
+        startTime = System.nanoTime();
         // call homomorphic addition operators on the rdds
         JavaRDD<SerializedCiphertext> Addition_ctxt_RDD = combined_ctxt_rdd.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
@@ -140,10 +151,10 @@ public class BasicOPsExample {
             SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
             return new SerializedCiphertext(SparkFHE.getInstance().fhe_add(tuple._1().getCtxt(), tuple._2().getCtxt()));
         });
-        endTime = System.currentTimeMillis();
-        System.out.println("TIMEINFO:Vector_Homomorphic_Addition:" + (endTime - startTime) + ":ms");
+        endTime = System.nanoTime();
+        System.out.println("TIMEINFO:Vector_Homomorphic_Addition:" + (endTime - startTime) + ":ns");
 
-        startTime = System.currentTimeMillis();
+        startTime = System.nanoTime();
         // call homomorphic multiply operators on the rdds
         JavaRDD<SerializedCiphertext> Multiplication_ctxt_RDD = combined_ctxt_rdd.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
@@ -151,10 +162,10 @@ public class BasicOPsExample {
             SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
             return new SerializedCiphertext(SparkFHE.getInstance().fhe_multiply(tuple._1().getCtxt(), tuple._2().getCtxt()));
         });
-        endTime = System.currentTimeMillis();
-        System.out.println("TIMEINFO:Vector_Homomorphic_Multiplication:" + (endTime - startTime) + ":ms");
+        endTime = System.nanoTime();
+        System.out.println("TIMEINFO:Vector_Homomorphic_Multiplication:" + (endTime - startTime) + ":ns");
 
-        startTime = System.currentTimeMillis();
+        startTime = System.nanoTime();
         // call homomorphic subtraction operators on the rdds
         JavaRDD<SerializedCiphertext> Subtraction_ctxt_RDD = combined_ctxt_rdd.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
@@ -162,8 +173,8 @@ public class BasicOPsExample {
             SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
             return new SerializedCiphertext(SparkFHE.getInstance().fhe_subtract(tuple._1().getCtxt(), tuple._2().getCtxt()));
         });
-        endTime = System.currentTimeMillis();
-        System.out.println("TIMEINFO:Vector_Homomorphic_Subtraction:" + (endTime - startTime) + ":ms");
+        endTime = System.nanoTime();
+        System.out.println("TIMEINFO:Vector_Homomorphic_Subtraction:" + (endTime - startTime) + ":ns");
 
         if (Config.DEBUG) {
             System.out.println("combined_ctxt_rdd.count() = " + combined_ctxt_rdd.count());
@@ -194,7 +205,6 @@ public class BasicOPsExample {
             });
         }
     }
-
 
     public static void main(String[] args) {
         String scheme="", library = "", pk="", sk="", rlk="", glk="", master="";
@@ -278,9 +288,15 @@ public class BasicOPsExample {
 
         // String testing the basic operations in HE libraries on encrypted data, such as addition, subtraction, and multiply.
         test_FHE_basic_op(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
+//        test_FHE_add(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
+//        test_FHE_multiply(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
+//        test_FHE_subtract(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
 
         // Testing the basic operations in HE libraries on encrypted vectors, such as addition, subtraction, and multiply.
         test_FHE_vector_op(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
+//        test_FHE_vector_add(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
+//        test_FHE_vector_mult(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
+//        test_FHE_vector_sub(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
 
         // Stop existing spark context
         jsc.close();
@@ -290,3 +306,253 @@ public class BasicOPsExample {
     }
 
 }
+
+
+//    public static void test_FHE_add(SparkSession spark, int slices, String library, String scheme, Broadcast<String> pk_b,
+//                                    Broadcast<String> sk_b, Broadcast<String> rlk_b, Broadcast<String> glk_b) {
+//        /* Spark example for FHE calculations */
+//        long startTime, endTime;
+//
+//        startTime = System.currentTimeMillis();
+//        // Encoders are created for Java beans
+//        Encoder<SerializedCiphertext> ctxtJSONEncoder = Encoders.bean(SerializedCiphertext.class);
+//
+//        // https://spark.apache.org/docs/latest/sql-programming-guide.html#untyped-dataset-operations-aka-dataframe-operations
+//        // Create rdd with json file.
+//        JavaRDD<SerializedCiphertext> ctxt_zero_rdd = spark.read().json(CTXT_0_FILE).as(ctxtJSONEncoder).javaRDD();
+//        JavaRDD<SerializedCiphertext> ctxt_one_rdd = spark.read().json(CTXT_1_FILE).as(ctxtJSONEncoder).javaRDD();
+//
+//        // combine both rdds as a pair
+//        JavaPairRDD<SerializedCiphertext, SerializedCiphertext> Combined_ctxt_RDD = ctxt_one_rdd.zip(ctxt_zero_rdd).cache();
+//        endTime = System.currentTimeMillis();
+//        System.out.println("TIMEINFO:Spark_pre_add_ops:" + (endTime - startTime) + ":ms");
+//
+//        startTime = System.currentTimeMillis();
+//        // call homomorphic addition operators on the rdds
+//        JavaRDD<SerializedCiphertext> Addition_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
+//            // we need to load the shared library and init a copy of SparkFHE on the executor
+//            SparkFHEPlugin.setup();
+//            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+//            return new SerializedCiphertext(SparkFHE.getInstance().fhe_add(tuple._1().getCtxt(), tuple._2().getCtxt()));
+//        });
+//        endTime = System.currentTimeMillis();
+//        System.out.println("TIMEINFO:Homomorphic_Addition_within:" + (endTime - startTime) + ":ms");
+//
+//        if (Config.DEBUG){
+//            // print out results for debug purposes
+//            System.out.println("Ciphertext Zero:"+SparkFHE.getInstance().decrypt(ctxt_zero_rdd.first().getCtxt(), true));
+//            System.out.println("Ciphertext One:"+SparkFHE.getInstance().decrypt(ctxt_one_rdd.first().getCtxt(), true));
+//            System.out.println("Homomorphic Addition:"+ SparkFHE.getInstance().decrypt(Addition_ctxt_RDD.first().getCtxt(), true));
+//        }
+//    }
+//
+//    public static void test_FHE_multiply(SparkSession spark, int slices, String library, String scheme, Broadcast<String> pk_b,
+//                                         Broadcast<String> sk_b, Broadcast<String> rlk_b, Broadcast<String> glk_b) {
+//        /* Spark example for FHE calculations */
+//        long startTime, endTime;
+//
+//        startTime = System.currentTimeMillis();
+//        // Encoders are created for Java beans
+//        Encoder<SerializedCiphertext> ctxtJSONEncoder = Encoders.bean(SerializedCiphertext.class);
+//
+//        // https://spark.apache.org/docs/latest/sql-programming-guide.html#untyped-dataset-operations-aka-dataframe-operations
+//        // Create rdd with json file.
+//        JavaRDD<SerializedCiphertext> ctxt_zero_rdd = spark.read().json(CTXT_0_FILE).as(ctxtJSONEncoder).javaRDD();
+//        JavaRDD<SerializedCiphertext> ctxt_one_rdd = spark.read().json(CTXT_1_FILE).as(ctxtJSONEncoder).javaRDD();
+//
+//        // combine both rdds as a pair
+//        JavaPairRDD<SerializedCiphertext, SerializedCiphertext> Combined_ctxt_RDD = ctxt_one_rdd.zip(ctxt_zero_rdd).cache();
+//        endTime = System.currentTimeMillis();
+//        System.out.println("TIMEINFO:spark_pre_mult_ops:" + (endTime - startTime) + ":ms");
+//
+//        startTime = System.currentTimeMillis();
+//        // call homomorphic multiply operators on the rdds
+//        JavaRDD<SerializedCiphertext> Multiplication_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
+//            // we need to load the shared library and init a copy of SparkFHE on the executor
+//            SparkFHEPlugin.setup();
+//            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+//            return new SerializedCiphertext(SparkFHE.getInstance().fhe_multiply(tuple._1().getCtxt(), tuple._2().getCtxt()));
+//        });
+//        endTime = System.currentTimeMillis();
+//        System.out.println("TIMEINFO:Homomorphic_Multiplication_within:" + (endTime - startTime) + ":ms");
+//
+//        if (Config.DEBUG){
+//            // print out results for debug purposes
+//            System.out.println("Ciphertext Zero:"+SparkFHE.getInstance().decrypt(ctxt_zero_rdd.first().getCtxt(), true));
+//            System.out.println("Ciphertext One:"+SparkFHE.getInstance().decrypt(ctxt_one_rdd.first().getCtxt(), true));
+//            System.out.println("Homomorphic Multiplication:"+ SparkFHE.getInstance().decrypt(Multiplication_ctxt_RDD.first().getCtxt(), true));
+//        }
+//    }
+//
+//    public static void test_FHE_subtract(SparkSession spark, int slices, String library, String scheme, Broadcast<String> pk_b,
+//                                         Broadcast<String> sk_b, Broadcast<String> rlk_b, Broadcast<String> glk_b) {
+//        /* Spark example for FHE calculations */
+//        long startTime, endTime;
+//
+//        startTime = System.currentTimeMillis();
+//        // Encoders are created for Java beans
+//        Encoder<SerializedCiphertext> ctxtJSONEncoder = Encoders.bean(SerializedCiphertext.class);
+//
+//        // https://spark.apache.org/docs/latest/sql-programming-guide.html#untyped-dataset-operations-aka-dataframe-operations
+//        // Create rdd with json file.
+//        JavaRDD<SerializedCiphertext> ctxt_zero_rdd = spark.read().json(CTXT_0_FILE).as(ctxtJSONEncoder).javaRDD();
+//        JavaRDD<SerializedCiphertext> ctxt_one_rdd = spark.read().json(CTXT_1_FILE).as(ctxtJSONEncoder).javaRDD();
+//
+//        // combine both rdds as a pair
+//        JavaPairRDD<SerializedCiphertext, SerializedCiphertext> Combined_ctxt_RDD = ctxt_one_rdd.zip(ctxt_zero_rdd).cache();
+//        endTime = System.currentTimeMillis();
+//        System.out.println("TIMEINFO:spark_pre_subtract_ops:" + (endTime - startTime) + ":ms");
+//
+//        startTime = System.currentTimeMillis();
+//        // call homomorphic subtraction operators on the rdds
+//        JavaRDD<SerializedCiphertext> Subtraction_ctxt_RDD = Combined_ctxt_RDD.map(tuple -> {
+//            // we need to load the shared library and init a copy of SparkFHE on the executor
+//            SparkFHEPlugin.setup();
+//            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+//            return new SerializedCiphertext(SparkFHE.getInstance().fhe_subtract(tuple._1().getCtxt(), tuple._2().getCtxt()));
+//        });
+//        endTime = System.currentTimeMillis();
+//        System.out.println("TIMEINFO:Homomorphic_Subtraction_within:" + (endTime - startTime) + ":ms");
+//
+//        if (Config.DEBUG){
+//            // print out results for debug purposes
+//            System.out.println("Ciphertext Zero:"+SparkFHE.getInstance().decrypt(ctxt_zero_rdd.first().getCtxt(), true));
+//            System.out.println("Ciphertext One:"+SparkFHE.getInstance().decrypt(ctxt_one_rdd.first().getCtxt(), true));
+//            System.out.println("Homomorphic Subtraction:"+SparkFHE.getInstance().decrypt(Subtraction_ctxt_RDD.first().getCtxt(), true));
+//        }
+//    }
+
+
+
+//    public static void test_FHE_vector_add(SparkSession spark, int slices, String library, String scheme, Broadcast<String> pk_b,
+//                                          Broadcast<String> sk_b, Broadcast<String> rlk_b, Broadcast<String> glk_b) {
+//        /* Spark example for FHE calculations on vectors */
+//        long startTime, endTime;
+//
+//        startTime = System.currentTimeMillis();
+//        // Encoders are created for Java beans
+//        Encoder<SerializedCiphertext> ctxtJSONEncoder = Encoders.bean(SerializedCiphertext.class);
+//
+//        // https://spark.apache.org/docs/latest/sql-programming-guide.html#untyped-dataset-operations-aka-dataframe-operations
+//        // Create rdd with json file. See http://jsonlines.org
+//        JavaRDD<SerializedCiphertext> ctxt_a_rdd = spark.read().json(CTXT_Vector_a_FILE).as(ctxtJSONEncoder).javaRDD();
+//        JavaRDD<SerializedCiphertext> ctxt_b_rdd = spark.read().json(CTXT_Vector_b_FILE).as(ctxtJSONEncoder).javaRDD();
+//
+//        // combine both rdds as a pair
+//        JavaPairRDD<SerializedCiphertext, SerializedCiphertext> combined_ctxt_rdd = ctxt_a_rdd.zip(ctxt_b_rdd);
+//        endTime = System.currentTimeMillis();
+//        System.out.println("TIMEINFO:spark_pre_vec_add:" + (endTime - startTime) + ":ms");
+//
+//        System.out.println("combined_ctxt_rdd.count() = " + combined_ctxt_rdd.count());
+//
+//        startTime = System.currentTimeMillis();
+//        // call homomorphic addition operators on the rdds
+//        JavaRDD<SerializedCiphertext> Addition_ctxt_RDD = combined_ctxt_rdd.map(tuple -> {
+//            // we need to load the shared library and init a copy of SparkFHE on the executor
+//            SparkFHEPlugin.setup();
+//            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+//            return new SerializedCiphertext(SparkFHE.getInstance().fhe_add(tuple._1().getCtxt(), tuple._2().getCtxt()));
+//        });
+//        endTime = System.currentTimeMillis();
+//        System.out.println("TIMEINFO:Vector_Homomorphic_Addition_within:" + (endTime - startTime) + ":ms");
+//
+//        if (Config.DEBUG) {
+//            System.out.println("combined_ctxt_rdd.count() = " + combined_ctxt_rdd.count());
+//
+//            // print out results for debugging purposes
+//            System.out.println("Vector Homomorphic Addition");
+//            Addition_ctxt_RDD.foreach(data -> {
+//                // we need to load the shared library and init a copy of SparkFHE on the executor
+//                SparkFHEPlugin.setup();
+//                SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+//                System.out.println(SparkFHE.getInstance().decrypt(data.getCtxt(), true));
+//            });
+//        }
+//    }
+//
+//    public static void test_FHE_vector_mult(SparkSession spark, int slices, String library, String scheme, Broadcast<String> pk_b,
+//                                          Broadcast<String> sk_b, Broadcast<String> rlk_b, Broadcast<String> glk_b) {
+//        /* Spark example for FHE calculations on vectors */
+//        long startTime, endTime;
+//
+//        startTime = System.currentTimeMillis();
+//        // Encoders are created for Java beans
+//        Encoder<SerializedCiphertext> ctxtJSONEncoder = Encoders.bean(SerializedCiphertext.class);
+//
+//        // https://spark.apache.org/docs/latest/sql-programming-guide.html#untyped-dataset-operations-aka-dataframe-operations
+//        // Create rdd with json file. See http://jsonlines.org
+//        JavaRDD<SerializedCiphertext> ctxt_a_rdd = spark.read().json(CTXT_Vector_a_FILE).as(ctxtJSONEncoder).javaRDD();
+//        JavaRDD<SerializedCiphertext> ctxt_b_rdd = spark.read().json(CTXT_Vector_b_FILE).as(ctxtJSONEncoder).javaRDD();
+//
+//        // combine both rdds as a pair
+//        JavaPairRDD<SerializedCiphertext, SerializedCiphertext> combined_ctxt_rdd = ctxt_a_rdd.zip(ctxt_b_rdd);
+//        endTime = System.currentTimeMillis();
+//        System.out.println("TIMEINFO:spark_pre_vec_mult:" + (endTime - startTime) + ":ms");
+//
+//        startTime = System.currentTimeMillis();
+//        // call homomorphic multiply operators on the rdds
+//        JavaRDD<SerializedCiphertext> Multiplication_ctxt_RDD = combined_ctxt_rdd.map(tuple -> {
+//            // we need to load the shared library and init a copy of SparkFHE on the executor
+//            SparkFHEPlugin.setup();
+//            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+//            return new SerializedCiphertext(SparkFHE.getInstance().fhe_multiply(tuple._1().getCtxt(), tuple._2().getCtxt()));
+//        });
+//        endTime = System.currentTimeMillis();
+//        System.out.println("TIMEINFO:Vector_Homomorphic_Multiplication_within:" + (endTime - startTime) + ":ms");
+//
+//        if (Config.DEBUG) {
+//            System.out.println("combined_ctxt_rdd.count() = " + combined_ctxt_rdd.count());
+//
+//            System.out.println("Vector Homomorphic Multiplication");
+//            Multiplication_ctxt_RDD.foreach(data -> {
+//                // we need to load the shared library and init a copy of SparkFHE on the executor
+//                SparkFHEPlugin.setup();
+//                SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+//                System.out.println(SparkFHE.getInstance().decrypt(data.getCtxt(), true));
+//            });
+//        }
+//    }
+//
+//    public static void test_FHE_vector_sub(SparkSession spark, int slices, String library, String scheme, Broadcast<String> pk_b,
+//                                          Broadcast<String> sk_b, Broadcast<String> rlk_b, Broadcast<String> glk_b) {
+//        /* Spark example for FHE calculations on vectors */
+//        long startTime, endTime;
+//
+//        startTime = System.currentTimeMillis();
+//        // Encoders are created for Java beans
+//        Encoder<SerializedCiphertext> ctxtJSONEncoder = Encoders.bean(SerializedCiphertext.class);
+//
+//        // https://spark.apache.org/docs/latest/sql-programming-guide.html#untyped-dataset-operations-aka-dataframe-operations
+//        // Create rdd with json file. See http://jsonlines.org
+//        JavaRDD<SerializedCiphertext> ctxt_a_rdd = spark.read().json(CTXT_Vector_a_FILE).as(ctxtJSONEncoder).javaRDD();
+//        JavaRDD<SerializedCiphertext> ctxt_b_rdd = spark.read().json(CTXT_Vector_b_FILE).as(ctxtJSONEncoder).javaRDD();
+//
+//        // combine both rdds as a pair
+//        JavaPairRDD<SerializedCiphertext, SerializedCiphertext> combined_ctxt_rdd = ctxt_a_rdd.zip(ctxt_b_rdd);
+//        endTime = System.currentTimeMillis();
+//        System.out.println("TIMEINFO:spark_pre_vec_sub:" + (endTime - startTime) + ":ms");
+//
+//        startTime = System.currentTimeMillis();
+//        // call homomorphic subtraction operators on the rdds
+//        JavaRDD<SerializedCiphertext> Subtraction_ctxt_RDD = combined_ctxt_rdd.map(tuple -> {
+//            // we need to load the shared library and init a copy of SparkFHE on the executor
+//            SparkFHEPlugin.setup();
+//            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+//            return new SerializedCiphertext(SparkFHE.getInstance().fhe_subtract(tuple._1().getCtxt(), tuple._2().getCtxt()));
+//        });
+//        endTime = System.currentTimeMillis();
+//        System.out.println("TIMEINFO:Vector_Homomorphic_Subtraction_within:" + (endTime - startTime) + ":ms");
+//
+//        if (Config.DEBUG) {
+//            System.out.println("combined_ctxt_rdd.count() = " + combined_ctxt_rdd.count());
+//
+//            // print out results for debugging purposes
+//            System.out.println("Vector Homomorphic Subtraction");
+//            Subtraction_ctxt_RDD.foreach(data -> {
+//                // we need to load the shared library and init a copy of SparkFHE on the executor
+//                SparkFHEPlugin.setup();
+//                SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+//                System.out.println(SparkFHE.getInstance().decrypt(data.getCtxt(), true));
+//            });
+//        }
+//    }

@@ -10,58 +10,41 @@ cd $ProjectRoot
 ####   NO-BATCHING TESTS   ###
 #
 ### HELIB tests ##
-# generate example key pairs
-./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.KeyGenExample -Dexec.args="local HELIB BGV"
-
-# generate example ciphertexts
-./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.EncDecExample -Dexec.args="local HELIB BGV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt 100"
-
-# run basic FHE arithmetic operation over encrypted data
-./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.BasicOPsExample -Dexec.args="local 2 HELIB BGV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt"
-
-# run FHE dot product over two encrypted vectors
-./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.DotProductExample -Dexec.args="local 2 HELIB BGV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt"
-
-# run FHE total sum over encrypted vector elements
-./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.TotalSumExample -Dexec.args="local 2 HELIB BGV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt"
-
-
-### SEAL tests ##
 ## generate example key pairs
-#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.KeyGenExample -Dexec.args="local SEAL BFV"
+#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.KeyGenExample -Dexec.args="local HELIB BGV"
 #
 ## generate example ciphertexts
-#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.EncDecExample -Dexec.args="local SEAL BFV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/keys/my_relin_keys.txt gen/keys/my_galois_keys.txt 100"
+#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.EncDecExample -Dexec.args="local HELIB BGV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt 10"
 #
 ## run basic FHE arithmetic operation over encrypted data
-#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.BasicOPsExample -Dexec.args="local SEAL BFV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/keys/my_relin_keys.txt gen/keys/my_galois_keys.txt"
+#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.BasicOPsExample -Dexec.args="local 4 HELIB BGV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt"
 #
 ## run FHE dot product over two encrypted vectors
-#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.DotProductExample -Dexec.args="local SEAL BFV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/keys/my_relin_keys.txt gen/keys/my_galois_keys.txt"
+#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.DotProductExample -Dexec.args="local 4 HELIB BGV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt"
 #
 ## run FHE total sum over encrypted vector elements
-#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.TotalSumExample -Dexec.args="local SEAL BFV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/keys/my_relin_keys.txt gen/keys/my_galois_keys.txt"
+#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.TotalSumExample -Dexec.args="local 4 HELIB BGV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt"
+#
 
+####   USING BATCHING TESTS   ###
 
-##   USING BATCHING TESTS   ###
-
-## HELIB tests ##
+### HELIB tests ##
 
 ## BGV Scheme
-# generate example key pairs
-./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.KeyGenExample -Dexec.args="local HELIB BGV"
-
-# generate example ciphertexts
-./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.EncDecExample -Dexec.args="local HELIB BGV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt 10 10"
-
-# run basic FHE arithmetic operation over encrypted data
-./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.BasicOPsExample -Dexec.args="local 2 HELIB BGV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt 10 10"
-
-# run FHE dot product over two encrypted vectors
-./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.DotProductExample -Dexec.args="local 2 HELIB BGV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt"
-
-# run FHE total sum over encrypted vector elements
-./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.TotalSumExample -Dexec.args="local 2 HELIB BGV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt"
+## generate example key pairs
+#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.KeyGenExample -Dexec.args="local HELIB BGV"
+#
+## generate example ciphertexts
+./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.EncDecExample -Dexec.args="local HELIB BGV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt 10000000 1"
+#
+## run basic FHE arithmetic operation over encrypted data
+#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.BasicOPsExample -Dexec.args="local 4 HELIB BGV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt 10 1"
+#
+## run FHE dot product over two encrypted vectors
+#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.DotProductExample -Dexec.args="local 4 HELIB BGV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt"
+#
+## run FHE total sum over encrypted vector elements
+#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.TotalSumExample -Dexec.args="local 4 HELIB BGV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt"
 
 
 ## CKKS Scheme
@@ -69,49 +52,69 @@ cd $ProjectRoot
 #./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.KeyGenExample -Dexec.args="local HELIB CKKS"
 #
 ## generate example ciphertexts
-#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.EncDecExample -Dexec.args="local HELIB CKKS gen/keys/my_public_key.txt gen/keys/my_secret_key.txt 10 10"
+#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.EncDecExample -Dexec.args="local HELIB CKKS gen/keys/my_public_key.txt gen/keys/my_secret_key.txt 10 1"
 #
 ## run basic FHE arithmetic operation over encrypted data
-#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.BasicOPsExample -Dexec.args="local HELIB CKKS gen/keys/my_public_key.txt gen/keys/my_secret_key.txt 10 10"
+#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.BasicOPsExample -Dexec.args="local 4 HELIB CKKS gen/keys/my_public_key.txt gen/keys/my_secret_key.txt 10 1"
 #
 ## run FHE dot product over two encrypted vectors
-#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.DotProductExample -Dexec.args="local HELIB CKKS gen/keys/my_public_key.txt gen/keys/my_secret_key.txt"
+#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.DotProductExample -Dexec.args="local 4 HELIB CKKS gen/keys/my_public_key.txt gen/keys/my_secret_key.txt"
 #
 ## run FHE total sum over encrypted vector elements
-#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.TotalSumExample -Dexec.args="local HELIB CKKS gen/keys/my_public_key.txt gen/keys/my_secret_key.txt"
+#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.TotalSumExample -Dexec.args="local 4 HELIB CKKS gen/keys/my_public_key.txt gen/keys/my_secret_key.txt"
 
 
 ### SEAL tests ##
 #
+
+### SEAL tests ##
 # BFV Scheme
 # generate example key pairs
-#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.KeyGenExample -Dexec.args="local SEAL BFV"
-
-# generate example ciphertexts
-#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.EncDecExample -Dexec.args="local SEAL BFV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/keys/my_relin_keys.txt gen/keys/my_galois_keys.txt 10 10"
+#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.KeyGenExample -Dexec.args="local SEAL BFV"
 #
-## run basic FHE arithmetic operation over encrypted data
-#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.BasicOPsExample -Dexec.args="local SEAL BFV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/keys/my_relin_keys.txt gen/keys/my_galois_keys.txt 10 10"
-#
+## generate example ciphertexts
+#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.EncDecExample -Dexec.args="local SEAL BFV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/keys/my_relin_keys.txt gen/keys/my_galois_keys.txt 10"
+##
+# run basic FHE arithmetic operation over encrypted data
+#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.BasicOPsExample -Dexec.args="local 2 SEAL BFV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/keys/my_relin_keys.txt gen/keys/my_galois_keys.txt"
+##
 ## run FHE dot product over two encrypted vectors
-#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.DotProductExample -Dexec.args="local SEAL BFV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/keys/my_relin_keys.txt gen/keys/my_galois_keys.txt"
+#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.DotProductExample -Dexec.args="local 4 SEAL BFV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/keys/my_relin_keys.txt gen/keys/my_galois_keys.txt"
 #
 ## run FHE total sum over encrypted vector elements
-#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.TotalSumExample -Dexec.args="local SEAL BFV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/keys/my_relin_keys.txt gen/keys/my_galois_keys.txt"
+#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.basic.TotalSumExample -Dexec.args="local 4 SEAL BFV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/keys/my_relin_keys.txt gen/keys/my_galois_keys.txt"
+##
+#
+#
+## BFV Scheme
+## generate example key pairs
+#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.KeyGenExample -Dexec.args="local SEAL BFV"
+#
+## generate example ciphertexts
+#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.EncDecExample -Dexec.args="local SEAL BFV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/keys/my_relin_keys.txt gen/keys/my_galois_keys.txt 100000000 1"
+##
+## run basic FHE arithmetic operation over encrypted data
+#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.BasicOPsExample -Dexec.args="local 4 SEAL BFV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/keys/my_relin_keys.txt gen/keys/my_galois_keys.txt 10 1"
+##
+## run FHE dot product over two encrypted vectors
+#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.DotProductExample -Dexec.args="local 4 SEAL BFV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/keys/my_relin_keys.txt gen/keys/my_galois_keys.txt"
+#
+## run FHE total sum over encrypted vector elements
+#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.TotalSumExample -Dexec.args="local 4 SEAL BFV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/keys/my_relin_keys.txt gen/keys/my_galois_keys.txt"
 
 
 ## CKKS Scheme
 ## generate example key pairs
 #./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.KeyGenExample -Dexec.args="local SEAL CKKS"
-#
-## generate example ciphertexts
-#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.EncDecExample -Dexec.args="local SEAL CKKS gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/keys/my_relin_keys.txt gen/keys/my_galois_keys.txt 10 10"
-#
-## run basic FHE arithmetic operation over encrypted data
-#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.BasicOPsExample -Dexec.args="local SEAL CKKS gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/keys/my_relin_keys.txt gen/keys/my_galois_keys.txt 10 10"
-#
-## run FHE dot product over two encrypted vectors
-#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.DotProductExample -Dexec.args="local SEAL CKKS gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/keys/my_relin_keys.txt gen/keys/my_galois_keys.txt"
-#
-## run FHE total sum over encrypted vector elements
-#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.TotalSumExample -Dexec.args="local SEAL CKKS gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/keys/my_relin_keys.txt gen/keys/my_galois_keys.txt"
+###
+#### generate example ciphertexts
+#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.EncDecExample -Dexec.args="local SEAL CKKS gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/keys/my_relin_keys.txt gen/keys/my_galois_keys.txt 1000000 1"
+###
+#### run basic FHE arithmetic operation over encrypted data
+#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.BasicOPsExample -Dexec.args="local 4 SEAL CKKS gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/keys/my_relin_keys.txt gen/keys/my_galois_keys.txt 10 1"
+##
+### run FHE dot product over two encrypted vectors
+#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.DotProductExample -Dexec.args="local 4 SEAL CKKS gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/keys/my_relin_keys.txt gen/keys/my_galois_keys.txt"
+##
+### run FHE total sum over encrypted vector elements
+#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.packing.TotalSumExample -Dexec.args="local 4 SEAL CKKS gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/keys/my_relin_keys.txt gen/keys/my_galois_keys.txt"

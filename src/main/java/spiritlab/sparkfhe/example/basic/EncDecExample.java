@@ -15,6 +15,7 @@ import spiritlab.sparkfhe.example.Config;
  * of the encryption and decryption features.
  */
 
+import javax.crypto.Cipher;
 import java.io.File;
 import java.util.Random;
 
@@ -28,11 +29,23 @@ public class EncDecExample {
 
     private static void encrypt_data() {
         // Generate two ciphertexts and store them to the pre-defined file location
-        System.out.println("Storing ciphertext to "+CTXT_0_FILE);
-        SparkFHE.getInstance().store_ciphertext_to_file( Config.Ciphertext_Label, SparkFHE.getInstance().encrypt(new Plaintext(String.valueOf(0))).toString(), CTXT_0_FILE);
+        long startTime, endTime;
+        startTime = System.currentTimeMillis();
+        Ciphertext ctxt_0 = SparkFHE.getInstance().encrypt(new Plaintext(String.valueOf(0)));
+        endTime = System.currentTimeMillis();
+        System.out.println("TIMEINFO:encrypting_ptxt:" + (endTime - startTime) + ":ms");
 
+        startTime = System.nanoTime();
+        Plaintext ptxt_0 = SparkFHE.getInstance().decrypt(ctxt_0, true);
+        endTime = System.nanoTime();
+        System.out.println("TIMEINFO:decrypting_ctxt:" + (endTime - startTime) + ":ns");
+
+        System.out.println("Storing ciphertext to "+CTXT_0_FILE);
+        SparkFHE.getInstance().store_ciphertext_to_file( Config.Ciphertext_Label, ctxt_0.toString(), CTXT_0_FILE);
+
+        Ciphertext ctxt_1 = SparkFHE.getInstance().encrypt(new Plaintext(String.valueOf(1)));
         System.out.println("Storing ciphertext to "+CTXT_1_FILE);
-        SparkFHE.getInstance().store_ciphertext_to_file( Config.Ciphertext_Label, SparkFHE.getInstance().encrypt(new Plaintext(String.valueOf(1))).toString(), CTXT_1_FILE);
+        SparkFHE.getInstance().store_ciphertext_to_file( Config.Ciphertext_Label, ctxt_1.toString(), CTXT_1_FILE);
     }
 
     private static void encrypt_vector(long vecSize) {
@@ -47,8 +60,16 @@ public class EncDecExample {
         }
 
         // encrypt them and store to pre-defined location
+        long startTime = System.currentTimeMillis();
         StringVector vec_ctxt_1 = SparkFHE.getInstance().encrypt(vec_ptxt_1);
+        long endTime = System.currentTimeMillis();
+        System.out.println("TIMEINFO:encrypting_vector:" + (endTime - startTime) + ":ms");
         SparkFHE.getInstance().store_ciphertexts_to_file(Config.Ciphertext_Label, vec_ctxt_1, CTXT_Vector_a_FILE);
+
+        startTime = System.nanoTime();
+        StringVector vec_ptxt_output = SparkFHE.getInstance().decrypt(vec_ctxt_1, true);
+        endTime = System.nanoTime();
+        System.out.println("TIMEINFO:decrypting_vector:" + (endTime - startTime) + ":ns");
 
         // encrypt them and store to pre-defined location
         StringVector vec_ctxt_2=SparkFHE.getInstance().encrypt(vec_ptxt_2);
@@ -110,17 +131,12 @@ public class EncDecExample {
         CTXT_Vector_b_FILE = Config.get_records_directory()+"/ctxt_vec_b_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";
 
         /* generating individual ctxts */
-        startTime = System.currentTimeMillis();
         encrypt_data();
-        endTime = System.currentTimeMillis();
-        System.out.println("TIMEINFO:encrypt_two_ctxts:" + (endTime - startTime) + ":ms");
 
         /* generating vectors of ctxt of size vecSize  */
-        startTime = System.currentTimeMillis();
         encrypt_vector(vecSize);
-        endTime = System.currentTimeMillis();
-        System.out.println("TIMEINFO:encrypt_two_vectors_size_" + String.valueOf(vecSize)+ ":" + (endTime - startTime) + ":ms");
 
+        if (Config.DEBUG) {
         /* testing enc/dec operations (toy example for debugging purposes) */
         // initialize a literal 1, encrypt it and decrypted it to verify the cryptography functions
         String inputNumberString="1";
@@ -143,10 +159,9 @@ public class EncDecExample {
         // perform homomorphic addition on the cipertext
         Ciphertext ctxtresult = new Ciphertext(SparkFHE.getInstance().do_FHE_basic_op(ctxt_0_string, ctxt_1_string, SparkFHE.FHE_ADD));
 
-        if (Config.DEBUG) {
-            System.out.println("InputNumber=" + inputNumberString + ", result of dec(enc(InputNumber))=" + inputNumberPtxt_returned.toString());
-            // decrypt the addition result and display it
-            System.out.println("0+1=" + SparkFHE.getInstance().decrypt(ctxtresult, true).toString());
+        System.out.println("InputNumber=" + inputNumberString + ", result of dec(enc(InputNumber))=" + inputNumberPtxt_returned.toString());
+        // decrypt the addition result and display it
+        System.out.println("0+1=" + SparkFHE.getInstance().decrypt(ctxtresult, true).toString());
         }
     }
 }

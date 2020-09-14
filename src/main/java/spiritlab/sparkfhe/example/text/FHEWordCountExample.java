@@ -10,6 +10,11 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.ArrayList;
 import java.io.File;
+
+import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.sql.SparkSession;
 import spiritlab.sparkfhe.api.FHELibrary;
 import spiritlab.sparkfhe.api.FHE;
 import spiritlab.sparkfhe.api.FHEScheme;
@@ -61,31 +66,31 @@ public class FHEWordCountExample {
         
 
 
-        //// Convert to FHE Ciphertexts using native call
-        //// TODO List<Words> encodedWords = native call;
-        FHE sparkFHE = new FHE(FHELibrary.HELIB, FHEScheme.BGV);
-
-        //// Do the RDD word count
-        //SparkConf sparkConf = new SparkConf().setAppName("SparkFHETest").setMaster("local");
-        //SparkSession spark = SparkSession.builder().Config(sparkConf).getOrCreate();
-        //JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());
-
-        ////JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());
-        //JavaRDD<String> words = jsc.parallelize(encodedWords);
-
-        //JavaPairRDD<String, Integer> ones = words.mapToPair(s -> new Tuple2<>(s, 1));
-
-        //JavaPairRDD<String, Integer> counts = ones.reduceByKey((i1, i2) -> i1 + i2);
-
-        //List<Tuple2<String, Integer>> output = counts.collect();
-
-        //// Finally, convert from counts of encoded words back to their unencoded form
-        //for (Tuple2<?,?> tuple : output) {
-        //    String unencoded = wordMappings.get(tuple._1());
-        //    System.out.println(unencoded + ": " + tuple._2());
-        //}
-
-        //spark.stop();
+//        //// Convert to FHE Ciphertexts using native call
+//        //// TODO List<Words> encodedWords = native call;
+//        FHE sparkFHE = new FHE(FHELibrary.HELIB, FHEScheme.BGV);
+//
+//        //// Do the RDD word count
+//        SparkConf sparkConf = new SparkConf().setAppName("SparkFHETest").setMaster("local");
+//        SparkSession spark = SparkSession.builder().Config(sparkConf).getOrCreate();
+//        JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());
+//
+////        JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());
+//        JavaRDD<String> words = jsc.parallelize(encodedWords);
+//
+//        JavaPairRDD<String, Integer> ones = words.mapToPair(s -> new Tuple2<>(s, 1));
+//
+//        JavaPairRDD<String, Integer> counts = ones.reduceByKey((i1, i2) -> i1 + i2);
+//
+//        List<Tuple2<String, Integer>> output = counts.collect();
+//
+//        // Finally, convert from counts of encoded words back to their unencoded form
+//        for (Tuple2<?,?> tuple : output) {
+//            String unencoded = wordMappings.get(tuple._1());
+//            System.out.println(unencoded + ": " + tuple._2());
+//        }
+//
+//        spark.stop();
     }
 }
 

@@ -8,12 +8,15 @@ package spiritlab.sparkfhe.example.packing;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.MapPartitionsFunction;
 import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.spiritlab.sparkfhe.SparkFHEPlugin;
-import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Encoder;
-import org.apache.spark.sql.Encoders;
-import org.apache.spark.sql.SparkSession;
+import org.apache.spark.sql.*;
+import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder;
+import org.apache.spark.sql.catalyst.encoders.RowEncoder;
+import org.apache.spark.sql.expressions.Window;
+import org.apache.spark.sql.types.DataTypes;
+import org.apache.spark.sql.types.StructType;
 import spiritlab.sparkfhe.api.*;
 import spiritlab.sparkfhe.example.Config;
 
@@ -82,6 +85,8 @@ public class TotalSumExample {
         // Create rdd with json line file.
         JavaRDD<SerializedCiphertext> ctxt_vec_rdd = spark.read().json(CTXT_Vector_FILE).as(ctxtJSONEncoder).javaRDD();
 
+        long startTime, endTime;
+        startTime = System.currentTimeMillis();
         ctxt_vec_rdd.reduce((x, y) -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
@@ -91,6 +96,8 @@ public class TotalSumExample {
 
         // sum up the slots of the result
         Ciphertext total_sum_ctxt = new Ciphertext(SparkFHE.getInstance().fhe_total_sum(ctxt_vec_rdd.first().getCtxt()));
+        endTime = System.currentTimeMillis();
+        System.out.println("TIMEINFO:batch_FHE_total_sum_via_lambda:" + (endTime - startTime) + ":ms");
 
         if (Config.DEBUG) {
             System.out.println("Partitions:"+ctxt_vec_rdd.partitions().size());
@@ -122,6 +129,8 @@ public class TotalSumExample {
         // Create rdd with json line file.
         JavaRDD<SerializedCiphertext> ctxt_vec_rdd = spark.read().json(CTXT_Vector_FILE).as(ctxtJSONEncoder).javaRDD();
 
+        long startTime, endTime;
+        startTime = System.currentTimeMillis();
         // call homomorphic array sum operator on the rdd
         JavaRDD<SerializedCiphertext> collection = ctxt_vec_rdd.mapPartitions(records -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
@@ -148,6 +157,8 @@ public class TotalSumExample {
 
         // sum up the slots of the result and display to verify it
         Ciphertext total_sum_ctxt = new Ciphertext(SparkFHE.getInstance().fhe_total_sum(res.getCtxt()));
+        endTime = System.currentTimeMillis();
+        System.out.println("TIMEINFO:batch_FHE_total_sum_via_native_code:" + (endTime - startTime) + ":ms");
 
         if (Config.DEBUG) {
             // print out the ciphertext vectors after decryption for verification purposes
@@ -179,7 +190,6 @@ public class TotalSumExample {
      */
     public static void test_FHE_total_sum_via_sql(SparkSession spark, int slices, String library, String scheme, Broadcast<String> pk_b,
                                                   Broadcast<String> sk_b, Broadcast<String> rlk_b, Broadcast<String> glk_b) {
-        /*
         System.out.println("test_FHE_total_sum_via_sql");
         // Spark example for FHE calculations //
         // Encoders are created for Java beans
@@ -189,31 +199,18 @@ public class TotalSumExample {
         // col - Returns a Column based on the given column name, ctxt.
         // explode - Creates a new row for each element in the given array or map column
         // select - select the newly created column, and alias it accordingly
-        Dataset<String> ctxt_vec_ds2 = ctxt_vec_ds.select(ctxt_vec_ds.col("ctxt").as("ctxt_a")).as(Encoders.STRING());
-        Dataset<String> ctxt_b_ds2 = ctxt_b_ds.select(ctxt_b_ds.col("ctxt").as("ctxt_b")).as(Encoders.STRING());
+        Dataset<String> ctxt_vec_ds2 = ctxt_vec_ds.select(ctxt_vec_ds.col("ctxt").as("ctxt")).as(Encoders.STRING());
 
         // withColumn - create a new DataFrame with a column added or renamed.
         // monotonically_increasing_id - A column that generates monotonically increasing 64-bit integers
-        Dataset<Row> ctxt_a_ds3 = ctxt_a_ds2.withColumn("id", functions.monotonically_increasing_id());
+        Dataset<Row> ctxt_a_ds3 = ctxt_vec_ds2.withColumn("id", functions.monotonically_increasing_id());
         // orderBy - creates a window specification that defines the partitioning, ordering, and frame boundaries with
         // the ordering defined. add this column as "id" and same it to the dataFrame ctxt_a_ds3
         ctxt_a_ds3 = ctxt_a_ds3.withColumn("id", functions.row_number().over(Window.orderBy("id")));
 
-        // repeat the process for the other cipher text
-        Dataset<Row> ctxt_b_ds3 = ctxt_b_ds2.withColumn("id", functions.monotonically_increasing_id());
-        ctxt_b_ds3 = ctxt_b_ds3.withColumn("id", functions.row_number().over(Window.orderBy("id")));
-
-        // join - cartesian join between ctxt_a_ds3's id column and ctxt_b_ds3
-        // equalTo - A filter that evaluates to true iff the attribute evaluates to a value equal to value.
-        Dataset<Row> joined = ctxt_a_ds3.join(ctxt_b_ds3, ctxt_a_ds3.col("id").equalTo(ctxt_b_ds3.col("id")));
-        Dataset<Row> fin = joined.select(col("ctxt_a"), col("ctxt_b"));
-
-        fin.printSchema();
-
         StructType structType = new StructType();
         // Creates a new StructType by adding a new field with no metadata where the dataType is specified as a String.
-        structType = structType.add("ctxt_a", DataTypes.StringType, false);
-        structType = structType.add("ctxt_b", DataTypes.StringType, false);
+        structType = structType.add("ctxt", DataTypes.StringType, false);
 
         // RowEncoder - is part of the Encoder framework and acts as the encoder for DataFrames, i.e. Dataset[Row] 
         // — Datasets of Rows.
@@ -221,22 +218,22 @@ public class TotalSumExample {
         ExpressionEncoder<Row> encoder = RowEncoder.apply(structType);
         ExpressionEncoder<Row> encoder2 = RowEncoder.apply(structType);
 
+        long startTime, endTime;
+        startTime = System.currentTimeMillis();
         // mapPartition - converts each partition of the source RDD into multiple elements of the result
         // perform dot product on each pair (StringVector) of the dataFrame, and saving the rcesults to a LinkedList
-        Dataset<SerializedCiphertext> collection = fin.mapPartitions((MapPartitionsFunction<Row, SerializedCiphertext>)  iter -> {
+        Dataset<SerializedCiphertext> collection = ctxt_a_ds3.mapPartitions((MapPartitionsFunction<Row, SerializedCiphertext>) iter -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
             SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
 
             LinkedList<SerializedCiphertext> v = new LinkedList<SerializedCiphertext>();
             StringVector a = new StringVector();
-            StringVector b = new StringVector();
             while (iter.hasNext()) {
                 Row row = iter.next();
-                a.add((String)row.getAs("ctxt_a"));
-                b.add((String)row.getAs("ctxt_b"));
+                a.add((String)row.getAs("ctxt"));
             }
-            v.add(new SerializedCiphertext(SparkFHE.getInstance().do_FHE_dot_product(a, b)));
+            v.add(new SerializedCiphertext(SparkFHE.getInstance().fhe_total_sum(a)));
             return v.iterator();
         }, Encoders.kryo(SerializedCiphertext.class));
 
@@ -245,18 +242,23 @@ public class TotalSumExample {
             // we need to load the shared library and init a copy of SparkFHE on the executor
             SparkFHEPlugin.setup();
             SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
-            return new SerializedCiphertext(SparkFHE.getInstance().do_FHE_basic_op(x.getCtxt(), y.getCtxt(), SparkFHE.FHE_ADD));
+            return new SerializedCiphertext(SparkFHE.getInstance().fhe_add(x.getCtxt(), y.getCtxt()));
         });
 
-        // decrypt the result to verify it
-        System.out.println("Dot product: " + SparkFHE.getInstance().decrypt(res.getCtxt(), true));
-    */
+        // sum up the slots of the result and display to verify it
+        Ciphertext total_sum_ctxt = new Ciphertext(SparkFHE.getInstance().fhe_total_sum(res.getCtxt()));
+        endTime = System.currentTimeMillis();
+        System.out.println("TIMEINFO:batch_FHE_total_sum_via_sql:" + (endTime - startTime) + ":ms");
+
+        if (Config.DEBUG) {
+            // print out the results for debugging purposes
+            Util.decrypt_and_print(scheme, "Total Sum", total_sum_ctxt, false, 0);
+        }
     }
 
 
     public static void main(String[] args) {
         String scheme="", library = "", pk="", sk="", rlk="", glk="", master="";
-        long startTime, endTime;
 
         // The variable slices represent the number of time a task is split up
         int slices=2;
@@ -326,19 +328,23 @@ public class TotalSumExample {
         // testing the total sum operation on plaintext vector.
         test_basic_total_sum(jsc, slices);
 
-         // testing the total sum operation on ciphertext vector.
-        startTime = System.currentTimeMillis();
+        long main_startTime, main_endTime;
+        // testing the dot product operation in HE libraries on cipher text vector.
+        main_startTime = System.currentTimeMillis();
         test_FHE_total_sum_via_lambda(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
-        endTime = System.currentTimeMillis();
-        System.out.println("TIMEINFO:batch_FHE_total_sum_via_lambda:" + (endTime - startTime) + ":ms");
+        main_endTime = System.currentTimeMillis();
+        System.out.println("TIMEINFO:batch_total_Spark_total_sum_job_via_lambda:" + (main_endTime - main_startTime) + ":ms");
 
-        startTime = System.currentTimeMillis();
+        main_startTime = System.currentTimeMillis();
         test_FHE_total_sum_via_native_code(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
-        endTime = System.currentTimeMillis();
-        System.out.println("TIMEINFO:batch_FHE_total_sum_via_native_code:" + (endTime - startTime) + ":ms");
+        main_endTime = System.currentTimeMillis();
+        System.out.println("TIMEINFO:batch_total_Spark_total_sum_job_via_native_code:" + (main_endTime - main_startTime) + ":ms");
 
-//        test_FHE_total_sum_via_sql(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
-
+        main_startTime = System.currentTimeMillis();
+        test_FHE_total_sum_via_sql(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
+        main_endTime = System.currentTimeMillis();
+        System.out.println("TIMEINFO:batch_total_Spark_total_sum_job_via_sql:" + (main_endTime - main_startTime) + ":ms");
+        
 //        try {
 //            System.out.println("Paused to allow checking the Spark server log, press enter to continue.");
 //            System.in.read();

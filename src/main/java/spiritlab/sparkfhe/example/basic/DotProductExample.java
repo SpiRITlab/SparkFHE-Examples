@@ -102,6 +102,8 @@ public class DotProductExample {
         // combine both RDDs as pairs
         JavaPairRDD<SerializedCiphertext, SerializedCiphertext> combined_ctxt_rdd = ctxt_vec_a_rdd.zip(ctxt_vec_b_rdd);
 
+        long startTime, endTime;
+        startTime = System.currentTimeMillis();
         // perform the multiply operator on each of the pairs
         JavaRDD<SerializedCiphertext> result_rdd = combined_ctxt_rdd.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
@@ -117,6 +119,8 @@ public class DotProductExample {
                     SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
                     return new SerializedCiphertext(SparkFHE.getInstance().fhe_add(x.getCtxt(), y.getCtxt()));
         });
+        endTime = System.currentTimeMillis();
+        System.out.println("TIMEINFO:FHE_dot_product_via_lambda:" + (endTime - startTime) + ":ms");
 
         if (Config.DEBUG){
             // causes n = slice tasks to be started using NODE_LOCAL data locality.
@@ -155,6 +159,8 @@ public class DotProductExample {
         // combine both rdds as a pair
         JavaPairRDD<SerializedCiphertext, SerializedCiphertext> combined_ctxt_rdd = ctxt_vec_a_rdd.zip(ctxt_vec_b_rdd);
 
+        long startTime, endTime;
+        startTime = System.currentTimeMillis();
         // call homomorphic doc product operators on the rdds
         JavaRDD<SerializedCiphertext> collection = combined_ctxt_rdd.mapPartitions(records -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
@@ -180,6 +186,8 @@ public class DotProductExample {
             SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
             return new SerializedCiphertext(SparkFHE.getInstance().fhe_add(x.getCtxt(), y.getCtxt()));
         });
+        endTime = System.currentTimeMillis();
+        System.out.println("TIMEINFO:FHE_dot_product_via_native_code:" + (endTime - startTime) + ":ms");
 
         if (Config.DEBUG){
             // print out the ciphertext vectors after decryption for debugging purposes
@@ -264,6 +272,8 @@ public class DotProductExample {
         ExpressionEncoder<Row> encoder = RowEncoder.apply(structType);
         ExpressionEncoder<Row> encoder2 = RowEncoder.apply(structType);
 
+        long startTime, endTime;
+        startTime = System.currentTimeMillis();
         // mapPartition - converts each partition of the source RDD into multiple elements of the result
         // perform dot product on each pair (StringVector) of the dataFrame, and saving the rcesults to a LinkedList
         Dataset<SerializedCiphertext> collection = fin.mapPartitions((MapPartitionsFunction<Row, SerializedCiphertext>)  iter -> {
@@ -290,6 +300,8 @@ public class DotProductExample {
             SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
             return new SerializedCiphertext(SparkFHE.getInstance().fhe_add(x.getCtxt(), y.getCtxt()));
         });
+        endTime = System.currentTimeMillis();
+        System.out.println("TIMEINFO:FHE_dot_product_via_sql:" + (endTime - startTime) + ":ms");
 
         if (Config.DEBUG) {
             // decrypt the result to verify it
@@ -300,7 +312,6 @@ public class DotProductExample {
 
     public static void main(String[] args) {
         String scheme="", library = "", pk="", sk="", rlk="", glk="", master="";
-        long startTime, endTime;
 
         // The variable slices represent the number of time a task is split up
         int slices=2;
@@ -372,21 +383,22 @@ public class DotProductExample {
         test_basic_dot_product(jsc, slices);
 
 
+        long main_startTime, main_endTime;
          // testing the dot product operation in HE libraries on cipher text vector.
-        startTime = System.currentTimeMillis();
+        main_startTime = System.currentTimeMillis();
         test_FHE_dot_product_via_lambda(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
-        endTime = System.currentTimeMillis();
-        System.out.println("TIMEINFO:FHE_dot_product_via_lambda:" + (endTime - startTime) + ":ms");
+        main_endTime = System.currentTimeMillis();
+        System.out.println("TIMEINFO:FHE_total_Spark_dot_product_job_via_lambda:" + (main_endTime - main_startTime) + ":ms");
 
-        startTime = System.currentTimeMillis();
+        main_startTime = System.currentTimeMillis();
         test_FHE_dot_product_via_native_code(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
-        endTime = System.currentTimeMillis();
-        System.out.println("TIMEINFO:FHE_dot_product_via_native_code:" + (endTime - startTime) + ":ms");
+        main_endTime = System.currentTimeMillis();
+        System.out.println("TIMEINFO:FHE_total_Spark_dot_product_job_via_native_code:" + (main_endTime - main_startTime) + ":ms");
 
-        startTime = System.currentTimeMillis();
+        main_startTime = System.currentTimeMillis();
         test_FHE_dot_product_via_sql(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
-        endTime = System.currentTimeMillis();
-        System.out.println("TIMEINFO:FHE_dot_product_via_sql:" + (endTime - startTime) + ":ms");
+        main_endTime = System.currentTimeMillis();
+        System.out.println("TIMEINFO:FHE_total_Spark_dot_product_job_via_sql:" + (main_endTime - main_startTime) + ":ms");
 
 //        try {
 //            System.out.println("Paused to allow checking the Spark server log, press enter to continue.");
