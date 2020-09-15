@@ -55,8 +55,8 @@ public class EncDecExample {
 
         // create 2 StringVectors
         for (int i = 0; i < vecSize; ++i) {
-            vec_ptxt_1.add(String.valueOf(Util.getRandom(10)));
-            vec_ptxt_2.add(String.valueOf(Util.getRandom(10)));
+            vec_ptxt_1.add(String.valueOf(1)); //Util.getRandom(10)));
+            vec_ptxt_2.add(String.valueOf(1)); //Util.getRandom(10)));
         }
 
         // encrypt them and store to pre-defined location

@@ -59,14 +59,14 @@ public class DotProductExample {
         // perform the multiply operator on each of the pairs
         JavaRDD<Integer> Result_RDD = Combined_RDD.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
-            SparkFHEPlugin.setup();
+//            SparkFHEPlugin.setup();
             return SparkFHE.do_basic_op(tuple._1(), tuple._2(), SparkFHE.MUL);
         });
 
         // sum up the results from the previous operation and display
         System.out.println("(Plaintext) Result_RDD:"+Result_RDD.reduce((x, y) -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
-            SparkFHEPlugin.setup();
+//            SparkFHEPlugin.setup();
             return SparkFHE.do_basic_op(x, y, SparkFHE.ADD);
         }));
     }
@@ -104,16 +104,16 @@ public class DotProductExample {
         // perform the multiply operator on each of the pairs
         JavaRDD<SerializedCiphertext> result_rdd = combined_ctxt_rdd.map(tuple -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
-            SparkFHEPlugin.setup();
-            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+//            SparkFHEPlugin.setup();
+//            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
             return new SerializedCiphertext(SparkFHE.getInstance().fhe_multiply(tuple._1().getCtxt(), tuple._2().getCtxt()));
         });
 
         // sum up the results from the previous operation
         result_rdd.reduce((x, y) -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
-            SparkFHEPlugin.setup();
-            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+//            SparkFHEPlugin.setup();
+//            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
             return new SerializedCiphertext(SparkFHE.getInstance().fhe_add(x.getCtxt(), y.getCtxt()));
         });
 
@@ -163,8 +163,8 @@ public class DotProductExample {
         // call homomorphic doc product operators on the rdds
         JavaRDD<SerializedCiphertext> collection = combined_ctxt_rdd.mapPartitions(records -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
-            SparkFHEPlugin.setup();
-            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+//            SparkFHEPlugin.setup();
+//            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
 
             LinkedList<SerializedCiphertext> v = new LinkedList<SerializedCiphertext>();
             StringVector a = new StringVector();
@@ -181,8 +181,8 @@ public class DotProductExample {
         // sum up the results from the previous operation and display
         SerializedCiphertext res = collection.reduce((x, y) -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
-            SparkFHEPlugin.setup();
-            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+//            SparkFHEPlugin.setup();
+//            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
             return new SerializedCiphertext(SparkFHE.getInstance().fhe_add(x.getCtxt(), y.getCtxt()));
         });
 
@@ -196,15 +196,15 @@ public class DotProductExample {
             System.out.println("ctxt_a_rdd.count() = " + ctxt_vec_a_rdd.count());
             ctxt_vec_a_rdd.foreach(data -> {
                 // we need to load the shared library and init a copy of SparkFHE on the executor
-                SparkFHEPlugin.setup();
-                SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+//                SparkFHEPlugin.setup();
+//                SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
                 Util.decrypt_and_print(scheme, "", new Ciphertext(data.getCtxt()), true, 100);
             });
             System.out.println("ctxt_b_rdd.count() = " + ctxt_vec_b_rdd.count());
             ctxt_vec_b_rdd.foreach(data -> {
                 // we need to load the shared library and init a copy of SparkFHE on the executor
-                SparkFHEPlugin.setup();
-                SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+//                SparkFHEPlugin.setup();
+//                SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
                 Util.decrypt_and_print(scheme, "", new Ciphertext(data.getCtxt()), true, 100);
             });
 
@@ -277,8 +277,8 @@ public class DotProductExample {
         // perform dot product on each pair (StringVector) of the dataFrame, and saving the rcesults to a LinkedList
         Dataset<SerializedCiphertext> collection = fin.mapPartitions((MapPartitionsFunction<Row, SerializedCiphertext>)  iter -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
-            SparkFHEPlugin.setup();
-            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+//            SparkFHEPlugin.setup();
+//            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
 
             LinkedList<SerializedCiphertext> v = new LinkedList<SerializedCiphertext>();
             StringVector a = new StringVector();
@@ -295,8 +295,8 @@ public class DotProductExample {
         // sum up the results from the previous operation and display
         SerializedCiphertext res = collection.javaRDD().reduce((x, y) -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
-            SparkFHEPlugin.setup();
-            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+//            SparkFHEPlugin.setup();
+//            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
             return new SerializedCiphertext(SparkFHE.getInstance().fhe_add(x.getCtxt(), y.getCtxt()));
         });
 
@@ -380,23 +380,22 @@ public class DotProductExample {
         // testing the dot product operation on plaintext vector.
         test_basic_dot_product(jsc, slices);
 
-        long main_startTime, main_endTime;
-
+//        long main_startTime, main_endTime;
          // testing the dot product operation in HE libraries on cipher text vector.
-        main_startTime = System.currentTimeMillis();
+//        main_startTime = System.currentTimeMillis();
         test_FHE_dot_product_via_lambda(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
-        main_endTime = System.currentTimeMillis();
-        System.out.println("TIMEINFO:batch_total_Spark_dot_product_job_via_lambda:" + (main_endTime - main_startTime) + ":ms");
+//        main_endTime = System.currentTimeMillis();
+//        System.out.println("TIMEINFO:batch_total_Spark_dot_product_job_via_lambda:" + (main_endTime - main_startTime) + ":ms");
 
-        main_startTime = System.currentTimeMillis();
+//        main_startTime = System.currentTimeMillis();
         test_FHE_dot_product_via_native_code(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
-        main_endTime = System.currentTimeMillis();
-        System.out.println("TIMEINFO:batch_total_Spark_dot_product_job_via_native_code:" + (main_endTime - main_startTime) + ":ms");
+//        main_endTime = System.currentTimeMillis();
+//        System.out.println("TIMEINFO:batch_total_Spark_dot_product_job_via_native_code:" + (main_endTime - main_startTime) + ":ms");
 
-        main_startTime = System.currentTimeMillis();
+//        main_startTime = System.currentTimeMillis();
         test_FHE_dot_product_via_sql(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
-        main_endTime = System.currentTimeMillis();
-        System.out.println("TIMEINFO:batch_total_Spark_dot_product_job_via_sql:" + (main_endTime - main_startTime) + ":ms");
+//        main_endTime = System.currentTimeMillis();
+//        System.out.println("TIMEINFO:batch_total_Spark_dot_product_job_via_sql:" + (main_endTime - main_startTime) + ":ms");
 
 //        try {
 //            System.out.println("Paused to allow checking the Spark server log, press enter to continue.");

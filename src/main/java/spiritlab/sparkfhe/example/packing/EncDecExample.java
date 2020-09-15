@@ -59,8 +59,8 @@ public class EncDecExample {
             DoubleVector input_vec_2 = new DoubleVector();
             // create 2 StringVectors
             for (int i = 0; i < row; ++i) {
-                input_vec_1.add(Double.valueOf(Util.getRandom(10)));
-                input_vec_2.add(Double.valueOf(Util.getRandom(10)));
+                input_vec_1.add(Double.valueOf(1)); //Util.getRandom(10)));
+                input_vec_2.add(Double.valueOf(1)); //Util.getRandom(10)));
             }
             ptxt_vec_1 = SparkFHE.getInstance().encode_many(input_vec_1);
             ptxt_vec_2 = SparkFHE.getInstance().encode_many(input_vec_2);
@@ -69,8 +69,8 @@ public class EncDecExample {
             LongVector input_vec_2 = new LongVector();
             // create 2 StringVectors
             for (int i = 0; i < row; ++i) {
-                input_vec_1.add(Util.getRandom(10));
-                input_vec_2.add(Util.getRandom(10));
+                input_vec_1.add(1); //Util.getRandom(10));
+                input_vec_2.add(1); //Util.getRandom(10));
             }
             ptxt_vec_1 = SparkFHE.getInstance().encode_many(input_vec_1);
             ptxt_vec_2 = SparkFHE.getInstance().encode_many(input_vec_2);
@@ -103,8 +103,8 @@ public class EncDecExample {
                 DoubleVector input_vec_1 = new DoubleVector();
                 DoubleVector input_vec_2 = new DoubleVector();
                 for (int j = 0; j < col; j++){
-                    input_vec_1.add(Double.valueOf(Util.getRandom(10)));
-                    input_vec_2.add(Double.valueOf(Util.getRandom(10)));
+                    input_vec_1.add(Double.valueOf(String.valueOf(1))); //Util.getRandom(10)));
+                    input_vec_2.add(Double.valueOf(String.valueOf(1))); //Util.getRandom(10)));
                 }
                 input_mat_1.add(input_vec_1);
                 input_mat_2.add(input_vec_2);
@@ -118,8 +118,8 @@ public class EncDecExample {
                 LongVector input_vec_1 = new LongVector();
                 LongVector input_vec_2 = new LongVector();
                 for (int j = 0; j < col; j++){
-                    input_vec_1.add(Util.getRandom(10));
-                    input_vec_2.add(Util.getRandom(10));
+                    input_vec_1.add(1); //Util.getRandom(10));
+                    input_vec_2.add(1); //Util.getRandom(10));
                 }
                 input_mat_1.add(input_vec_1);
                 input_mat_2.add(input_vec_2);
@@ -215,7 +215,7 @@ public class EncDecExample {
         encrypt_vector(scheme, row);
 
         /* generating matrices of ctxt */
-        encrypt_matrix(scheme, row, col);
+//        encrypt_matrix(scheme, row, col);
 
         /* testing encode/enc/dec/decode operations (toy example for debugging purposes) */
         // initialize a literal 1, encrypt it and decrypted it to verify the cryptography functions

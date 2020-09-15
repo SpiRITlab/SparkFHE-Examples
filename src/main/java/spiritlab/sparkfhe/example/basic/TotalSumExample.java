@@ -72,7 +72,7 @@ public class TotalSumExample {
         // sum up the values and display
         System.out.println("values_RDD:"+values_RDD.reduce((x, y) -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
-            SparkFHEPlugin.setup();
+//            SparkFHEPlugin.setup();
             return SparkFHE.do_basic_op(x, y, SparkFHE.ADD);
         }));
 
@@ -105,8 +105,8 @@ public class TotalSumExample {
         // sum up the results from the previous operation
         SerializedCiphertext res = ctxt_vec_rdd.reduce((x, y) -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
-            SparkFHEPlugin.setup();
-            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+//            SparkFHEPlugin.setup();
+//            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
             return new SerializedCiphertext(SparkFHE.getInstance().do_FHE_basic_op(x.getCtxt(), y.getCtxt(), SparkFHE.FHE_ADD));
         });
         endTime = System.currentTimeMillis();
@@ -149,8 +149,8 @@ public class TotalSumExample {
         // call homomorphic array sum operator on the rdd
         JavaRDD<SerializedCiphertext> collection = ctxt_vec_rdd.mapPartitions(records -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
-            SparkFHEPlugin.setup();
-            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+//            SparkFHEPlugin.setup();
+//            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
 
             LinkedList<SerializedCiphertext> sum = new LinkedList<SerializedCiphertext>();
             StringVector vec = new StringVector();
@@ -165,8 +165,8 @@ public class TotalSumExample {
         // sum up the results from the previous operation and display
         SerializedCiphertext res = collection.reduce((x, y) -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
-            SparkFHEPlugin.setup();
-            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+//            SparkFHEPlugin.setup();
+//            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
             return new SerializedCiphertext(SparkFHE.getInstance().do_FHE_basic_op(x.getCtxt(), y.getCtxt(), SparkFHE.FHE_ADD));
         });
         endTime = System.currentTimeMillis();
@@ -177,8 +177,8 @@ public class TotalSumExample {
             System.out.println("ctxt_vec_rdd.count() = " + ctxt_vec_rdd.count());
             ctxt_vec_rdd.foreach(data -> {
                 // we need to load the shared library and init a copy of SparkFHE on the executor
-                SparkFHEPlugin.setup();
-                SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+//                SparkFHEPlugin.setup();
+//                SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
                 System.out.println(SparkFHE.getInstance().decrypt(data.getCtxt(), true));
             });
 
@@ -244,8 +244,8 @@ public class TotalSumExample {
         // perform dot product on each pair (StringVector) of the dataFrame, and saving the rcesults to a LinkedList
         Dataset<SerializedCiphertext> collection = ctxt_a_ds3.mapPartitions((MapPartitionsFunction<Row, SerializedCiphertext>) iter -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
-            SparkFHEPlugin.setup();
-            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+//            SparkFHEPlugin.setup();
+//            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
 
             LinkedList<SerializedCiphertext> v = new LinkedList<SerializedCiphertext>();
             StringVector a = new StringVector();
@@ -260,8 +260,8 @@ public class TotalSumExample {
         // sum up the results from the previous operation and display
         SerializedCiphertext res = collection.javaRDD().reduce((x, y) -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
-            SparkFHEPlugin.setup();
-            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
+//            SparkFHEPlugin.setup();
+//            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
             return new SerializedCiphertext(SparkFHE.getInstance().fhe_add(x.getCtxt(), y.getCtxt()));
         });
         endTime = System.currentTimeMillis();
@@ -347,22 +347,22 @@ public class TotalSumExample {
         test_basic_total_sum(jsc, slices);
 
         // testing the total sum operation on ciphertext vector.
-        long main_startTime, main_endTime;
+//        long main_startTime, main_endTime;
         // testing the dot product operation in HE libraries on cipher text vector.
-        main_startTime = System.currentTimeMillis();
+//        main_startTime = System.currentTimeMillis();
         test_FHE_total_sum_via_lambda(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
-        main_endTime = System.currentTimeMillis();
-        System.out.println("TIMEINFO:FHE_total_Spark_total_sum_job_via_lambda:" + (main_endTime - main_startTime) + ":ms");
+//        main_endTime = System.currentTimeMillis();
+//        System.out.println("TIMEINFO:FHE_total_Spark_total_sum_job_via_lambda:" + (main_endTime - main_startTime) + ":ms");
 
-        main_startTime = System.currentTimeMillis();
+//        main_startTime = System.currentTimeMillis();
         test_FHE_total_sum_via_native_code(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
-        main_endTime = System.currentTimeMillis();
-        System.out.println("TIMEINFO:FHE_total_Spark_total_sum_job_via_native_code:" + (main_endTime - main_startTime) + ":ms");
+//        main_endTime = System.currentTimeMillis();
+//        System.out.println("TIMEINFO:FHE_total_Spark_total_sum_job_via_native_code:" + (main_endTime - main_startTime) + ":ms");
 
-        main_startTime = System.currentTimeMillis();
+//        main_startTime = System.currentTimeMillis();
         test_FHE_total_sum_via_sql(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
-        main_endTime = System.currentTimeMillis();
-        System.out.println("TIMEINFO:FHE_total_Spark_total_sum_job_via_sql:" + (main_endTime - main_startTime) + ":ms");
+//        main_endTime = System.currentTimeMillis();
+//        System.out.println("TIMEINFO:FHE_total_Spark_total_sum_job_via_sql:" + (main_endTime - main_startTime) + ":ms");
 
 //        try {
 //            System.out.println("Paused to allow checking the Spark server log, press enter to continue.");
