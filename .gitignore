@@ -1,6 +1,8 @@
 target/
 .idea/
-sparkfhe-example.iml
+*.iml
 scripts/cloudlab/ssh
 scripts/cloudlab/Manifest.xml
 scripts/cloudlab/myUserName.txt
+deps
+gen/

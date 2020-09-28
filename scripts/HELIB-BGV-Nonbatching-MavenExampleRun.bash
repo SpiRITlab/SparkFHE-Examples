@@ -14,6 +14,9 @@ cd $ProjectRoot
 
 # run FHE dot product over two encrypted vectors
 ./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.nonbatching.DotProductExample -Dexec.args="local HELIB BGV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/records/$(ls gen/records | grep vec_a) gen/records/$(ls gen/records | grep vec_b)"
-#
+
 # run FHE total sum over encrypted vector elements
 ./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.nonbatching.TotalSumExample -Dexec.args="local HELIB BGV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/records/$(ls gen/records | grep vec)"
+
+# run FHE element wise product example
+./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.nonbatching.ml.ElementwiseProductExample -Dexec.args="local HELIB BGV gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/records/$(ls gen/records | grep vec)"

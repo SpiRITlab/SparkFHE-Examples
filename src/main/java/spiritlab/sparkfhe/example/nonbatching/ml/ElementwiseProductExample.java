@@ -12,6 +12,9 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.mllib.linalg.Vector;
 import org.apache.spark.mllib.linalg.Vectors;
+import org.apache.spark.mllib_fhe.feature.ElementWiseProductMatrix;
+import org.apache.spark.mllib_fhe.linalg.CtxtMatrices;
+import org.apache.spark.mllib_fhe.linalg.CtxtMatrix;
 import org.apache.spark.spiritlab.sparkfhe.SparkFHEPlugin;
 import org.apache.spark.sql.*;
 
@@ -178,6 +181,62 @@ public class ElementwiseProductExample {
         });
     }
 
+    public static void testBasicElementWiseMultiplication() {
+        CtxtMatrix matrix1 = CtxtMatrices.dense(1, 3,
+                new String[]{getCtxt(1), getCtxt(2), getCtxt(3)}, false);
+        CtxtMatrix matrix2 = CtxtMatrices.dense(1, 3,
+                new String[]{getCtxt(4), getCtxt(3), getCtxt(5)}, false);
+
+        StringVector resultStringVector = SparkFHE.getInstance().dense_matrix_element_wise_multiply(
+                new StringVector(matrix1.toArray()),
+                new StringVector(matrix2.toArray())
+        );
+
+        resultStringVector.forEach(x -> System.out.println(SparkFHE.getInstance().decrypt(x, true)));
+
+    }
+
+    public static void runCtxtMatricesRDDExample(JavaSparkContext jsc) {
+        System.out.println("Run CtxtMatrices RDD Example");
+
+        CtxtMatrix matrix1 = CtxtMatrices.dense(1, 3,
+                new String[]{getCtxt(1), getCtxt(2), getCtxt(3)}, false); // [1, 2, 3]
+        CtxtMatrix matrix2 = CtxtMatrices.dense(1, 3,
+                new String[]{getCtxt(4), getCtxt(3), getCtxt(5)}, false); // [4, 3, 5]
+
+        JavaRDD<CtxtMatrix> rdd = jsc.parallelize(Arrays.asList(matrix1, matrix2));
+
+        CtxtMatrix transformingMatrix = CtxtMatrices.dense(1, 3,
+                new String[]{getCtxt(1), getCtxt(1), getCtxt(2)}, false); // [1, 1, 2]
+
+        ElementWiseProductMatrix transformer = new ElementWiseProductMatrix(transformingMatrix);
+
+        JavaRDD<CtxtMatrix> result1 = transformer.transform(rdd);
+        JavaRDD<String[]> stringArrayRDD = result1.map(CtxtMatrix::toArray)
+                .map(arr -> Arrays.stream(arr)
+                        .map(x -> SparkFHE.getInstance().decrypt(x, true))
+                        .toArray(String[]::new));
+        stringArrayRDD.foreach(arr -> System.out.println(Arrays.toString(arr)));
+    }
+
+    public static String getCtxt(int ptxt) {
+        return SparkFHE.getInstance().read_ciphertext_from_file_as_string(Config.Ciphertext_Label,
+                String.format("%s/ptxt_long_%d_%s.jsonl", Config.get_records_directory(), ptxt,
+                        SparkFHE.getInstance().generate_crypto_params_suffix())
+                );
+    }
+
+    private static void encrypt_data(int ... values){
+        // store the ciphertexts to the pre-defined file location
+        for (int v: values) {
+            System.out.println("Storing ciphertext to "+Config.get_records_directory()+"/ptxt_long_"+String.valueOf(v)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl");
+            SparkFHE.getInstance().store_ciphertext_to_file(
+                    Config.Ciphertext_Label,
+                    SparkFHE.getInstance().encrypt(new Plaintext(v)).toString(),
+                    Config.get_records_directory()+"/ptxt_long_"+String.valueOf(v)+"_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl");
+        }
+    }
+
     public static void main(String[] args) {
         String scheme="", library = "", pk="", sk="";
 
@@ -240,8 +299,11 @@ public class ElementwiseProductExample {
         Broadcast<String> pk_b = jsc.broadcast(pk);
         Broadcast<String> sk_b = jsc.broadcast(sk);
 
+        encrypt_data(1, 2, 3, 4, 5);
         RunCtxtExample(spark, slices, library, scheme, pk_b, sk_b);
         RunCtxtRDDExample(jsc, slices, library, scheme, pk_b, sk_b);
+        testBasicElementWiseMultiplication();
+        runCtxtMatricesRDDExample(jsc);
 
         jsc.close();
         spark.close();
