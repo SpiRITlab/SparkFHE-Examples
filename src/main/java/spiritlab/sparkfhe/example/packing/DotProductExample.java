@@ -122,6 +122,9 @@ public class DotProductExample {
         endTime = System.currentTimeMillis();
         System.out.println("TIMEINFO:batch_FHE_dot_product_via_lambda:" + (endTime - startTime) + ":ms");
 
+        // display results for debugging purposes
+//        Util.decrypt_and_print(scheme, "Dot product result", dot_product_ctxt, false, 0);
+
         if (Config.DEBUG) {
             // causes n = slice tasks to be started using NODE_LOCAL data locality.
             System.out.println("Partitions:"+ctxt_vec_b_rdd.partitions().size());
@@ -190,6 +193,8 @@ public class DotProductExample {
         Ciphertext dot_product_ctxt = new Ciphertext(SparkFHE.getInstance().fhe_total_sum(res.getCtxt()));
         endTime = System.currentTimeMillis();
         System.out.println("TIMEINFO:batch_FHE_dot_product_via_native_code:" + (endTime - startTime) + ":ms");
+
+//        Util.decrypt_and_print(scheme, "Dot product", dot_product_ctxt, false, 0);
 
         if (Config.DEBUG) {
             // print out the cipher text vectors after decryption for verification purposes
@@ -273,6 +278,8 @@ public class DotProductExample {
         ExpressionEncoder<Row> encoder = RowEncoder.apply(structType);
         ExpressionEncoder<Row> encoder2 = RowEncoder.apply(structType);
 
+        long startTime, endTime;
+        startTime = System.currentTimeMillis();
         // mapPartition - converts each partition of the source RDD into multiple elements of the result
         // perform dot product on each pair (StringVector) of the dataFrame, and saving the rcesults to a LinkedList
         Dataset<SerializedCiphertext> collection = fin.mapPartitions((MapPartitionsFunction<Row, SerializedCiphertext>)  iter -> {
@@ -302,6 +309,8 @@ public class DotProductExample {
 
         // sum up all slots of the result and display
         Ciphertext dot_product_ctxt = new Ciphertext(SparkFHE.getInstance().fhe_total_sum(res.getCtxt()));
+        endTime = System.currentTimeMillis();
+        System.out.println("TIMEINFO:batch_FHE_dot_product_via_sql:" + (endTime - startTime) + ":ms");
         if (Config.DEBUG) {
             Util.decrypt_and_print(scheme, "Dot product", dot_product_ctxt, false, 0);
         }
@@ -393,7 +402,7 @@ public class DotProductExample {
 //        System.out.println("TIMEINFO:batch_total_Spark_dot_product_job_via_native_code:" + (main_endTime - main_startTime) + ":ms");
 
 //        main_startTime = System.currentTimeMillis();
-        test_FHE_dot_product_via_sql(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
+//        test_FHE_dot_product_via_sql(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
 //        main_endTime = System.currentTimeMillis();
 //        System.out.println("TIMEINFO:batch_total_Spark_dot_product_job_via_sql:" + (main_endTime - main_startTime) + ":ms");
 

@@ -360,7 +360,7 @@ public class TotalSumExample {
 //        System.out.println("TIMEINFO:FHE_total_Spark_total_sum_job_via_native_code:" + (main_endTime - main_startTime) + ":ms");
 
 //        main_startTime = System.currentTimeMillis();
-        test_FHE_total_sum_via_sql(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
+//        test_FHE_total_sum_via_sql(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
 //        main_endTime = System.currentTimeMillis();
 //        System.out.println("TIMEINFO:FHE_total_Spark_total_sum_job_via_sql:" + (main_endTime - main_startTime) + ":ms");
 

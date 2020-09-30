@@ -84,6 +84,7 @@ public class TotalSumExample {
 
         // Create rdd with json line file.
         JavaRDD<SerializedCiphertext> ctxt_vec_rdd = spark.read().json(CTXT_Vector_FILE).as(ctxtJSONEncoder).javaRDD();
+        System.out.println("Partitions:"+ctxt_vec_rdd.partitions().size());
 
         long startTime, endTime;
         startTime = System.currentTimeMillis();
@@ -98,6 +99,9 @@ public class TotalSumExample {
         Ciphertext total_sum_ctxt = new Ciphertext(SparkFHE.getInstance().fhe_total_sum(ctxt_vec_rdd.first().getCtxt()));
         endTime = System.currentTimeMillis();
         System.out.println("TIMEINFO:batch_FHE_total_sum_via_lambda:" + (endTime - startTime) + ":ms");
+
+        // print results for debugging purposes
+//        Util.decrypt_and_print(scheme, "Total Sum", total_sum_ctxt, false, 0);
 
         if (Config.DEBUG) {
             System.out.println("Partitions:"+ctxt_vec_rdd.partitions().size());
@@ -159,6 +163,9 @@ public class TotalSumExample {
         Ciphertext total_sum_ctxt = new Ciphertext(SparkFHE.getInstance().fhe_total_sum(res.getCtxt()));
         endTime = System.currentTimeMillis();
         System.out.println("TIMEINFO:batch_FHE_total_sum_via_native_code:" + (endTime - startTime) + ":ms");
+
+        // print out the results for debugging purposes
+//        Util.decrypt_and_print(scheme, "Total Sum", total_sum_ctxt, false, 0);
 
         if (Config.DEBUG) {
             // print out the ciphertext vectors after decryption for verification purposes
@@ -341,7 +348,7 @@ public class TotalSumExample {
 //        System.out.println("TIMEINFO:batch_total_Spark_total_sum_job_via_native_code:" + (main_endTime - main_startTime) + ":ms");
 
 //        main_startTime = System.currentTimeMillis();
-        test_FHE_total_sum_via_sql(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
+//        test_FHE_total_sum_via_sql(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
 //        main_endTime = System.currentTimeMillis();
 //        System.out.println("TIMEINFO:batch_total_Spark_total_sum_job_via_sql:" + (main_endTime - main_startTime) + ":ms");
         
