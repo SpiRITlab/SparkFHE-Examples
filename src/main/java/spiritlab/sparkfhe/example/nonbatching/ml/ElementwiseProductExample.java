@@ -182,10 +182,12 @@ public class ElementwiseProductExample {
     }
 
     public static void testBasicElementWiseMultiplication() {
-        CtxtMatrix matrix1 = CtxtMatrices.dense(1, 3,
-                new String[]{getCtxt(1), getCtxt(2), getCtxt(3)}, false);
-        CtxtMatrix matrix2 = CtxtMatrices.dense(1, 3,
-                new String[]{getCtxt(4), getCtxt(3), getCtxt(5)}, false);
+        CtxtMatrix matrix1 = CtxtMatrices.dense(2, 3,
+                new String[]{getCtxt(1), getCtxt(2), getCtxt(3), getCtxt(4), getCtxt(2),
+                        getCtxt(5)}, false);
+        CtxtMatrix matrix2 = CtxtMatrices.dense(2, 3,
+                new String[]{getCtxt(4), getCtxt(3), getCtxt(5), getCtxt(2), getCtxt(1),
+                        getCtxt(3)}, false);
 
         StringVector resultStringVector = SparkFHE.getInstance().dense_matrix_element_wise_multiply(
                 new StringVector(matrix1.toArray()),
@@ -299,11 +301,12 @@ public class ElementwiseProductExample {
         Broadcast<String> pk_b = jsc.broadcast(pk);
         Broadcast<String> sk_b = jsc.broadcast(sk);
 
-        encrypt_data(1, 2, 3, 4, 5);
+        encrypt_data(1, 2, 3, 4, 5, 6, 10, 20, 30, 11, 21, 31);
         RunCtxtExample(spark, slices, library, scheme, pk_b, sk_b);
         RunCtxtRDDExample(jsc, slices, library, scheme, pk_b, sk_b);
         testBasicElementWiseMultiplication();
         runCtxtMatricesRDDExample(jsc);
+        testBasicElementWiseMultiplication();
 
         jsc.close();
         spark.close();

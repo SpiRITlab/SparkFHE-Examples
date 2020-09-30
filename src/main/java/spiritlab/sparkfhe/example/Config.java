@@ -7,6 +7,8 @@ package spiritlab.sparkfhe.example;
 
 import spiritlab.sparkfhe.api.FHELibrary;
 import spiritlab.sparkfhe.api.FHEScheme;
+import spiritlab.sparkfhe.api.Plaintext;
+import spiritlab.sparkfhe.api.SparkFHE;
 
 public class Config {
     private static String Current_Directory=System.getProperty("user.dir");

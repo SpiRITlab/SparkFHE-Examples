@@ -17,3 +17,6 @@ cd $ProjectRoot
 
 # run FHE total sum over encrypted vector elements
 ./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.batching.TotalSumExample -Dexec.args="local HELIB CKKS gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/records/$(ls gen/records | grep vec)"
+
+## run Matrix examples
+./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.batching.MatrixExamples -Dexec.args="local HELIB CKKS gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/records/$(ls gen/records | grep vec)"
