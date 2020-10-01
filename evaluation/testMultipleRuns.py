@@ -7,18 +7,13 @@ import math
 
 def runTheProgram(n, libraryScheme, rowSize, colSize, threadNum, resultFileName):
     print("Output redirected to", resultFileName)
-
     # 1- create keys and ctxts for the test
     os.system("./runTest.bash setup %s %s %s %s >> %s 2>&1" % (libraryScheme, rowSize, colSize, threadNum, resultFileName))
-
     # 2- run the tests
     for i in range( 1, n+1 ):
         os.system("./runTest.bash run %s %s %s %s >> %s 2>&1" % (libraryScheme, rowSize, colSize, threadNum, resultFileName))
-#        os.system("./mySparkSubmitLocal.bash %s %s %s %s >> %s 2>&1" % (libraryScheme, rowSize, colSize, threadNum, resultFileName))
-
     # 3- remove ctxts and keys
-    os.system("./runTest.bash clean %s %s %s %s" % (libraryScheme, rowSize, colSize, threadNum))
-
+    os.system("./runTest.bash cleanup %s %s %s %s" % (libraryScheme, rowSize, colSize, threadNum))
     print("DONE")
 
 def collectOperationRuntime( resultFileName ):

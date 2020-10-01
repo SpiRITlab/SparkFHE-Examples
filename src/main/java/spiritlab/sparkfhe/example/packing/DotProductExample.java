@@ -110,7 +110,7 @@ public class DotProductExample {
         });
 
         // sum up the results from the previous operation
-        result_rdd.reduce((x, y) -> {
+       SerializedCiphertext final_result = result_rdd.reduce( (x, y) -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
 //            SparkFHEPlugin.setup();
 //            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
@@ -118,12 +118,9 @@ public class DotProductExample {
         });
 
         // sum up all slots of the result
-        Ciphertext dot_product_ctxt = new Ciphertext(SparkFHE.getInstance().fhe_total_sum(result_rdd.first().getCtxt())); // SparkFHE.getInstance().fhe_total_sum(
+        Ciphertext dot_product_ctxt = new Ciphertext(SparkFHE.getInstance().fhe_total_sum(final_result.getCtxt()));
         endTime = System.currentTimeMillis();
         System.out.println("TIMEINFO:batch_FHE_dot_product_via_lambda:" + (endTime - startTime) + ":ms");
-
-        // display results for debugging purposes
-//        Util.decrypt_and_print(scheme, "Dot product result", dot_product_ctxt, false, 0);
 
         if (Config.DEBUG) {
             // causes n = slice tasks to be started using NODE_LOCAL data locality.
@@ -194,8 +191,6 @@ public class DotProductExample {
         endTime = System.currentTimeMillis();
         System.out.println("TIMEINFO:batch_FHE_dot_product_via_native_code:" + (endTime - startTime) + ":ms");
 
-//        Util.decrypt_and_print(scheme, "Dot product", dot_product_ctxt, false, 0);
-
         if (Config.DEBUG) {
             // print out the cipher text vectors after decryption for verification purposes
             System.out.println("ctxt_a_rdd.count() = " + ctxt_vec_a_rdd.count());
@@ -203,14 +198,14 @@ public class DotProductExample {
                 // we need to load the shared library and init a copy of SparkFHE on the executor
 //                SparkFHEPlugin.setup();
 //                SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
-                Util.decrypt_and_print(scheme, "", new Ciphertext(data.getCtxt()), true, 100);
+                Util.decrypt_and_print(scheme, "", new Ciphertext(data.getCtxt()), true, 10);
             });
             System.out.println("ctxt_b_rdd.count() = " + ctxt_vec_b_rdd.count());
             ctxt_vec_b_rdd.foreach(data -> {
                 // we need to load the shared library and init a copy of SparkFHE on the executor
 //                SparkFHEPlugin.setup();
 //                SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
-                Util.decrypt_and_print(scheme, "", new Ciphertext(data.getCtxt()), true, 100);
+                Util.decrypt_and_print(scheme, "", new Ciphertext(data.getCtxt()), true, 10);
             });
 
             System.out.println("combined_ctxt_rdd.count() = " + combined_ctxt_rdd.count());

@@ -144,10 +144,10 @@ function run_HELIB_CKKS() {
 
 function clean_up() {
 # delete all saved ctxt and key files for this run
-Records=/Users/asma/GitHub/SparkFHE-Examples/gen/records
+Records=gen/records
 rm $Records/*
 
-Keys=/Users/asma/GitHub/SparkFHE-Examples/gen/keys
+Keys=gen/keys
 rm $Keys/*
 }
 
@@ -179,38 +179,31 @@ if [[ "$threadNum" == "" ]]; then
     threadNum=1
 fi
 
-if [[ "$mode" == "setup"]]
 
-  if [[ "$libraryScheme" == "" ]]; then
+if [[ "$libraryScheme" == "" ]]; then
       Usage
-  elif [[ "$libraryScheme" == "SEAL-BFV" ]]; then
-    set_up_SEAL_BFV $rowSize $colSize
-  elif [[ "$libraryScheme" == "SEAL-CKKS" ]]; then
-    set_up_SEAL_CKKS $rowSize $colSize
-  elif [[ "$libraryScheme" == "HELIB-BGV" ]]; then
-    set_up_HELIB_BGV $rowSize $colSize
-  elif [[ "$libraryScheme" == "HELIB-CKKS" ]]; then
-    set_up_HELIB_CKKS $rowSize $colSize
-  fi
-
-elif "$mode" == "run"]]
-
-  if [[ "$libraryScheme" == "" ]]; then
-      Usage
-  elif [[ "$libraryScheme" == "SEAL-BFV" ]]; then
-    run_SEAL_BFV $rowSize $colSize $threadNum
-  elif [[ "$libraryScheme" == "SEAL-CKKS" ]]; then
-    run_SEAL_CKKS $rowSize $colSize $threadNum
-  elif [[ "$libraryScheme" == "HELIB-BGV" ]]; then
-    run_HELIB_BGV $rowSize $colSize $threadNum
-  elif [[ "$libraryScheme" == "HELIB-CKKS" ]]; then
-    run_HELIB_CKKS $rowSize $colSize $threadNum
-  fi
-
-elif "$mode" == "clean"]]
-  clean_up
-
 fi
+
+if [[ "$mode" == "setup" && "$libraryScheme" == "SEAL-BFV" ]]; then
+  set_up_SEAL_BFV $rowSize $colSize
+elif [[ "$mode" == "setup" && "$libraryScheme" == "SEAL-CKKS" ]]; then
+  set_up_SEAL_CKKS $rowSize $colSize
+elif [[ "$mode" == "setup" && "$libraryScheme" == "HELIB-BGV" ]]; then
+  set_up_HELIB_BGV $rowSize $colSize
+elif [[ "$mode" == "setup" && "$libraryScheme" == "HELIB-CKKS" ]]; then
+  set_up_HELIB_CKKS $rowSize $colSize
+elif [[ "$mode" == "run" && "$libraryScheme" == "SEAL-BFV" ]]; then
+  run_SEAL_BFV $rowSize $colSize $threadNum
+elif [[ "$mode" == "run" && "$libraryScheme" == "SEAL-CKKS" ]]; then
+  run_SEAL_CKKS $rowSize $colSize $threadNum
+elif [[ "$mode" == "run" && "$libraryScheme" == "HELIB-BGV" ]]; then
+  run_HELIB_BGV $rowSize $colSize $threadNum
+elif [[ "$mode" == "run" && "$libraryScheme" == "HELIB-CKKS" ]]; then
+  run_HELIB_CKKS $rowSize $colSize $threadNum
+elif [[ "$mode" == "cleanup" ]]; then
+  clean_up
+fi
+
 
 TestDir=evaluation
 cd $TestDir

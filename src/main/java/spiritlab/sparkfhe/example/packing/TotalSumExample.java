@@ -84,11 +84,10 @@ public class TotalSumExample {
 
         // Create rdd with json line file.
         JavaRDD<SerializedCiphertext> ctxt_vec_rdd = spark.read().json(CTXT_Vector_FILE).as(ctxtJSONEncoder).javaRDD();
-        System.out.println("Partitions:"+ctxt_vec_rdd.partitions().size());
 
         long startTime, endTime;
         startTime = System.currentTimeMillis();
-        ctxt_vec_rdd.reduce((x, y) -> {
+        SerializedCiphertext sum_result = ctxt_vec_rdd.reduce((x, y) -> {
             // we need to load the shared library and init a copy of SparkFHE on the executor
 //            SparkFHEPlugin.setup();
 //            SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
@@ -96,12 +95,9 @@ public class TotalSumExample {
         });
 
         // sum up the slots of the result
-        Ciphertext total_sum_ctxt = new Ciphertext(SparkFHE.getInstance().fhe_total_sum(ctxt_vec_rdd.first().getCtxt()));
+        Ciphertext total_sum_ctxt = new Ciphertext(SparkFHE.getInstance().fhe_total_sum(sum_result.getCtxt()));
         endTime = System.currentTimeMillis();
         System.out.println("TIMEINFO:batch_FHE_total_sum_via_lambda:" + (endTime - startTime) + ":ms");
-
-        // print results for debugging purposes
-//        Util.decrypt_and_print(scheme, "Total Sum", total_sum_ctxt, false, 0);
 
         if (Config.DEBUG) {
             System.out.println("Partitions:"+ctxt_vec_rdd.partitions().size());
@@ -164,9 +160,6 @@ public class TotalSumExample {
         endTime = System.currentTimeMillis();
         System.out.println("TIMEINFO:batch_FHE_total_sum_via_native_code:" + (endTime - startTime) + ":ms");
 
-        // print out the results for debugging purposes
-//        Util.decrypt_and_print(scheme, "Total Sum", total_sum_ctxt, false, 0);
-
         if (Config.DEBUG) {
             // print out the ciphertext vectors after decryption for verification purposes
             System.out.println("ctxt_vec_rdd.count() = " + ctxt_vec_rdd.count());
@@ -174,7 +167,7 @@ public class TotalSumExample {
                 // we need to load the shared library and init a copy of SparkFHE on the executor
 //                SparkFHEPlugin.setup();
 //                SparkFHE.init(library, scheme, pk_b.getValue(), sk_b.getValue(), rlk_b.getValue(), glk_b.getValue());
-                Util.decrypt_and_print(scheme, "", new Ciphertext(data.getCtxt()), true, 100);
+                Util.decrypt_and_print(scheme, "", new Ciphertext(data.getCtxt()), true, 10);
             });
 
             // print out the results for debugging purposes
