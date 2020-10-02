@@ -11,6 +11,8 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.MapPartitionsFunction;
 import org.apache.spark.broadcast.Broadcast;
+import org.apache.spark.mllib_fhe.linalg.CtxtVector;
+import org.apache.spark.mllib_fhe.linalg.CtxtVectors;
 import org.apache.spark.spiritlab.sparkfhe.SparkFHEPlugin;
 import org.apache.spark.sql.*;
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder;
@@ -19,6 +21,8 @@ import org.apache.spark.sql.expressions.Window;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructType;
 import scala.Tuple2;
+import scala.runtime.AbstractFunction2;
+import scala.runtime.BoxedUnit;
 import spiritlab.sparkfhe.api.*;
 import spiritlab.sparkfhe.example.Config;
 
@@ -33,8 +37,7 @@ import static org.apache.spark.sql.functions.col;
 public class DotProductExample {
 
     // declare variables to hold cipher-text
-    private static String vec_a_ctxt;
-    private static String vec_b_ctxt;
+    private static String CTXT_1_FILE;
 
     private static String CTXT_Vector_a_FILE;
     private static String CTXT_Vector_b_FILE;
@@ -214,6 +217,52 @@ public class DotProductExample {
     }
 
 
+    public static void test_FHE_dot_product_via_spark_integration(JavaSparkContext jsc, SparkSession spark, int slices, String library, String scheme, Broadcast<String> pk_b,
+                                                                  Broadcast<String> sk_b, Broadcast<String> rlk_b, Broadcast<String> glk_b) {
+        System.out.println("test_FHE_dot_product_via_spark_integration");
+        /* Spark example for FHE calculations */
+
+        StringVector vec_a_strings = SparkFHE.getInstance().read_ciphertexts_from_file_as_string(Config.Ciphertext_Label, CTXT_Vector_a_FILE);
+        String[] vec_a_array =  new String[vec_a_strings.size()];
+        for (int i = 0; i < vec_a_strings.size(); ++i){
+            vec_a_array[i] = vec_a_strings.get(i);
+        }
+        StringVector vec_b_strings = SparkFHE.getInstance().read_ciphertexts_from_file_as_string(Config.Ciphertext_Label, CTXT_Vector_b_FILE);
+        String[] vec_b_array =  new String[vec_b_strings.size()];
+        for (int i = 0; i < vec_b_strings.size(); ++i){
+            vec_b_array[i] = vec_b_strings.get(i);
+        }
+
+        JavaRDD<CtxtVector> data = jsc.parallelize(Arrays.asList( CtxtVectors.dense(vec_a_array) ));
+        org.apache.spark.mllib_fhe.linalg.CtxtVector inputVector = CtxtVectors.dense(vec_b_array);
+        org.apache.spark.mllib_fhe.feature.DotProduct dp = new org.apache.spark.mllib_fhe.feature.DotProduct(inputVector);
+
+        long startTime, endTime;
+        startTime = System.currentTimeMillis();
+
+        // Batch transform and per-row transform give the same results:
+        JavaRDD<CtxtVector> transformedData = dp.transform(data);
+
+        endTime = System.currentTimeMillis();
+        System.out.println("TIMEINFO:FHE_dot_product_via_spark_integration:" + (endTime - startTime) + ":ms");
+
+        transformedData.cache();
+
+        if (Config.DEBUG) {
+            System.out.println("transformedData: ");
+            transformedData.foreach(v -> {
+                AbstractFunction2<Object, String, BoxedUnit> f = new AbstractFunction2<Object, String, BoxedUnit>() {
+                    public BoxedUnit apply(Object t1, String t2) {
+                        if((int)t1==0)
+                            System.out.println("transformedData Dot-Product:" + SparkFHE.getInstance().decrypt(new Ciphertext((String)t2), true));
+                        return BoxedUnit.UNIT;
+                    }
+                };
+                v.foreachActive(f);
+            });
+        }
+    }
+
     /**
      This method performs the dot product operation on cipher-text vectors and print out the results as SparkSQL
      * @param spark the spark session which allows the creation of the various data abstractions such
@@ -371,6 +420,9 @@ public class DotProductExample {
         SparkFHE.init(library, scheme, pk, sk, rlk, glk);
 
         // set ctxt file names
+        CTXT_1_FILE = Config.get_records_directory() +"/ctxt_long_1_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";
+
+        // set ctxt file names
         CTXT_Vector_a_FILE = Config.get_records_directory()+"/ctxt_vec_a_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";
         CTXT_Vector_b_FILE = Config.get_records_directory()+"/ctxt_vec_b_"+SparkFHE.getInstance().generate_crypto_params_suffix()+ ".jsonl";
 
@@ -395,6 +447,7 @@ public class DotProductExample {
 //        main_endTime = System.currentTimeMillis();
 //        System.out.println("TIMEINFO:FHE_total_Spark_dot_product_job_via_native_code:" + (main_endTime - main_startTime) + ":ms");
 
+        test_FHE_dot_product_via_spark_integration(jsc, spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
 //        main_startTime = System.currentTimeMillis();
 //        test_FHE_dot_product_via_sql(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
 //        main_endTime = System.currentTimeMillis();

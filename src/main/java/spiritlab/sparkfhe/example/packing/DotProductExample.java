@@ -11,6 +11,8 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.MapPartitionsFunction;
 import org.apache.spark.broadcast.Broadcast;
+import org.apache.spark.mllib_fhe.linalg.CtxtVector;
+import org.apache.spark.mllib_fhe.linalg.CtxtVectors;
 import org.apache.spark.spiritlab.sparkfhe.SparkFHEPlugin;
 import org.apache.spark.sql.*;
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder;
@@ -19,6 +21,8 @@ import org.apache.spark.sql.expressions.Window;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructType;
 import scala.Tuple2;
+import scala.runtime.AbstractFunction2;
+import scala.runtime.BoxedUnit;
 import spiritlab.sparkfhe.api.*;
 import spiritlab.sparkfhe.example.Config;
 
@@ -216,6 +220,70 @@ public class DotProductExample {
 
 
     /**
+     This method performs the dot product operation on cipher-text vectors and print out the results naively
+     * @param spark the spark session which allows the creation of the various data abstractions such
+     *              as RDDs, DataFrame, and more.
+     * @param slices the number of time a task is split up
+     * @param library the HE library name
+     * @param scheme  the HE scheme name
+     * @param pk_b broadcast variable for public key
+     * @param sk_b broadcast variable for secret key
+     * @param rlk_b broadcast variable for relin keys
+     * @param glk_b boradcast variable for galois keys
+     */
+    public static void test_FHE_dot_product_via_spark_integration(JavaSparkContext jsc, SparkSession spark, int slices, String library, String scheme, Broadcast<String> pk_b,
+                                                            Broadcast<String> sk_b, Broadcast<String> rlk_b, Broadcast<String> glk_b) {
+        System.out.println("test_FHE_dot_product_via_spark_integration");
+        /* Spark example for FHE calculations */
+        StringVector vec_a_strings = SparkFHE.getInstance().read_ciphertexts_from_file_as_string(Config.Ciphertext_Label, CTXT_Vector_a_FILE);
+        String[] vec_a_array =  new String[vec_a_strings.size()];
+        for (int i = 0; i < vec_a_strings.size(); ++i){
+            vec_a_array[i] = vec_a_strings.get(i);
+        }
+
+        StringVector vec_b_strings = SparkFHE.getInstance().read_ciphertexts_from_file_as_string(Config.Ciphertext_Label, CTXT_Vector_b_FILE);
+        String[] vec_b_array =  new String[vec_b_strings.size()];
+        for (int i = 0; i < vec_b_strings.size(); ++i){
+            vec_b_array[i] = vec_b_strings.get(i);
+        }
+
+        JavaRDD<CtxtVector> data = jsc.parallelize(Arrays.asList( CtxtVectors.dense(vec_a_array) ));
+        org.apache.spark.mllib_fhe.linalg.CtxtVector inputVector = CtxtVectors.dense(vec_b_array);
+        org.apache.spark.mllib_fhe.feature.DotProduct dp = new org.apache.spark.mllib_fhe.feature.DotProduct(inputVector);
+
+        long startTime, endTime;
+        startTime = System.currentTimeMillis();
+
+        // Batch transform and per-row transform give the same results:
+        JavaRDD<CtxtVector> transformedData = dp.transform(data);
+        transformedData.cache();
+
+        Ciphertext sum = new Ciphertext(SparkFHE.getInstance().fhe_total_sum(transformedData.first().toString()));
+
+        endTime = System.currentTimeMillis();
+        System.out.println("TIMEINFO:batch_FHE_dot_product_via_spark_integration:" + (endTime - startTime) + ":ms");
+
+        LongVector output_vec = new LongVector();
+        SparkFHE.getInstance().decode(output_vec, SparkFHE.getInstance().decrypt(sum));
+        System.out.println("transformedData Dot-Product:" + String.valueOf(output_vec.get(0)));
+
+        if (Config.DEBUG) {
+            transformedData.foreach(x -> {
+//                LongVector output_vec = new LongVector();
+                AbstractFunction2<Object, String, BoxedUnit> f = new AbstractFunction2<Object, String, BoxedUnit>() {
+                    public BoxedUnit apply(Object t1, String t2) {
+                        if((int)t1==0) {
+                            SparkFHE.getInstance().decode(output_vec, SparkFHE.getInstance().decrypt(new Ciphertext(SparkFHE.getInstance().fhe_total_sum((String) t2))));
+                            System.out.println("transformedData Dot-Product:" + String.valueOf(output_vec.get(0)));
+                        }
+                        return BoxedUnit.UNIT;
+                    }
+                };
+                x.foreachActive(f);
+            });
+        }
+    }
+    /**
      This method performs the dot product operation on cipher-text vectors and print out the results as SparkSQL
      * @param spark the spark session which allows the creation of the various data abstractions such
      *              as RDDs, DataFrame, and more.
@@ -396,6 +464,7 @@ public class DotProductExample {
 //        main_endTime = System.currentTimeMillis();
 //        System.out.println("TIMEINFO:batch_total_Spark_dot_product_job_via_native_code:" + (main_endTime - main_startTime) + ":ms");
 
+        test_FHE_dot_product_via_spark_integration(jsc, spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
 //        main_startTime = System.currentTimeMillis();
 //        test_FHE_dot_product_via_sql(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
 //        main_endTime = System.currentTimeMillis();
