@@ -3,7 +3,7 @@
 ### Strong scaling
 function run_benchmark() {
 ### SEAL-CKKS ##
-python3 testMultipleRuns.py -n 3 -s SEAL-CKKS -r 10 -c 1 -t 8
+python3 testMultipleRuns.py -n 10 -s SEAL-CKKS -r 10 -c 1 -t 8
 
 #### HELIB-CKKS ##
 python3 testMultipleRuns.py -n 10 -s HELIB-CKKS -r 10 -c 1 -t 8
