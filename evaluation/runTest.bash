@@ -140,19 +140,19 @@ function run_HELIB_CKKS() {
 }
 
 
-### deleting all keys and ctxts ###
-
-function clean_up() {
-# delete all saved ctxt and key files for this run
-Records=gen/records
-rm $Records/*
-
-Keys=gen/keys
-rm $Keys/*
-}
+#### deleting all keys and ctxts ###
+#
+#function clean_up() {
+## delete all saved ctxt and key files for this run
+#Records=gen/records
+#rm $Records/*
+#
+#Keys=gen/keys
+#rm $Keys/*
+#}
 
 function Usage() {
-    echo "Usage: $0 mode libraryScheme rowSize colSize threadNum"
+    echo "Usage: $0 libraryScheme rowSize colSize threadNum"
     echo "Which library-scheme do you want to test? Enter vector and matrix dimensions (row size, column size) and number of threads (threadNum)."
     echo "SEAL-BFV      test on data encrypted using BFV scheme in SEAL library."
     echo "SEAL-CKKS     test on data encrypted using CKKS scheme in SEAL library."
@@ -161,11 +161,11 @@ function Usage() {
     exit
 }
 
-mode=$1
-libraryScheme=$2
-rowSize=$3
-colSize=$4
-threadNum=$5
+#mode=$1
+libraryScheme=$1
+rowSize=$2
+colSize=$3
+threadNum=$4
 
 if [[ "$rowSize" == "" ]]; then
     rowSize=10
@@ -182,46 +182,45 @@ fi
 
 if [[ "$libraryScheme" == "" ]]; then
       Usage
+elif [[ "$libraryScheme" == "SEAL-BFV" ]]; then
+  set_up_SEAL_BFV $rowSize $colSize
+  run_SEAL_BFV $rowSize $colSize $threadNum
+elif [[ "$libraryScheme" == "SEAL-CKKS" ]]; then
+  set_up_SEAL_CKKS $rowSize $colSize
+  run_SEAL_CKKS $rowSize $colSize $threadNum
+elif [[ "$libraryScheme" == "HELIB-BGV" ]]; then
+  set_up_HELIB_BGV $rowSize $colSize
+  run_HELIB_BGV $rowSize $colSize $threadNum
+elif [[ "$libraryScheme" == "HELIB-CKKS" ]]; then
+  set_up_HELIB_CKKS $rowSize $colSize
+  run_HELIB_CKKS $rowSize $colSize $threadNum
 fi
-#elif [[ "$libraryScheme" == "SEAL-BFV" ]]; then
+
+#if [[ "$mode" == "setup" && "$libraryScheme" == "SEAL-BFV" ]]; then
 #  set_up_SEAL_BFV $rowSize $colSize
+#elif [[ "$mode" == "run" && "$libraryScheme" == "SEAL-BFV" ]]; then
 #  run_SEAL_BFV $rowSize $colSize $threadNum
-#elif [[ "$libraryScheme" == "SEAL-CKKS" ]]; then
+#elif [[ "$mode" == "setup" && "$libraryScheme" == "SEAL-CKKS" ]]; then
 #  set_up_SEAL_CKKS $rowSize $colSize
+#elif [[ "$mode" == "run" && "$libraryScheme" == "SEAL-CKKS" ]]; then
 #  run_SEAL_CKKS $rowSize $colSize $threadNum
-#elif [[ "$libraryScheme" == "HELIB-BGV" ]]; then
+#elif [[ "$mode" == "setup" && "$libraryScheme" == "HELIB-BGV" ]]; then
 #  set_up_HELIB_BGV $rowSize $colSize
+#elif [[ "$mode" == "run" && "$libraryScheme" == "HELIB-BGV" ]]; then
 #  run_HELIB_BGV $rowSize $colSize $threadNum
-#elif [[ "$libraryScheme" == "HELIB-CKKS" ]]; then
+#elif [[ "$mode" == "setup" && "$libraryScheme" == "HELIB-CKKS" ]]; then
 #  set_up_HELIB_CKKS $rowSize $colSize
+#elif [[ "$mode" == "run" && "$libraryScheme" == "HELIB-CKKS" ]]; then
 #  run_HELIB_CKKS $rowSize $colSize $threadNum
+#elif [[ "$mode" == "cleanup" ]]; then
+#  clean_up
 #fi
 
-if [[ "$mode" == "setup" && "$libraryScheme" == "SEAL-BFV" ]]; then
-  set_up_SEAL_BFV $rowSize $colSize
-elif [[ "$mode" == "run" && "$libraryScheme" == "SEAL-BFV" ]]; then
-  run_SEAL_BFV $rowSize $colSize $threadNum
-elif [[ "$mode" == "setup" && "$libraryScheme" == "SEAL-CKKS" ]]; then
-  set_up_SEAL_CKKS $rowSize $colSize
-elif [[ "$mode" == "run" && "$libraryScheme" == "SEAL-CKKS" ]]; then
-  run_SEAL_CKKS $rowSize $colSize $threadNum
-elif [[ "$mode" == "setup" && "$libraryScheme" == "HELIB-BGV" ]]; then
-  set_up_HELIB_BGV $rowSize $colSize
-elif [[ "$mode" == "run" && "$libraryScheme" == "HELIB-BGV" ]]; then
-  run_HELIB_BGV $rowSize $colSize $threadNum
-elif [[ "$mode" == "setup" && "$libraryScheme" == "HELIB-CKKS" ]]; then
-  set_up_HELIB_CKKS $rowSize $colSize
-elif [[ "$mode" == "run" && "$libraryScheme" == "HELIB-CKKS" ]]; then
-  run_HELIB_CKKS $rowSize $colSize $threadNum
-elif [[ "$mode" == "cleanup" ]]; then
-  clean_up
-fi
+Records=gen/records
+rm $Records/*
 
-#Records=gen/records
-#rm $Records/*
-#
-#Keys=gen/keys
-#rm $Keys/*
+Keys=gen/keys
+rm $Keys/*
 
 
 TestDir=evaluation
