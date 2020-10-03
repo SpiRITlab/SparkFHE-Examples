@@ -241,14 +241,9 @@ public class DotProductExample {
             vec_a_array[i] = vec_a_strings.get(i);
         }
 
-        StringVector vec_b_strings = SparkFHE.getInstance().read_ciphertexts_from_file_as_string(Config.Ciphertext_Label, CTXT_Vector_b_FILE);
-        String[] vec_b_array =  new String[vec_b_strings.size()];
-        for (int i = 0; i < vec_b_strings.size(); ++i){
-            vec_b_array[i] = vec_b_strings.get(i);
-        }
-
-        JavaRDD<CtxtVector> data = jsc.parallelize(Arrays.asList( CtxtVectors.dense(vec_a_array) ));
-        org.apache.spark.mllib_fhe.linalg.CtxtVector inputVector = CtxtVectors.dense(vec_b_array);
+        CtxtVector vec_a = CtxtVectors.dense(vec_a_array);
+        JavaRDD<CtxtVector> data = jsc.parallelize(Arrays.asList( vec_a ));
+        org.apache.spark.mllib_fhe.linalg.CtxtVector inputVector = vec_a;
         org.apache.spark.mllib_fhe.feature.DotProduct dp = new org.apache.spark.mllib_fhe.feature.DotProduct(inputVector);
 
         long startTime, endTime;

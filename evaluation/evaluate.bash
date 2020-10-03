@@ -114,6 +114,11 @@ python3 testMultipleRuns.py -n 10 -s SEAL-BFV -r 10000000 -c 1 -t 18
 python3 testMultipleRuns.py -n 10 -s SEAL-BFV -r 10000000 -c 1 -t 20
 }
 
+
+function run_levels() {
+python3 testMultipleRuns.py -n 10 -s SEAL-BFV -r 10000 -c 1 -t 20
+}
+
 tests=$1
 
 if [[ "$tests" == "benchmark" ]]; then
@@ -128,4 +133,6 @@ elif [[ "$tests" == "speedup" ]]; then
   run_speedup_million
 elif [[ "$tests" == "speedup2" ]]; then
   run_speedup_ten_million
+elif [[ "$tests" == "levels" ]]; then
+  run_levels
 fi
