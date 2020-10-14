@@ -5,20 +5,6 @@ import time
 import signal
 import math
 
-# def runTheProgram(n, libraryScheme, rowSize, colSize, threadNum, resultFileName):
-#     print("Output redirected to", resultFileName)
-#     for i in range( 1, n+1 ):
-#         os.system("./runTest.bash  %s %s %s %s >> %s 2>&1" % (libraryScheme, rowSize, colSize, threadNum, resultFileName))
-#
-#     print("DONE")
-
-def runTheProgram(n, libraryScheme, rowSize, colSize, threadNum, resultFileName):
-    print("Output redirected to", resultFileName)
-    for i in range( 1, n+1 ):
-        os.system("./runTest.bash  %s %s %s %s >> %s 2>&1" % (libraryScheme, rowSize, colSize, threadNum, resultFileName))
-
-    print("DONE")
-
 def collectOperationRuntime( resultFileName ):
     FILE = open( resultFileName )
     TIME_MAP = dict()
@@ -42,6 +28,7 @@ def collectOperationRuntime( resultFileName ):
     print("Runtime Map:")
     print(TIME_MAP)
     return TIME_MAP
+
 
 def processResults( TIME_MAP, resultFileName ):
     f = open(resultFileName, 'w+')
@@ -70,45 +57,30 @@ def createDir(dirname):
     if not os.path.exists(dirname):
         os.makedirs(dirname)
 
+
 def printHelp():
-    print('USAGE: ./testMultipleRuns.py -n <N> -s <libraryScheme> -r <rowSize> -c <columnSize>')
-    print('Options for <libraryScheme>: SEAL-BFV | SEAL-CKKS | HELIB-BGV | HELIB-CKKS')
+    print('USAGE: ./processResults.py -f <resultFileName>')
     sys.exit(2)
 
+
 def main():
-    if len(sys.argv)<2:
+    if len(sys.argv)<1:
         printHelp()
 
-    n = 0
-    libraryScheme = ''
-    rowSize = ''
-    colSize = ''
     resultFileName = ''
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "n:s:r:c:t:") #o:
+        opts, args = getopt.getopt(sys.argv[1:], "f:")
     except getopt.GetoptError:
         printHelp()
     for opt, arg in opts:
-        if opt == '-n':
-            n = int(arg)
-        elif opt == '-s':
-            libraryScheme = arg
-        elif opt == '-r':
-            rowSize = int(arg)
-        elif opt == '-c':
-            colSize = int(arg)
-        elif opt == '-t':
-            threadNum = int(arg)
+        if opt == '-f':
+            resultFileName = arg
         else:
             printHelp()
 
+    TIME_MAP = collectOperationRuntime( resultFileName )
+    processResults( TIME_MAP, resultFileName)
 
-    createDir("results")
-    resultFileName = "results/result_N_"+str(n)+"_"+libraryScheme+"_"+str(rowSize)+"_"+str(colSize)+"_thread_"+str(threadNum)+".txt"
-    
-    runTheProgram(n, libraryScheme, rowSize, colSize, threadNum, resultFileName)
-    #TIME_MAP = collectOperationRuntime( resultFileName )
-    #processResults( TIME_MAP, resultFileName)
 
 main()
