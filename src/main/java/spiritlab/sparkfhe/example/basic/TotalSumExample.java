@@ -185,8 +185,19 @@ public class TotalSumExample {
         }
     }
 
-
-
+    /**
+     This method performs the total sum operation on a ciphertext vector and print out the result naively
+     * @param jsc spark context which allows the communication with worker nodes
+     * @param spark the spark session which allows the creation of the various data abstractions such
+     *              as RDDs, DataFrame, and more.
+     * @param slices the number of time a task is split up
+     * @param library the HE library name
+     * @param scheme  the HE scheme name
+     * @param pk_b broadcast variable for public key
+     * @param sk_b broadcast variable for secret key
+     * @param rlk_b broadcast variable for relin keys
+     * @param glk_b boradcast variable for galois keys
+     */
     public static void test_FHE_total_sum_via_spark_integration(JavaSparkContext jsc, SparkSession spark, int slices, String library, String scheme, Broadcast<String> pk_b,
                                                                 Broadcast<String> sk_b, Broadcast<String> rlk_b, Broadcast<String> glk_b) {
         System.out.println("test_FHE_total_sum_via_spark_integration");
@@ -387,7 +398,7 @@ public class TotalSumExample {
 
         // testing the total sum operation on ciphertext vector.
 //        long main_startTime, main_endTime;
-        // testing the dot product operation in HE libraries on cipher text vector.
+
 //        main_startTime = System.currentTimeMillis();
         test_FHE_total_sum_via_lambda(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
 //        main_endTime = System.currentTimeMillis();

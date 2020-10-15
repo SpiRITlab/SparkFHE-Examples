@@ -10,6 +10,8 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.MapPartitionsFunction;
 import org.apache.spark.broadcast.Broadcast;
+import org.apache.spark.mllib_fhe.linalg.CtxtVector;
+import org.apache.spark.mllib_fhe.linalg.CtxtVectors;
 import org.apache.spark.spiritlab.sparkfhe.SparkFHEPlugin;
 import org.apache.spark.sql.*;
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder;
@@ -17,6 +19,8 @@ import org.apache.spark.sql.catalyst.encoders.RowEncoder;
 import org.apache.spark.sql.expressions.Window;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructType;
+import scala.runtime.AbstractFunction2;
+import scala.runtime.BoxedUnit;
 import spiritlab.sparkfhe.api.*;
 import spiritlab.sparkfhe.example.Config;
 
@@ -106,7 +110,6 @@ public class TotalSumExample {
         }
     }
 
-
     /**
      This method performs the total sum operation on a ciphertext vector and print out the result naively
      * @param spark the spark session which allows the creation of the various data abstractions such
@@ -175,6 +178,60 @@ public class TotalSumExample {
         }
     }
 
+    /**
+     This method performs the total sum operation on a ciphertext vector and print out the result naively
+     * @param jsc spark context which allows the communication with worker nodes
+     * @param spark the spark session which allows the creation of the various data abstractions such
+     *              as RDDs, DataFrame, and more.
+     * @param slices the number of time a task is split up
+     * @param library the HE library name
+     * @param scheme  the HE scheme name
+     * @param pk_b broadcast variable for public key
+     * @param sk_b broadcast variable for secret key
+     * @param rlk_b broadcast variable for relin keys
+     * @param glk_b boradcast variable for galois keys
+     */
+    public static void test_FHE_total_sum_via_spark_integration(JavaSparkContext jsc, SparkSession spark, int slices, String library, String scheme, Broadcast<String> pk_b,
+                                                                  Broadcast<String> sk_b, Broadcast<String> rlk_b, Broadcast<String> glk_b) {
+        System.out.println("test_FHE_total_sum_via_spark_integration");
+        /* Spark example for FHE calculations */
+        StringVector vec_strings = SparkFHE.getInstance().read_ciphertexts_from_file_as_string(Config.Ciphertext_Label, CTXT_Vector_FILE);
+        String[] vec_array =  new String[vec_strings.size()];
+        for (int i = 0; i < vec_strings.size(); ++i){
+            vec_array[i] = vec_strings.get(i);
+        }
+
+        CtxtVector vec = CtxtVectors.dense(vec_array);
+        JavaRDD<CtxtVector> data = jsc.parallelize(Arrays.asList( vec ));
+        org.apache.spark.mllib_fhe.linalg.CtxtVector inputVector = vec;
+        org.apache.spark.mllib_fhe.feature.TotalSum ts = new org.apache.spark.mllib_fhe.feature.TotalSum();
+
+        long startTime, endTime;
+        startTime = System.currentTimeMillis();
+
+        // Batch transform and per-row transform give the same results:
+        JavaRDD<CtxtVector> transformedData = ts.transform(data);
+        transformedData.cache();
+
+        Ciphertext sum = new Ciphertext(SparkFHE.getInstance().fhe_total_sum(transformedData.first().toString()));
+
+        endTime = System.currentTimeMillis();
+        System.out.println("TIMEINFO:batch_FHE_total_sum_via_spark_integration:" + (endTime - startTime) + ":ms");
+
+        if (Config.DEBUG) {
+            transformedData.foreach(x -> {
+                AbstractFunction2<Object, String, BoxedUnit> f = new AbstractFunction2<Object, String, BoxedUnit>() {
+                    public BoxedUnit apply(Object t1, String t2) {
+                        if((int)t1==0) {
+                            Util.decrypt_and_print(scheme, "transformedData Total-Sum", new Ciphertext(SparkFHE.getInstance().fhe_total_sum((String) t2)), false, 1);
+                        }
+                        return BoxedUnit.UNIT;
+                    }
+                };
+                x.foreachActive(f);
+            });
+        }
+    }
 
     /**
      This method performs the Total sum operation on cipher-text vectors and print out the results as SparkSQL
@@ -339,6 +396,11 @@ public class TotalSumExample {
         test_FHE_total_sum_via_native_code(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
 //        main_endTime = System.currentTimeMillis();
 //        System.out.println("TIMEINFO:batch_total_Spark_total_sum_job_via_native_code:" + (main_endTime - main_startTime) + ":ms");
+
+//        main_startTime = System.currentTimeMillis();
+        test_FHE_total_sum_via_spark_integration(jsc, spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
+//        main_endTime = System.currentTimeMillis();
+//        System.out.println("TIMEINFO:batch_total_Spark_total_sum_job_via_spark_integration:" + (main_endTime - main_startTime) + ":ms");
 
 //        main_startTime = System.currentTimeMillis();
 //        test_FHE_total_sum_via_sql(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);

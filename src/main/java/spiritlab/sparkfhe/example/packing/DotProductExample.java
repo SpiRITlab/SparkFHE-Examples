@@ -218,9 +218,9 @@ public class DotProductExample {
         }
     }
 
-
     /**
      This method performs the dot product operation on cipher-text vectors and print out the results naively
+     * @param jsc spark context which allows the communication with worker nodes
      * @param spark the spark session which allows the creation of the various data abstractions such
      *              as RDDs, DataFrame, and more.
      * @param slices the number of time a task is split up
@@ -258,18 +258,12 @@ public class DotProductExample {
         endTime = System.currentTimeMillis();
         System.out.println("TIMEINFO:batch_FHE_dot_product_via_spark_integration:" + (endTime - startTime) + ":ms");
 
-        LongVector output_vec = new LongVector();
-        SparkFHE.getInstance().decode(output_vec, SparkFHE.getInstance().decrypt(sum));
-        System.out.println("transformedData Dot-Product:" + String.valueOf(output_vec.get(0)));
-
         if (Config.DEBUG) {
             transformedData.foreach(x -> {
-//                LongVector output_vec = new LongVector();
                 AbstractFunction2<Object, String, BoxedUnit> f = new AbstractFunction2<Object, String, BoxedUnit>() {
                     public BoxedUnit apply(Object t1, String t2) {
                         if((int)t1==0) {
-                            SparkFHE.getInstance().decode(output_vec, SparkFHE.getInstance().decrypt(new Ciphertext(SparkFHE.getInstance().fhe_total_sum((String) t2))));
-                            System.out.println("transformedData Dot-Product:" + String.valueOf(output_vec.get(0)));
+                            Util.decrypt_and_print(scheme, "transformedData Dot-Product", new Ciphertext(SparkFHE.getInstance().fhe_total_sum((String) t2)), false, 1);
                         }
                         return BoxedUnit.UNIT;
                     }
@@ -278,6 +272,7 @@ public class DotProductExample {
             });
         }
     }
+
     /**
      This method performs the dot product operation on cipher-text vectors and print out the results as SparkSQL
      * @param spark the spark session which allows the creation of the various data abstractions such
@@ -374,7 +369,6 @@ public class DotProductExample {
         }
     }
 
-
     public static void main(String[] args) {
         String scheme="", library = "", pk="", sk="", rlk="", glk="", master="";
 
@@ -459,7 +453,11 @@ public class DotProductExample {
 //        main_endTime = System.currentTimeMillis();
 //        System.out.println("TIMEINFO:batch_total_Spark_dot_product_job_via_native_code:" + (main_endTime - main_startTime) + ":ms");
 
+//        main_startTime = System.currentTimeMillis();
         test_FHE_dot_product_via_spark_integration(jsc, spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
+//        main_endTime = System.currentTimeMillis();
+//        System.out.println("TIMEINFO:batch_total_Spark_dot_product_job_via_integration:" + (main_endTime - main_startTime) + ":ms");
+
 //        main_startTime = System.currentTimeMillis();
 //        test_FHE_dot_product_via_sql(spark, slices, library, scheme, pk_b, sk_b, rlk_b, glk_b);
 //        main_endTime = System.currentTimeMillis();
