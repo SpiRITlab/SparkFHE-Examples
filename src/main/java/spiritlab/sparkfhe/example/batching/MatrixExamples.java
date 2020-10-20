@@ -3,15 +3,15 @@ package spiritlab.sparkfhe.example.batching;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.broadcast.Broadcast;
-import org.apache.spark.mllib_fhe.linalg.CtxtDenseMatrix;
-import org.apache.spark.mllib_fhe.linalg.CtxtMatrices;
-import org.apache.spark.mllib_fhe.linalg.CtxtMatrix;
+import org.apache.spark.mllib_fhe.linalg.*;
 import org.apache.spark.spiritlab.sparkfhe.SparkFHEPlugin;
 import org.apache.spark.sql.SparkSession;
 import spiritlab.sparkfhe.api.*;
 import spiritlab.sparkfhe.example.Config;
 
 import java.io.File;
+import java.io.Serializable;
+import java.util.List;
 import java.util.Random;
 
 public class MatrixExamples {
@@ -121,6 +121,93 @@ public class MatrixExamples {
         decryptAndPrintCtxtDenseMatrix(CtxtMatrices.rand(3, 6, new Random()));
     }
 
+    public static void testFheDgemv() {
+        System.out.println("=========================== Test FHE DGEMV =============================");
+        /*
+            [[1, 3, 2],
+             [4, 0, 1]]
+         */
+        CtxtDenseMatrix A = CtxtMatrices.dense(2, 3,
+                new String[]{getCtxt(1), getCtxt(4), getCtxt(3), getCtxt(0),
+                            getCtxt(2), getCtxt(1)});
+        System.out.println("Matrix A");
+        decryptAndPrintCtxtDenseMatrix(A);
+
+        /*
+            [[1],
+             [0],
+             [5]]
+         */
+        CtxtVector X = CtxtVectors.dense(new String[]{getCtxt(1), getCtxt(0), getCtxt(5)});
+        System.out.println("Vector X");
+        decryptAndPrintCtxtDenseVector(X);
+
+        /*
+            [[0],
+             [0]]
+         */
+        CtxtVector Y = CtxtVectors.dense(new String[]{getCtxt(0), getCtxt(0)});
+        System.out.println("Vector Y - Before multiplication");
+        decryptAndPrintCtxtDenseVector(Y);
+
+        StringVector resultStringVector = new StringVector(Y.toArray());
+
+        SparkFHE.getInstance().fhe_dgemv("N", 2, 3, 1.0,
+                new StringVector(A.toArray()), 2,
+                new StringVector(X.toArray()), 1,
+                0.0, resultStringVector, 1);
+
+        String [] result = new String[resultStringVector.size()];
+
+        /*
+            [[11],
+             [9]]
+         */
+        Y = CtxtVectors.dense(resultStringVector.toArray(result));
+        System.out.println("Vector Y - After multiplication");
+        decryptAndPrintCtxtDenseVector(Y);
+    }
+
+    private static void decryptAndPrintCtxtDenseVector(CtxtVector vector) {
+        for (int i = 0; i < vector.size(); i++) {
+            String encStr = vector.apply(i);
+            DoubleVector output_vec = new DoubleVector();
+            SparkFHE.getInstance().decode(output_vec, SparkFHE.getInstance().decrypt(new Ciphertext(encStr)));
+            System.out.printf("%.2f\n", output_vec.get(0));
+        }
+        System.out.println();
+    }
+
+    private static void testMatrixVectorMultiplication() {
+        System.out.println("=================== Test Matrix Vector Multiplication =====================");
+        /*
+            [[1, 3, 2],
+             [4, 0, 1]]
+         */
+        CtxtDenseMatrix A = CtxtMatrices.dense(2, 3,
+                new String[]{getCtxt(1), getCtxt(4), getCtxt(3), getCtxt(0),
+                        getCtxt(2), getCtxt(1)});
+        System.out.println("Matrix A");
+        decryptAndPrintCtxtDenseMatrix(A);
+
+        /*
+            [[1],
+             [0],
+             [5]]
+         */
+        CtxtVector X = CtxtVectors.dense(new String[]{getCtxt(1), getCtxt(0), getCtxt(5)});
+        System.out.println("Vector X");
+        decryptAndPrintCtxtDenseVector(X);
+
+        /*
+            [[11],
+             [9]]
+         */
+        CtxtDenseVector Y = A.multiply(X);
+        System.out.println("Vector Y");
+        decryptAndPrintCtxtDenseVector(Y);
+    }
+
     private static void decryptAndPrintCtxtDenseMatrix(CtxtMatrix matrix) {
         double[][] arr = new double[matrix.numRows()][matrix.numCols()];
         for (int i = 0; i < arr.length; i++) {
@@ -216,7 +303,7 @@ public class MatrixExamples {
         Broadcast<String> pk_b = jsc.broadcast(pk);
         Broadcast<String> sk_b = jsc.broadcast(sk);
 
-        encrypt_data(1, 2, 3, 4, 5, 6, 10, 20, 30, 11, 21, 31);
+//        encrypt_data(1, 2, 3, 4, 5, 6, 10, 20, 30, 11, 21, 31);
         testFheDgemm();
         testMatrixMultiplication();
         testZerosMatrix();
@@ -224,6 +311,8 @@ public class MatrixExamples {
         testEyeMatrix();
         testRandMatrix();
 
+        testFheDgemv();
+        testMatrixVectorMultiplication();
         // Normally, the Spark web UI at http://127.0.0.1:4040 will be shutdown after the experiment run.
         // Uncomment the following block of code to paused the shutdown so that you have a chance to check the Spark web UI.
 //        try {
