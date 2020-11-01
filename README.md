@@ -118,4 +118,15 @@ You may see the these [warnings](https://github.com/SpiRITlab/SparkFHE-Examples/
 
 
 
+# PySpark
+Note, you will neeed to softlink the `deps` folder in the project root.
+
+### Add library and sparkfhe-api-python to $PYTHONPATH
+In shell
+```bash
+export PYTHONPATH="${PYTHONPATH}:deps/lib"
+```
+In PyCharm
+* `Preferences/Project: sparkfhe-examples/Project Structure/Add Content Root`
+* add `deps/lib`
 

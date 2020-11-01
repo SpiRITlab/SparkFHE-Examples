@@ -4,3 +4,4 @@ sparkfhe-example.iml
 scripts/cloudlab/ssh
 scripts/cloudlab/Manifest.xml
 scripts/cloudlab/myUserName.txt
+/gen/
