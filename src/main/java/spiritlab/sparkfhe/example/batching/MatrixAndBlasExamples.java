@@ -11,10 +11,11 @@ import spiritlab.sparkfhe.example.Config;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-public class MatrixExamples {
+public class MatrixAndBlasExamples {
 
     public static void testFheDgemm() {
         System.out.println("====================== FHE DGEMM Test ==========================");
@@ -173,7 +174,7 @@ public class MatrixExamples {
             String encStr = vector.apply(i);
             DoubleVector output_vec = new DoubleVector();
             SparkFHE.getInstance().decode(output_vec, SparkFHE.getInstance().decrypt(new Ciphertext(encStr)));
-            System.out.printf("%.2f\n", output_vec.get(0));
+            System.out.printf("%.2f  ", output_vec.get(0));
         }
         System.out.println();
     }
@@ -206,6 +207,221 @@ public class MatrixExamples {
         CtxtDenseVector Y = A.multiply(X);
         System.out.println("Vector Y");
         decryptAndPrintCtxtDenseVector(Y);
+    }
+
+    private static void test_fhe_drot() {
+        // Example from http://web.mit.edu/axiom-math_v8.14/arch/amd64_ubuntu1404/mnt/ubuntu64/doc/spadhelp/drot.help
+        System.out.println("=====================  Test Drot ====================");
+        int [] X = new int[]{6, 0, 1, 4, -1, -1};
+        int [] Y = new int[]{5, 1, -4, 4, -4};
+        System.out.println("Before rotation:");
+        System.out.println("X: " + Arrays.toString(X));
+        System.out.println("Y: " + Arrays.toString(Y));
+
+        String [] XStr = new String[X.length];
+        String [] YStr = new String[Y.length];
+
+        for (int i = 0; i < X.length; i++) {
+            XStr[i] = getCtxt(X[i]);
+        }
+        for (int i = 0; i < Y.length; i++) {
+            YStr[i] = getCtxt(Y[i]);
+        }
+
+        StringVector xVector = new StringVector(XStr);
+        StringVector yVector = new StringVector(YStr);
+
+        SparkFHE.getInstance().fhe_drot(5, xVector, 1, yVector, 1, 0.707106781, 0.707106781);
+
+        /*
+         Expected:
+                  [7.778174591, 0.70710678100000002, - 2.1213203429999998,
+              5.6568542480000001, - 3.5355339050000003, - 1.],
+
+             [- 0.70710678100000002, 0.70710678100000002, - 3.5355339050000003, 0.,
+              - 2.1213203429999998]
+         */
+        System.out.println("After rotation:");
+        System.out.print("X: ");
+        for (String s: xVector) {
+            DoubleVector output_vec = new DoubleVector();
+            SparkFHE.getInstance().decode(output_vec, SparkFHE.getInstance().decrypt(new Ciphertext(s)));
+            System.out.print(output_vec.get(0) + " ");
+        }
+        System.out.println();
+
+        System.out.print("Y: ");
+        for (String s: yVector) {
+            DoubleVector output_vec = new DoubleVector();
+            SparkFHE.getInstance().decode(output_vec, SparkFHE.getInstance().decrypt(new Ciphertext(s)));
+            System.out.print(output_vec.get(0) + " ");
+        }
+        System.out.println();
+
+    }
+
+    private static void test_fhe_dtrmm() {
+        System.out.println("================ Test dtrmm ==============");
+        System.out.println("================ test 1 ================");
+        int [] a = new int[]{3, 0, 0, 0, 0, -1, -2, 0, 0, 0, 2, 4, -3, 0, 0, 2, -1, 0, 4, 0, 1, 3, 2, -2, 1};
+        int [] b = new int[]{2, 5, 0, 3, -1, 3, 5, 1, 1, 2, 1, 4, 2, -3, 1};
+
+        String [] aStr = new String[a.length];
+        String [] bStr = new String[b.length];
+
+        for (int i = 0; i < a.length; i++) {
+            aStr[i] = getCtxt(a[i]);
+        }
+        for (int i = 0; i < b.length; i++) {
+            bStr[i] = getCtxt(b[i]);
+        }
+
+        CtxtMatrix matA = new CtxtDenseMatrix(5, 5, aStr);
+        System.out.println("A: ");
+        decryptAndPrintCtxtDenseMatrix(matA);
+
+        StringVector resultVector = new StringVector(bStr);
+        System.out.println("B - before multiplication:");
+        decryptAndPrintStringVector(resultVector);
+
+        SparkFHE.getInstance().fhe_dtrmm("L", "U", "N", "N",
+                5, 3, 1, new StringVector(aStr), 5, resultVector, 5);
+
+        System.out.println("B - after multiplication: ");
+        decryptAndPrintStringVector(resultVector);
+
+        System.out.println("=============== test 2 =================");
+        a = new int[]{2, 2, 2, 0, 2, 0, 3, 1, 3, 4, 0, 0, 1, 0, -1, 0, 0, 0, -2, 2, 0, 0, 0, 0, -1};
+        b = new int[]{3, 2, -2, 4, 1, -1, -1, -1, -3, -1, 0, 0, -1, 3, 2};
+        aStr = new String[a.length];
+        bStr = new String[b.length];
+        for (int i = 0; i < a.length; i++) {
+            aStr[i] = getCtxt(a[i]);
+        }
+        for (int i = 0; i < b.length; i++) {
+            bStr[i] = getCtxt(b[i]);
+        }
+
+        matA = new CtxtDenseMatrix(5, 5, aStr);
+        System.out.println("A: ");
+        decryptAndPrintCtxtDenseMatrix(matA);
+
+        resultVector = new StringVector(bStr);
+        System.out.println("B - before multiplication:");
+        decryptAndPrintStringVector(resultVector);
+
+        SparkFHE.getInstance().fhe_dtrmm("R", "L", "N", "N",
+                3, 5, 1, new StringVector(aStr), 5, resultVector, 3);
+
+        System.out.println("B - after multiplication: ");
+        decryptAndPrintStringVector(resultVector);
+
+        System.out.println("=============== test 3 =================");
+        a = new int[]{0,0,0,0,0,0, 2,0,0,0,0,0, -3,0,0,0,0,0, 1,1,4,0,0,0, 2,1,-1,0,0,0, 4,-2,1,-1,2,0};
+        b = new int[]{1,2,1,3,-1,-2};
+        aStr = new String[a.length];
+        bStr = new String[b.length];
+        for (int i = 0; i < a.length; i++) {
+            aStr[i] = getCtxt(a[i]);
+        }
+        for (int i = 0; i < b.length; i++) {
+            bStr[i] = getCtxt(b[i]);
+        }
+
+        matA = new CtxtDenseMatrix(6, 6, aStr);
+        System.out.println("A: ");
+        decryptAndPrintCtxtDenseMatrix(matA);
+
+        resultVector = new StringVector(bStr);
+        System.out.println("B - before multiplication:");
+        decryptAndPrintStringVector(resultVector);
+
+        SparkFHE.getInstance().fhe_dtrmm("R", "U", "N", "U",
+                1, 6, 1, new StringVector(aStr), 6, resultVector, 1);
+
+        System.out.println("B - after multiplication: ");
+        decryptAndPrintStringVector(resultVector);
+
+        System.out.println("=============== test 4 =================");
+        a = new int[]{-1,0,0,0,0, -4,-2,0,0,0, -2,2,-3,0,0, 2,2,-1,1,0, 3,2,4,0,-2};
+        b = new int[]{1,3,-2,4,2, 2,3,-1,4,2, 3,-1,0,-3,2, 4,2,1,-3,2};
+        aStr = new String[a.length];
+        bStr = new String[b.length];
+        for (int i = 0; i < a.length; i++) {
+            aStr[i] = getCtxt(a[i]);
+        }
+        for (int i = 0; i < b.length; i++) {
+            bStr[i] = getCtxt(b[i]);
+        }
+
+        matA = new CtxtDenseMatrix(5, 5, aStr);
+        System.out.println("A: ");
+        decryptAndPrintCtxtDenseMatrix(matA);
+
+        resultVector = new StringVector(bStr);
+        System.out.println("B - before multiplication:");
+        decryptAndPrintStringVector(resultVector);
+
+        SparkFHE.getInstance().fhe_dtrmm("L", "U", "T", "N",
+                5, 4, 1, new StringVector(aStr), 5, resultVector, 5);
+
+        System.out.println("B - after multiplication: ");
+        decryptAndPrintStringVector(resultVector);
+    }
+
+    private static void test_fhe_dtrmv() {
+        int [] a = new int[]{0, 1, 2, 3, 0, 0, 3, 4, 0, 0, 0, 3, 0, 0, 0, 0};
+        int [] x = new int[]{1, 2, 3, 4};
+        String [] aStr = new String[a.length];
+        String [] xStr = new String[x.length];
+        for (int i = 0; i < a.length; i++) {
+            aStr[i] = getCtxt(a[i]);
+        }
+        for (int i = 0; i < x.length; i++) {
+            xStr[i] = getCtxt(x[i]);
+        }
+        CtxtMatrix matA = new CtxtDenseMatrix(4, 4, aStr);
+        System.out.println("A: ");
+        decryptAndPrintCtxtDenseMatrix(matA);
+
+        StringVector resultVector = new StringVector(xStr);
+        System.out.println("X - before multiplication:");
+        decryptAndPrintStringVector(resultVector);
+
+        SparkFHE.getInstance().fhe_dtrmv("L", "N", "U",
+                5, new StringVector(aStr), 4, resultVector, 1);
+
+        System.out.println("X - after multiplication: ");
+        decryptAndPrintStringVector(resultVector);
+    }
+
+    private static void test_fhe_dsymm() {
+        int [] a = new int[]{1, 2, 1, 0, 4, -1, 0, 0, -1};
+        int [] b = new int[]{1, 2, 1, -3, 4, -1, 2, 0, -1, 2, 0, -1, -1, 1, -1, 2, -2, 1};
+        int [] c = new int[]{6, 9, -2, 4, 11, -6, 1, 5, 3, 1, 5, 3, 0, 3, -1, -1, -5, 32};
+        String [] aStr = new String[a.length];
+        String [] bStr = new String[b.length];
+        String [] cStr = new String[c.length];
+
+        for (int i = 0; i < a.length; i++) aStr[i] = getCtxt(a[i]);
+        for (int i = 0; i < b.length; i++) bStr[i] = getCtxt(b[i]);
+        for (int i = 0; i < c.length; i++) cStr[i] = getCtxt(c[i]);
+
+        StringVector resultVector = new StringVector(cStr);
+
+        SparkFHE.getInstance().fhe_dsymm("L", "L", 3, 6, 2,
+                new StringVector(aStr), 3, new StringVector(bStr), 3, 2, resultVector, 3);
+
+        decryptAndPrintStringVector(resultVector);
+    }
+
+    private static void decryptAndPrintStringVector(StringVector vector) {
+        for (String s: vector) {
+            DoubleVector output_vec = new DoubleVector();
+            SparkFHE.getInstance().decode(output_vec, SparkFHE.getInstance().decrypt(new Ciphertext(s)));
+            System.out.printf("%.2f\t", output_vec.get(0));
+        }
+        System.out.println();
     }
 
     private static void decryptAndPrintCtxtDenseMatrix(CtxtMatrix matrix) {
@@ -304,15 +520,19 @@ public class MatrixExamples {
         Broadcast<String> sk_b = jsc.broadcast(sk);
 
 //        encrypt_data(1, 2, 3, 4, 5, 6, 10, 20, 30, 11, 21, 31);
-        testFheDgemm();
-        testMatrixMultiplication();
-        testZerosMatrix();
-        testOnesMatrix();
-        testEyeMatrix();
-        testRandMatrix();
-
-        testFheDgemv();
-        testMatrixVectorMultiplication();
+//        testFheDgemm();
+//        testMatrixMultiplication();
+//        testZerosMatrix();
+//        testOnesMatrix();
+//        testEyeMatrix();
+//        testRandMatrix();
+//
+//        testFheDgemv();
+//        testMatrixVectorMultiplication();
+//        test_fhe_drot();
+        test_fhe_dtrmm();
+//        test_fhe_dtrmv();
+//        test_fhe_dsymm();
         // Normally, the Spark web UI at http://127.0.0.1:4040 will be shutdown after the experiment run.
         // Uncomment the following block of code to paused the shutdown so that you have a chance to check the Spark web UI.
 //        try {

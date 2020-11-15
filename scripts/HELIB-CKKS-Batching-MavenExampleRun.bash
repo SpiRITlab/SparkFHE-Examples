@@ -4,10 +4,10 @@ ProjectRoot=..
 cd $ProjectRoot
 
 # generate example key pairs
-./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.batching.KeyGenExample -Dexec.args="local SEAL CKKS"
+#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.batching.KeyGenExample -Dexec.args="local HELIB CKKS"
 
 ## generate example ciphertexts
-./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.batching.EncDecExample -Dexec.args="local SEAL CKKS gen/keys/my_public_key.txt gen/keys/my_secret_key.txt"
+#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.batching.EncDecExample -Dexec.args="local HELIB CKKS gen/keys/my_public_key.txt gen/keys/my_secret_key.txt"
 #
 ## run basic FHE arithmetic operation over encrypted data
 #./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.batching.BasicOPsExample -Dexec.args="local HELIB CKKS gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/records/$(ls gen/records | grep ptxt_long_0) gen/records/$(ls gen/records | grep ptxt_long_1)"
@@ -19,7 +19,7 @@ cd $ProjectRoot
 #./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.batching.TotalSumExample -Dexec.args="local HELIB CKKS gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/records/$(ls gen/records | grep vec)"
 
 ## run Matrix examples
-#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.batching.MatrixExamples -Dexec.args="local HELIB CKKS gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/records/$(ls gen/records | grep vec)"
+./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.batching.MatrixAndBlasExamples -Dexec.args="local HELIB CKKS gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/records/$(ls gen/records | grep vec)"
 
 ## run Logistic Regression examples
-./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.batching.LogisticRegressionExamples -Dexec.args="local SEAL CKKS gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/records/$(ls gen/records | grep vec)"
+#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.batching.LogisticRegressionExamples -Dexec.args="local SEAL CKKS gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/records/$(ls gen/records | grep vec)"

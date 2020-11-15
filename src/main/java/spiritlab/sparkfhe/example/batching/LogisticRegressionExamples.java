@@ -9,18 +9,13 @@ import org.apache.spark.mllib.linalg.*;
 import org.apache.spark.mllib_fhe.linalg.*;
 import org.apache.spark.spiritlab.sparkfhe.SparkFHEPlugin;
 import org.apache.spark.sql.SparkSession;
-import spiritlab.sparkfhe.api.Ciphertext;
-import spiritlab.sparkfhe.api.DoubleVector;
-import spiritlab.sparkfhe.api.SparkFHE;
+import spiritlab.sparkfhe.api.*;
 import spiritlab.sparkfhe.example.Config;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class LogisticRegressionExamples {
     private static double[][] X;
@@ -33,7 +28,7 @@ public class LogisticRegressionExamples {
         try {
             List<String> lines = Files.readAllLines(Paths.get(filePath));
             NROWS = lines.size();
-            NCOLS = lines.get(0).split(",").length;
+            NCOLS = lines.get(0).split(",").length + 1;
             X = new double[NROWS][NCOLS];
             y = new double[NROWS];
 
@@ -43,6 +38,7 @@ public class LogisticRegressionExamples {
                 X[i][0] = 1;
                 X[i][1] = Double.parseDouble(arr[0]);
                 X[i][2] = Double.parseDouble(arr[1]);
+                X[i][3] = 0;
                 y[i] = Double.parseDouble(arr[2]);
                 i++;
             }
@@ -145,6 +141,32 @@ public class LogisticRegressionExamples {
         }
     }
 
+    private static Ciphertext g7(Ciphertext ctxt) {
+        Ciphertext zero_point_five = SparkFHE.getInstance().encrypt(SparkFHE.getInstance().encode(0.5));
+        Ciphertext coeff1 = SparkFHE.getInstance().encrypt(SparkFHE.getInstance().encode(-1.73496/8));
+        Ciphertext coeff2 = SparkFHE.getInstance().encrypt(SparkFHE.getInstance().encode(4.19407/(Math.pow(8, 3))));
+        Ciphertext coeff3 = SparkFHE.getInstance().encrypt(SparkFHE.getInstance().encode(-5.43402/Math.pow(8, 5)));
+        Ciphertext coeff4 = SparkFHE.getInstance().encrypt(SparkFHE.getInstance().encode(2.50739/(Math.pow(8, 7))));
+
+        DoubleVector vect = new DoubleVector();
+        SparkFHE.getInstance().decode(vect, SparkFHE.getInstance().decrypt(ctxt));
+        System.out.println("max: " + vect.stream().max(Comparator.comparingDouble(Double::doubleValue)));
+        System.out.println("min: " + vect.stream().min(Comparator.comparingDouble(Double::doubleValue)));
+
+        return SparkFHE.getInstance().fhe_add(zero_point_five,
+                SparkFHE.getInstance().fhe_add(
+                        SparkFHE.getInstance().fhe_multiply(coeff1, ctxt),
+                        SparkFHE.getInstance().fhe_add(
+                                SparkFHE.getInstance().fhe_multiply(coeff2, SparkFHE.getInstance().fhe_power(ctxt, 3)),
+                                SparkFHE.getInstance().fhe_add(
+                                        SparkFHE.getInstance().fhe_multiply(coeff3, SparkFHE.getInstance().fhe_power(ctxt, 5)),
+                                        SparkFHE.getInstance().fhe_multiply(coeff4, SparkFHE.getInstance().fhe_power(ctxt, 7))
+                                )
+                        )
+                )
+        );
+    }
+
     private static CtxtDenseVector sigmoid(CtxtDenseVector vector) {
         String [] values = vector.values();
         for (int i = 0; i < values.length; i++) {
@@ -160,7 +182,7 @@ public class LogisticRegressionExamples {
     }
 
     private static void minMaxScaler(double[][] arr) {
-        for (int j = 1; j < arr[0].length; j++) {
+        for (int j = 1; j < arr[0].length-1; j++) {
             double min = arr[0][j];
             double max = arr[0][j];
             for (int i = 0; i < arr.length; i++) {
@@ -419,6 +441,165 @@ public class LogisticRegressionExamples {
         fitCtxt(dataRDDCtxt, 0.5, 10);
     }
 
+    private static void runNesterovExample(Split split, int iters) {
+        System.out.println("=========== Running Logistic Regression Accelerated gradient descent Example on Cipher text ==========");
+        double[][] trainZ = split.trainX;
+        for (int i = 0; i < split.trainY.length; i++) {
+            if (split.trainY[i] == 0) {
+                for (int j = 0; j < split.trainX[i].length; j++) {
+                    trainZ[i][j] *= -1;
+                }
+            }
+        }
+        System.out.printf("Training set: rows=%d, cols=%d\n", trainZ.length, trainZ[0].length);
+//        trainZ = Arrays.copyOfRange(trainZ, 0, 64);
+
+        // Used in Step 1
+        DoubleMatrix matrix = new DoubleMatrix();
+        DoubleMatrix betaMatrix = new DoubleMatrix();
+
+        for (double[] doubles : trainZ) {
+            System.out.println(Arrays.toString(doubles));
+            matrix.add(new DoubleVector(doubles));
+
+            double [] betaRow = new double[NCOLS];
+            Arrays.fill(betaRow, 1.0);
+            betaMatrix.add(new DoubleVector(betaRow));
+        }
+
+        Ciphertext ctxtMatrix = SparkFHE.getInstance().encrypt(SparkFHE.getInstance().encode(matrix));
+        Ciphertext ctxtBetas = SparkFHE.getInstance().encrypt(SparkFHE.getInstance().encode(betaMatrix));
+        Ciphertext ctxtV = SparkFHE.getInstance().encrypt(SparkFHE.getInstance().encode(betaMatrix));
+
+        // Used in step 3
+        DoubleMatrix C = new DoubleMatrix();
+        for (int i = 0; i < trainZ.length; i++) {
+            DoubleVector row = new DoubleVector();
+            for (int j = 0; j < NCOLS; j++) {
+                if (j == 0) row.add(1.0);
+                else row.add(0.0);
+            }
+            C.add(row);
+//                C.add(new DoubleVector(new double[]{1, 0, 0}));
+        }
+
+        // Used in Step 7
+        DoubleMatrix D = new DoubleMatrix();
+        for (int i = 0; i < trainZ.length; i++) {
+            DoubleVector row = new DoubleVector();
+            for (int j = 0; j < NCOLS; j++) {
+                if (i == 0) {
+                    row.add(1.0);
+                } else {
+                    row.add(0.0);
+                }
+            }
+            D.add(row);
+        }
+        Ciphertext ctxtD = SparkFHE.getInstance().encrypt(SparkFHE.getInstance().encode(D));
+
+        // Used in step 8
+        DoubleMatrix alphaMatrix = new DoubleMatrix();
+        double alpha = 0.2;
+        for (int i = 0; i < trainZ.length; i++) {
+            DoubleVector row = new DoubleVector();
+            for (int j = 0; j < NCOLS; j++) {
+                row.add(alpha);
+            }
+            alphaMatrix.add(row);
+        }
+        Ciphertext ctxtAlpha = SparkFHE.getInstance().encrypt(SparkFHE.getInstance().encode(alphaMatrix));
+
+        // Used in Step 9
+        double gamma = 0.5;
+        DoubleMatrix gammaMatrix = new DoubleMatrix();
+        DoubleMatrix oneMinusGammaMatrix = new DoubleMatrix();
+        for (int i = 0; i < trainZ.length; i++) {
+            DoubleVector gammaRow = new DoubleVector();
+            DoubleVector oneMinusGammaRow = new DoubleVector();
+            for (int j = 0; j < NCOLS; j++) {
+                gammaRow.add(gamma);
+                oneMinusGammaRow.add(1-gamma);
+            }
+            gammaMatrix.add(gammaRow);
+            oneMinusGammaMatrix.add(oneMinusGammaRow);
+        }
+        Ciphertext ctxtGamma = SparkFHE.getInstance().encrypt(SparkFHE.getInstance().encode(gammaMatrix));
+        Ciphertext ctxtOneMinusGamma = SparkFHE.getInstance().encrypt(SparkFHE.getInstance().encode(oneMinusGammaMatrix));
+
+//        DoubleVector betaVector = null;
+        for (int epoch= 0; epoch < iters; epoch++) {
+            System.out.println("============= Epoch " + epoch + " ===============");
+            // ====================  STEP 1  ============================
+//            if (epoch > 0) {
+//                ctxtBetas = SparkFHE.getInstance().encrypt(SparkFHE.getInstance().encode(betaVector));
+//            }
+            printCtxt("ctxtBetas", ctxtBetas);
+            Ciphertext ctxt = SparkFHE.getInstance().fhe_multiply(ctxtMatrix, ctxtV);
+            printCtxt("ct1", ctxt);
+
+            // ======================== STEP 2  ===============================
+            Ciphertext ct2 = new Ciphertext(ctxt.toString());
+            for (int j = 0; (int)Math.pow(2, j) < NCOLS; j++) {
+                ct2 = SparkFHE.getInstance().fhe_add(ct2, SparkFHE.getInstance().fhe_rotate(ct2, -(int)Math.pow(2, j)));
+            }
+            printCtxt("ct2", ct2);
+
+            // ======================== STEP 3 ================================
+            Ciphertext ctxtC = SparkFHE.getInstance().encrypt(SparkFHE.getInstance().encode(C));
+            Ciphertext ct3 = SparkFHE.getInstance().fhe_multiply(ct2, ctxtC);
+            printCtxt("ct3", ct3);
+
+            // ======================== STEP 4 ==================================
+            Ciphertext ct4 = new Ciphertext(ct3.toString());
+            for (int j = 0; (int)Math.pow(2, j) < NCOLS; j++) {
+                ct4 = SparkFHE.getInstance().fhe_add(ct4, SparkFHE.getInstance().fhe_rotate(ct4, (int)Math.pow(2, j)));
+            }
+            printCtxt("ct4", ct4);
+
+            // ======================== STEP 5 ===================================
+            Ciphertext ct5 = g7(ct4);
+//            printCtxt("ct5", ct5);
+
+            // ======================= STEP 6 ====================================
+            Ciphertext ct6 = SparkFHE.getInstance().fhe_multiply(ct5, ctxt);
+//            printCtxt("ct6", ct6);
+
+            // ======================= STEP 7 ====================================
+            Ciphertext ct7 = new Ciphertext(ct6.toString());
+            for (int i = 0; (int)Math.pow(2, i) < 256/NCOLS; i++) {
+                ct7 = SparkFHE.getInstance().fhe_add(ct7, SparkFHE.getInstance().fhe_rotate(ct7, -NCOLS * (int)Math.pow(2, i)));
+            }
+
+//            printCtxt("ct7", ct7);
+
+            // ======================== STEP 8 =====================================
+            Ciphertext ct8 = SparkFHE.getInstance().fhe_multiply(ct7, ctxtAlpha);
+//            printCtxt("ct8", ct8);
+            Ciphertext ctxtBetasNew = SparkFHE.getInstance().fhe_add(ctxtV, ct8);
+            printCtxt("ctBetasNew", ctxtBetasNew);
+
+            // ======================== STEP 9 =========================================
+            ctxtV = SparkFHE.getInstance().fhe_add(
+                    SparkFHE.getInstance().fhe_multiply(ctxtOneMinusGamma, ctxtBetasNew),
+                    SparkFHE.getInstance().fhe_multiply(ctxtGamma, ctxtBetas)
+            );
+            printCtxt("ctxtV", ctxtV);
+            ctxtBetas = ctxtBetasNew;
+//            ctxtBetas = new Ciphertext(ctxtBetasNew.toString());
+//            printCtxt("ctxtBetas, " + epoch, ctxtV);
+//            betaVector = new DoubleVector();
+//            SparkFHE.getInstance().decode(betaVector, SparkFHE.getInstance().decrypt(ctxtBetasNew));
+        }
+    }
+
+    public static void printCtxt(String label, Ciphertext ctxt) {
+        DoubleVector output = new DoubleVector();
+        SparkFHE.getInstance().decode(output, SparkFHE.getInstance().decrypt(ctxt));
+        System.out.println(label + ": " + output);
+//        System.out.println(output.size());
+    }
+
     public static void main(String[] args) {
         String filePath = "/home/skd/Documents/SparkFHE-Examples/data/exam.csv";
         setXy(filePath);
@@ -472,11 +653,13 @@ public class LogisticRegressionExamples {
         Broadcast<String> sk_b = jsc.broadcast(sk);
 
 
-        Split split = trainTestSplit(0.6);
+        Split split = trainTestSplit(0.64);
 
 //        runPlainTextExample(split, jsc);
-        runCtxtExample(split, jsc);
-
+//        runCtxtExample(split, jsc);
+        split.trainX = Arrays.copyOfRange(X, 0, 64);
+        split.trainY = Arrays.copyOfRange(y, 0, 64);
+        runNesterovExample(split, 20);
         // Stop existing spark context
         jsc.close();
 
