@@ -4,7 +4,7 @@ ProjectRoot=..
 cd $ProjectRoot
 
 # generate example key pairs
-#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.batching.KeyGenExample -Dexec.args="local HELIB CKKS"
+./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.batching.KeyGenExample -Dexec.args="local HELIB CKKS"
 
 ## generate example ciphertexts
 #./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.batching.EncDecExample -Dexec.args="local HELIB CKKS gen/keys/my_public_key.txt gen/keys/my_secret_key.txt"
@@ -19,7 +19,21 @@ cd $ProjectRoot
 #./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.batching.TotalSumExample -Dexec.args="local HELIB CKKS gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/records/$(ls gen/records | grep vec)"
 
 ## run Matrix examples
-./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.batching.MatrixAndBlasExamples -Dexec.args="local HELIB CKKS gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/records/$(ls gen/records | grep vec)"
+#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.batching.MatrixAndBlasExamples -Dexec.args="local HELIB CKKS gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/records/$(ls gen/records | grep vec)"
 
 ## run Logistic Regression examples
-#./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.batching.LogisticRegressionExamples -Dexec.args="local SEAL CKKS gen/keys/my_public_key.txt gen/keys/my_secret_key.txt gen/records/$(ls gen/records | grep vec)"
+./mvn -f pom-devel.xml exec:java -Dexec.mainClass=spiritlab.sparkfhe.example.batching.LogisticRegressionExamples -Dexec.args="local HELIB CKKS gen/keys/my_public_key.txt gen/keys/my_secret_key.txt"
+# gen/records/$(ls gen/records | grep vec)"
+
+
+
+#{
+#  "SchemeType": "CKKS",
+#  "PlaintextModulus": -1,
+#  "Lifting": 20,
+#  "ModulusChainLevel": 12,
+#  "KeySwitchingMatricesColumns": 2,
+#  "SecurityParameter": 80,
+#  "SpecifiedM": 1024,
+#  "scale": 4
+#}

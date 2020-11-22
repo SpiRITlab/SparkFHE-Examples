@@ -52,6 +52,8 @@ public class KeyGenExample {
                 Config.get_default_public_key_file(),
                 Config.get_default_secret_key_file());
 
+        System.out.println("slot_count =" +  SparkFHE.getInstance().get_crypto_param(FHEParams.SlotCount));
+
         // Encrypting the literal 1, and decrypting it to verify the keys' accuracy.
         String inputNumberString="1";
         Plaintext inputNumberPtxt = SparkFHE.getInstance().encode(inputNumberString);

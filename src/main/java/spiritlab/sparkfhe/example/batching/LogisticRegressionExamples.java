@@ -155,12 +155,12 @@ public class LogisticRegressionExamples {
 
         return SparkFHE.getInstance().fhe_add(zero_point_five,
                 SparkFHE.getInstance().fhe_add(
-                        SparkFHE.getInstance().fhe_multiply(coeff1, ctxt),
+                        SparkFHE.getInstance().fhe_multiply(coeff1, ctxt, false),
                         SparkFHE.getInstance().fhe_add(
-                                SparkFHE.getInstance().fhe_multiply(coeff2, SparkFHE.getInstance().fhe_power(ctxt, 3)),
+                                SparkFHE.getInstance().fhe_multiply(coeff2, SparkFHE.getInstance().fhe_power(ctxt, 3), false),
                                 SparkFHE.getInstance().fhe_add(
-                                        SparkFHE.getInstance().fhe_multiply(coeff3, SparkFHE.getInstance().fhe_power(ctxt, 5)),
-                                        SparkFHE.getInstance().fhe_multiply(coeff4, SparkFHE.getInstance().fhe_power(ctxt, 7))
+                                        SparkFHE.getInstance().fhe_multiply(coeff3, SparkFHE.getInstance().fhe_power(ctxt, 5), false),
+                                        SparkFHE.getInstance().fhe_multiply(coeff4, SparkFHE.getInstance().fhe_power(ctxt, 7), false)
                                 )
                         )
                 )
@@ -174,7 +174,8 @@ public class LogisticRegressionExamples {
                     SparkFHE.getInstance().encrypt(SparkFHE.getInstance().encode("0.5")).toString(),
                     SparkFHE.getInstance().fhe_multiply(
                             SparkFHE.getInstance().encrypt(SparkFHE.getInstance().encode("0.197")).toString(),
-                            SparkFHE.getInstance().fhe_multiply(values[i], values[i])
+                            SparkFHE.getInstance().fhe_multiply(values[i], values[i], false),
+                            false
                     )
             );
         }
@@ -393,7 +394,7 @@ public class LogisticRegressionExamples {
             for (int i = 0; i < weightValues.length; i++) {
                 weightValues[i] = SparkFHE.getInstance().fhe_subtract(
                         weightValues[i],
-                        SparkFHE.getInstance().fhe_multiply(lr, delta[i])
+                        SparkFHE.getInstance().fhe_multiply(lr, delta[i], false)
                 );
             }
 //            System.out.println("Weights updated...");
@@ -534,36 +535,46 @@ public class LogisticRegressionExamples {
 //            if (epoch > 0) {
 //                ctxtBetas = SparkFHE.getInstance().encrypt(SparkFHE.getInstance().encode(betaVector));
 //            }
-            printCtxt("ctxtBetas", ctxtBetas);
-            Ciphertext ctxt = SparkFHE.getInstance().fhe_multiply(ctxtMatrix, ctxtV);
-            printCtxt("ct1", ctxt);
+//            printCtxt("ctxtBetas", ctxtBetas);
+            System.out.println("Computed ctxtBetas");
+            Ciphertext ctxt = SparkFHE.getInstance().fhe_multiply(ctxtMatrix, ctxtV, false);
+            SparkFHE.getInstance().fhe_rescale(ctxt);
+//            printCtxt("ct1", ctxt);
+//            System.out.println("Computed ct1");
 
             // ======================== STEP 2  ===============================
             Ciphertext ct2 = new Ciphertext(ctxt.toString());
             for (int j = 0; (int)Math.pow(2, j) < NCOLS; j++) {
                 ct2 = SparkFHE.getInstance().fhe_add(ct2, SparkFHE.getInstance().fhe_rotate(ct2, -(int)Math.pow(2, j)));
             }
-            printCtxt("ct2", ct2);
+//            printCtxt("ct2", ct2);
+//            System.out.println("Computed ct2");
 
             // ======================== STEP 3 ================================
             Ciphertext ctxtC = SparkFHE.getInstance().encrypt(SparkFHE.getInstance().encode(C));
-            Ciphertext ct3 = SparkFHE.getInstance().fhe_multiply(ct2, ctxtC);
-            printCtxt("ct3", ct3);
+            Ciphertext ct3 = SparkFHE.getInstance().fhe_multiply(ct2, ctxtC, false);
+            SparkFHE.getInstance().fhe_rescale(ct3);
+//            printCtxt("ct3", ct3);
+            System.out.println("Computed ct3");
 
             // ======================== STEP 4 ==================================
             Ciphertext ct4 = new Ciphertext(ct3.toString());
             for (int j = 0; (int)Math.pow(2, j) < NCOLS; j++) {
                 ct4 = SparkFHE.getInstance().fhe_add(ct4, SparkFHE.getInstance().fhe_rotate(ct4, (int)Math.pow(2, j)));
             }
-            printCtxt("ct4", ct4);
+//            printCtxt("ct4", ct4);
+            System.out.println("Computed ct4");
 
             // ======================== STEP 5 ===================================
             Ciphertext ct5 = g7(ct4);
 //            printCtxt("ct5", ct5);
+            System.out.println("Computed ct5");
 
             // ======================= STEP 6 ====================================
-            Ciphertext ct6 = SparkFHE.getInstance().fhe_multiply(ct5, ctxt);
+            Ciphertext ct6 = SparkFHE.getInstance().fhe_multiply(ct5, ctxt, false);
+            SparkFHE.getInstance().fhe_rescale(ct6);
 //            printCtxt("ct6", ct6);
+            System.out.println("Computed ct6");
 
             // ======================= STEP 7 ====================================
             Ciphertext ct7 = new Ciphertext(ct6.toString());
@@ -572,23 +583,30 @@ public class LogisticRegressionExamples {
             }
 
 //            printCtxt("ct7", ct7);
+            System.out.println("Computed ct7");
 
             // ======================== STEP 8 =====================================
-            Ciphertext ct8 = SparkFHE.getInstance().fhe_multiply(ct7, ctxtAlpha);
+            Ciphertext ct8 = SparkFHE.getInstance().fhe_multiply(ct7, ctxtAlpha, false);
+            SparkFHE.getInstance().fhe_rescale(ct8);
 //            printCtxt("ct8", ct8);
             Ciphertext ctxtBetasNew = SparkFHE.getInstance().fhe_add(ctxtV, ct8);
-            printCtxt("ctBetasNew", ctxtBetasNew);
+//            printCtxt("ctBetasNew", ctxtBetasNew);
+            System.out.println("Computed ctBetasNew");
 
             // ======================== STEP 9 =========================================
             ctxtV = SparkFHE.getInstance().fhe_add(
-                    SparkFHE.getInstance().fhe_multiply(ctxtOneMinusGamma, ctxtBetasNew),
-                    SparkFHE.getInstance().fhe_multiply(ctxtGamma, ctxtBetas)
+                    SparkFHE.getInstance().fhe_multiply(ctxtOneMinusGamma, ctxtBetasNew, false),
+                    SparkFHE.getInstance().fhe_multiply(ctxtGamma, ctxtBetas, false)
             );
-            printCtxt("ctxtV", ctxtV);
+            SparkFHE.getInstance().fhe_rescale(ctxtV);
+//            printCtxt("ctxtV", ctxtV);
+            System.out.println("Computed ctxtV");
             ctxtBetas = ctxtBetasNew;
+            printCtxt("ctxtBetas", ctxtBetas);
+//
 //            ctxtBetas = new Ciphertext(ctxtBetasNew.toString());
 //            printCtxt("ctxtBetas, " + epoch, ctxtV);
-//            betaVector = new DoubleVector();
+//            DoubleVector betaVector = new DoubleVector();
 //            SparkFHE.getInstance().decode(betaVector, SparkFHE.getInstance().decrypt(ctxtBetasNew));
         }
     }
@@ -601,7 +619,7 @@ public class LogisticRegressionExamples {
     }
 
     public static void main(String[] args) {
-        String filePath = "/home/skd/Documents/SparkFHE-Examples/data/exam.csv";
+        String filePath = "/Users/asma/SparkFHE-Examples/data/exam.csv";
         setXy(filePath);
         minMaxScaler(X);
 
@@ -659,7 +677,7 @@ public class LogisticRegressionExamples {
 //        runCtxtExample(split, jsc);
         split.trainX = Arrays.copyOfRange(X, 0, 64);
         split.trainY = Arrays.copyOfRange(y, 0, 64);
-        runNesterovExample(split, 20);
+        runNesterovExample(split, 5);
         // Stop existing spark context
         jsc.close();
 
